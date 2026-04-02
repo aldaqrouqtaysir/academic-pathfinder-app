@@ -1,0 +1,1691 @@
+{
+  "students": {
+    "20200164": {
+      "studentId": "20200164",
+      "activeSessionId": "e41a1434-0026-4cf9-ab67-d3addca8ee49",
+      "sessions": [
+        {
+          "id": "12d4f17f-65e5-4fdf-8c88-661b2f8eb213",
+          "createdAt": "2026-04-02T17:26:40.202Z",
+          "updatedAt": "2026-04-02T17:26:40.202Z",
+          "studentId": "20200164",
+          "answers": {
+            "currentGrade": 11,
+            "semester": "Semester1",
+            "currentCourses": [],
+            "currentAPs": [],
+            "strengths": [
+              "Science"
+            ],
+            "weaknesses": [
+              "English"
+            ],
+            "selfReportedAcademicConfidence": "Medium",
+            "workloadTolerance": "Medium",
+            "interests": [
+              "Design / Creative"
+            ],
+            "careerGoals": [
+              "Medicine / Health"
+            ],
+            "goalClarity": "Medium",
+            "mainCountry": "UAE",
+            "additionalCountries": [
+              "Egypt",
+              "Jordan"
+            ],
+            "countryIntent": "main_focus",
+            "priorityStyle": "balanced_path",
+            "optimizationTarget": "lighter_workload",
+            "preferencesToAvoid": [
+              "Too many APs"
+            ],
+            "preferences": [
+              "Real-world applications"
+            ],
+            "futurePlans": "hi",
+            "riskPreference": "Balanced",
+            "scholarshipImportance": "Medium"
+          },
+          "scenario": {
+            "semester": "Semester1",
+            "isMidYear": false,
+            "preferLowerWorkload": true
+          },
+          "outputs": {
+            "bundle": {
+              "bestFit": {
+                "kind": "bestFit",
+                "label": "Optimal",
+                "selections": {
+                  "core": [
+                    "ENG_11",
+                    "PHYS_11",
+                    "MATH_BUSINESS"
+                  ],
+                  "set1": [
+                    "AP_CHEM"
+                  ],
+                  "set2": [
+                    "AP_BIO"
+                  ],
+                  "categorySelections": {
+                    "english_category": "ENG_11",
+                    "science_category": "PHYS_11",
+                    "math_category": "MATH_BUSINESS",
+                    "set1_elective": "AP_CHEM",
+                    "set2_elective": "AP_BIO"
+                  }
+                },
+                "score": 67.3,
+                "confidence": {
+                  "overall": 0.6729999999999999,
+                  "factors": [
+                    {
+                      "label": "Interest alignment",
+                      "value": 2.8
+                    },
+                    {
+                      "label": "Strength match",
+                      "value": 7.4
+                    },
+                    {
+                      "label": "Workload fit",
+                      "value": 11.5
+                    },
+                    {
+                      "label": "Career/pathway alignment",
+                      "value": 7
+                    },
+                    {
+                      "label": "Country alignment",
+                      "value": 7.3
+                    },
+                    {
+                      "label": "Future relevance",
+                      "value": 10.2
+                    },
+                    {
+                      "label": "Learning stretch",
+                      "value": 6.7
+                    },
+                    {
+                      "label": "Real-world application relevance",
+                      "value": 7.8
+                    },
+                    {
+                      "label": "Scholarship competitiveness",
+                      "value": 6.6
+                    }
+                  ]
+                },
+                "rationale": {
+                  "targetPathway": "medicine",
+                  "topContributingFactors": [
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average workload points: 4.20 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 10.2,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: medicine / health."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 7.8,
+                      "evidence": [
+                        "Average real-world relevance points: 4.20/5."
+                      ]
+                    }
+                  ],
+                  "factorBreakdown": [
+                    {
+                      "key": "interest_alignment",
+                      "label": "Interest alignment",
+                      "points": 2.8,
+                      "evidence": [
+                        "Matched 1/5 selected courses with student interests.",
+                        "Interests considered: Design / Creative."
+                      ]
+                    },
+                    {
+                      "key": "strength_match",
+                      "label": "Strength match",
+                      "points": 7.4,
+                      "evidence": [
+                        "Strength-tag overlap in 4/5 selected courses.",
+                        "Strengths considered: Science."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average workload points: 4.20 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 7,
+                      "evidence": [
+                        "Detected pathway: medicine.",
+                        "Average pathway affinity: 47%.",
+                        "Career goals considered: Medicine / Health."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 7.3,
+                      "evidence": [
+                        "Egypt/Jordan selected: plan favors academically rigorous, broadly recognized options.",
+                        "Target countries: UAE, Egypt, Jordan."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 10.2,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: medicine / health."
+                      ]
+                    },
+                    {
+                      "key": "learning_stretch",
+                      "label": "Learning stretch",
+                      "points": 6.7,
+                      "evidence": [
+                        "Average rigor points: 4.00 vs confidence-adjusted target 3.4.",
+                        "Risk preference: Balanced."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 7.8,
+                      "evidence": [
+                        "Average real-world relevance points: 4.20/5."
+                      ]
+                    },
+                    {
+                      "key": "scholarship_competitiveness",
+                      "label": "Scholarship competitiveness",
+                      "points": 6.6,
+                      "evidence": [
+                        "Scholarship importance: Medium.",
+                        "Scholarship competitiveness proxy: 89%."
+                      ]
+                    }
+                  ]
+                },
+                "explanation": "Best Fit balances your goals, workload tolerance, and future impact for Grade 11.",
+                "continuationSuggestions": [
+                  {
+                    "fromCourseCode": "AP_CHEM",
+                    "toCourseCode": "AP_CHEM",
+                    "kind": "required"
+                  },
+                  {
+                    "fromCourseCode": "AP_BIO",
+                    "toCourseCode": "AP_BIO",
+                    "kind": "required"
+                  }
+                ],
+                "whyMayNotFit": [
+                  "Workload appears high (4.2/5) relative to your declared tolerance (Medium).",
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "whyMayFeelHard": [
+                  "Difficulty appears manageable for your declared workload tolerance."
+                ],
+                "confidenceExplanation": "Medium confidence (67%). Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.",
+                "scoringWeightModel": {
+                  "baseWeights": {
+                    "interest_alignment": 0.14,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.12,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.08,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "adjustedWeights": {
+                    "interest_alignment": 0.15400000000000003,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.17820000000000003,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.1,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.09000000000000001,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "normalizedWeights": {
+                    "interest_alignment": 0.1423027166882277,
+                    "strength_match": 0.09240436148586213,
+                    "workload_fit": 0.16466457216780633,
+                    "pathway_alignment": 0.1478469783773794,
+                    "country_alignment": 0.09240436148586213,
+                    "future_relevance": 0.11088523378303455,
+                    "learning_stretch": 0.08316392533727593,
+                    "real_world_relevance": 0.09240436148586213,
+                    "scholarship_competitiveness": 0.0739234891886897
+                  },
+                  "appliedAdjustments": [
+                    "priorityStyle=balanced_path modestly increased workload and interest fit.",
+                    "optimizationTarget=lighter_workload increased workload-fit and reduced stretch pressure.",
+                    "countryIntent=main_focus increased country alignment weight."
+                  ]
+                },
+                "hardRisks": [],
+                "softWarnings": [
+                  "Workload appears high (4.2/5) relative to your declared tolerance (Medium).",
+                  "Selected plan shows weak alignment with stated interests/career goals.",
+                  "Selected countries include Egypt/Jordan: verify equivalency/compliance with counselor for final pathway approval."
+                ],
+                "tradeOffs": [
+                  "Higher rigor can improve competitiveness but increase workload pressure.",
+                  "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks."
+                ],
+                "alternatives": [
+                  "Core: AP Language & Composition, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Biology",
+                  "Core: English 11, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Computer Science Principles",
+                  "Core: English 11, Physics, Pre-Calculus | Set 1: AP Chemistry | Set 2: AP Biology"
+                ],
+                "actionSteps": [
+                  "Review this plan with counselor for final section placement.",
+                  "Confirm year-long commitments before mid-year changes.",
+                  "Track workload weekly and adjust study plan early.",
+                  "Scoring priority applied: priorityStyle=balanced_path modestly increased workload and interest fit.",
+                  "Scoring priority applied: optimizationTarget=lighter_workload increased workload-fit and reduced stretch pressure.",
+                  "Scoring priority applied: countryIntent=main_focus increased country alignment weight."
+                ],
+                "futureImpactSummary": "This path supports your likely direction (medicine) and prioritizes: English 11, Physics, Math for Business / Business Math, AP Chemistry, AP Biology."
+              },
+              "balanced": {
+                "kind": "balanced",
+                "label": "Recommended",
+                "selections": {
+                  "core": [
+                    "ENG_11",
+                    "PHYS_11",
+                    "MATH_INT_3"
+                  ],
+                  "set1": [
+                    "AP_CHEM"
+                  ],
+                  "set2": [
+                    "AP_CSP"
+                  ],
+                  "categorySelections": {
+                    "english_category": "ENG_11",
+                    "science_category": "PHYS_11",
+                    "math_category": "MATH_INT_3",
+                    "set1_elective": "AP_CHEM",
+                    "set2_elective": "AP_CSP"
+                  }
+                },
+                "score": 64,
+                "confidence": {
+                  "overall": 0.64,
+                  "factors": [
+                    {
+                      "label": "Interest alignment",
+                      "value": 0
+                    },
+                    {
+                      "label": "Strength match",
+                      "value": 7.4
+                    },
+                    {
+                      "label": "Workload fit",
+                      "value": 11.5
+                    },
+                    {
+                      "label": "Career/pathway alignment",
+                      "value": 5.7
+                    },
+                    {
+                      "label": "Country alignment",
+                      "value": 8
+                    },
+                    {
+                      "label": "Future relevance",
+                      "value": 10.6
+                    },
+                    {
+                      "label": "Learning stretch",
+                      "value": 6.7
+                    },
+                    {
+                      "label": "Real-world application relevance",
+                      "value": 7.4
+                    },
+                    {
+                      "label": "Scholarship competitiveness",
+                      "value": 6.7
+                    }
+                  ]
+                },
+                "rationale": {
+                  "targetPathway": "medicine",
+                  "topContributingFactors": [
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average workload points: 4.20 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 10.6,
+                      "evidence": [
+                        "Average future relevance points: 4.80/5.",
+                        "Career goal text signal: medicine / health."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 8,
+                      "evidence": [
+                        "Egypt/Jordan selected: plan favors academically rigorous, broadly recognized options.",
+                        "Target countries: UAE, Egypt, Jordan."
+                      ]
+                    }
+                  ],
+                  "factorBreakdown": [
+                    {
+                      "key": "interest_alignment",
+                      "label": "Interest alignment",
+                      "points": 0,
+                      "evidence": [
+                        "Matched 0/5 selected courses with student interests.",
+                        "Interests considered: Design / Creative."
+                      ]
+                    },
+                    {
+                      "key": "strength_match",
+                      "label": "Strength match",
+                      "points": 7.4,
+                      "evidence": [
+                        "Strength-tag overlap in 4/5 selected courses.",
+                        "Strengths considered: Science."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average workload points: 4.20 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 5.7,
+                      "evidence": [
+                        "Detected pathway: medicine.",
+                        "Average pathway affinity: 39%.",
+                        "Career goals considered: Medicine / Health."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 8,
+                      "evidence": [
+                        "Egypt/Jordan selected: plan favors academically rigorous, broadly recognized options.",
+                        "Target countries: UAE, Egypt, Jordan."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 10.6,
+                      "evidence": [
+                        "Average future relevance points: 4.80/5.",
+                        "Career goal text signal: medicine / health."
+                      ]
+                    },
+                    {
+                      "key": "learning_stretch",
+                      "label": "Learning stretch",
+                      "points": 6.7,
+                      "evidence": [
+                        "Average rigor points: 4.00 vs confidence-adjusted target 3.4.",
+                        "Risk preference: Balanced."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 7.4,
+                      "evidence": [
+                        "Average real-world relevance points: 4.00/5."
+                      ]
+                    },
+                    {
+                      "key": "scholarship_competitiveness",
+                      "label": "Scholarship competitiveness",
+                      "points": 6.7,
+                      "evidence": [
+                        "Scholarship importance: Medium.",
+                        "Scholarship competitiveness proxy: 90%."
+                      ]
+                    }
+                  ]
+                },
+                "explanation": "Balanced keeps a strong overall fit while avoiding unnecessary overload.",
+                "continuationSuggestions": [
+                  {
+                    "fromCourseCode": "AP_CHEM",
+                    "toCourseCode": "AP_CHEM",
+                    "kind": "required"
+                  },
+                  {
+                    "fromCourseCode": "AP_CSP",
+                    "toCourseCode": "AP_CSP",
+                    "kind": "required"
+                  }
+                ],
+                "whyMayNotFit": [
+                  "Workload appears high (4.2/5) relative to your declared tolerance (Medium).",
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "whyMayFeelHard": [
+                  "Difficulty appears manageable for your declared workload tolerance."
+                ],
+                "confidenceExplanation": "Medium confidence (64%). Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.",
+                "scoringWeightModel": {
+                  "baseWeights": {
+                    "interest_alignment": 0.14,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.12,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.08,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "adjustedWeights": {
+                    "interest_alignment": 0.15400000000000003,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.17820000000000003,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.1,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.09000000000000001,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "normalizedWeights": {
+                    "interest_alignment": 0.1423027166882277,
+                    "strength_match": 0.09240436148586213,
+                    "workload_fit": 0.16466457216780633,
+                    "pathway_alignment": 0.1478469783773794,
+                    "country_alignment": 0.09240436148586213,
+                    "future_relevance": 0.11088523378303455,
+                    "learning_stretch": 0.08316392533727593,
+                    "real_world_relevance": 0.09240436148586213,
+                    "scholarship_competitiveness": 0.0739234891886897
+                  },
+                  "appliedAdjustments": [
+                    "priorityStyle=balanced_path modestly increased workload and interest fit.",
+                    "optimizationTarget=lighter_workload increased workload-fit and reduced stretch pressure.",
+                    "countryIntent=main_focus increased country alignment weight."
+                  ]
+                },
+                "hardRisks": [],
+                "softWarnings": [
+                  "Workload appears high (4.2/5) relative to your declared tolerance (Medium).",
+                  "Selected plan shows weak alignment with stated interests/career goals.",
+                  "Selected countries include Egypt/Jordan: verify equivalency/compliance with counselor for final pathway approval."
+                ],
+                "tradeOffs": [
+                  "Higher rigor can improve competitiveness but increase workload pressure.",
+                  "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks."
+                ],
+                "alternatives": [
+                  "Core: AP Language & Composition, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Biology",
+                  "Core: English 11, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Computer Science Principles",
+                  "Core: English 11, Physics, Pre-Calculus | Set 1: AP Chemistry | Set 2: AP Biology"
+                ],
+                "actionSteps": [
+                  "Review this plan with counselor for final section placement.",
+                  "Confirm year-long commitments before mid-year changes.",
+                  "Track workload weekly and adjust study plan early.",
+                  "Scoring priority applied: priorityStyle=balanced_path modestly increased workload and interest fit.",
+                  "Scoring priority applied: optimizationTarget=lighter_workload increased workload-fit and reduced stretch pressure.",
+                  "Scoring priority applied: countryIntent=main_focus increased country alignment weight."
+                ],
+                "futureImpactSummary": "This path supports your likely direction (medicine) and prioritizes: English 11, Physics, Integrated Math 3, AP Chemistry, AP Computer Science Principles."
+              },
+              "stretch": {
+                "kind": "stretch",
+                "label": "Recommended",
+                "selections": {
+                  "core": [
+                    "ENG_11",
+                    "PHYS_11",
+                    "MATH_BUSINESS"
+                  ],
+                  "set1": [
+                    "AP_CHEM"
+                  ],
+                  "set2": [
+                    "AP_CSP"
+                  ],
+                  "categorySelections": {
+                    "english_category": "ENG_11",
+                    "science_category": "PHYS_11",
+                    "math_category": "MATH_BUSINESS",
+                    "set1_elective": "AP_CHEM",
+                    "set2_elective": "AP_CSP"
+                  }
+                },
+                "score": 66,
+                "confidence": {
+                  "overall": 0.66,
+                  "factors": [
+                    {
+                      "label": "Interest alignment",
+                      "value": 2.8
+                    },
+                    {
+                      "label": "Strength match",
+                      "value": 7.4
+                    },
+                    {
+                      "label": "Workload fit",
+                      "value": 12.6
+                    },
+                    {
+                      "label": "Career/pathway alignment",
+                      "value": 4
+                    },
+                    {
+                      "label": "Country alignment",
+                      "value": 7.3
+                    },
+                    {
+                      "label": "Future relevance",
+                      "value": 10.2
+                    },
+                    {
+                      "label": "Learning stretch",
+                      "value": 7.2
+                    },
+                    {
+                      "label": "Real-world application relevance",
+                      "value": 8.1
+                    },
+                    {
+                      "label": "Scholarship competitiveness",
+                      "value": 6.4
+                    }
+                  ]
+                },
+                "rationale": {
+                  "targetPathway": "medicine",
+                  "topContributingFactors": [
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 12.6,
+                      "evidence": [
+                        "Average workload points: 4.00 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 10.2,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: medicine / health."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 8.1,
+                      "evidence": [
+                        "Average real-world relevance points: 4.40/5."
+                      ]
+                    }
+                  ],
+                  "factorBreakdown": [
+                    {
+                      "key": "interest_alignment",
+                      "label": "Interest alignment",
+                      "points": 2.8,
+                      "evidence": [
+                        "Matched 1/5 selected courses with student interests.",
+                        "Interests considered: Design / Creative."
+                      ]
+                    },
+                    {
+                      "key": "strength_match",
+                      "label": "Strength match",
+                      "points": 7.4,
+                      "evidence": [
+                        "Strength-tag overlap in 4/5 selected courses.",
+                        "Strengths considered: Science."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 12.6,
+                      "evidence": [
+                        "Average workload points: 4.00 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 4,
+                      "evidence": [
+                        "Detected pathway: medicine.",
+                        "Average pathway affinity: 27%.",
+                        "Career goals considered: Medicine / Health."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 7.3,
+                      "evidence": [
+                        "Egypt/Jordan selected: plan favors academically rigorous, broadly recognized options.",
+                        "Target countries: UAE, Egypt, Jordan."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 10.2,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: medicine / health."
+                      ]
+                    },
+                    {
+                      "key": "learning_stretch",
+                      "label": "Learning stretch",
+                      "points": 7.2,
+                      "evidence": [
+                        "Average rigor points: 3.80 vs confidence-adjusted target 3.4.",
+                        "Risk preference: Balanced."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 8.1,
+                      "evidence": [
+                        "Average real-world relevance points: 4.40/5."
+                      ]
+                    },
+                    {
+                      "key": "scholarship_competitiveness",
+                      "label": "Scholarship competitiveness",
+                      "points": 6.4,
+                      "evidence": [
+                        "Scholarship importance: Medium.",
+                        "Scholarship competitiveness proxy: 87%."
+                      ]
+                    }
+                  ]
+                },
+                "explanation": "Stretch increases rigor and challenge to improve competitiveness when appropriate.",
+                "continuationSuggestions": [
+                  {
+                    "fromCourseCode": "AP_CHEM",
+                    "toCourseCode": "AP_CHEM",
+                    "kind": "required"
+                  },
+                  {
+                    "fromCourseCode": "AP_CSP",
+                    "toCourseCode": "AP_CSP",
+                    "kind": "required"
+                  }
+                ],
+                "whyMayNotFit": [
+                  "Selected plan shows weak alignment with stated interests/career goals.",
+                  "Selected countries include Egypt/Jordan: verify equivalency/compliance with counselor for final pathway approval."
+                ],
+                "whyMayFeelHard": [
+                  "Difficulty appears manageable for your declared workload tolerance."
+                ],
+                "confidenceExplanation": "Medium confidence (66%). Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.",
+                "scoringWeightModel": {
+                  "baseWeights": {
+                    "interest_alignment": 0.14,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.12,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.08,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "adjustedWeights": {
+                    "interest_alignment": 0.15400000000000003,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.17820000000000003,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.1,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.09000000000000001,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "normalizedWeights": {
+                    "interest_alignment": 0.1423027166882277,
+                    "strength_match": 0.09240436148586213,
+                    "workload_fit": 0.16466457216780633,
+                    "pathway_alignment": 0.1478469783773794,
+                    "country_alignment": 0.09240436148586213,
+                    "future_relevance": 0.11088523378303455,
+                    "learning_stretch": 0.08316392533727593,
+                    "real_world_relevance": 0.09240436148586213,
+                    "scholarship_competitiveness": 0.0739234891886897
+                  },
+                  "appliedAdjustments": [
+                    "priorityStyle=balanced_path modestly increased workload and interest fit.",
+                    "optimizationTarget=lighter_workload increased workload-fit and reduced stretch pressure.",
+                    "countryIntent=main_focus increased country alignment weight."
+                  ]
+                },
+                "hardRisks": [],
+                "softWarnings": [
+                  "Selected plan shows weak alignment with stated interests/career goals.",
+                  "Selected countries include Egypt/Jordan: verify equivalency/compliance with counselor for final pathway approval."
+                ],
+                "tradeOffs": [
+                  "Higher rigor can improve competitiveness but increase workload pressure.",
+                  "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks."
+                ],
+                "alternatives": [
+                  "Core: AP Language & Composition, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Biology",
+                  "Core: English 11, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Computer Science Principles",
+                  "Core: English 11, Physics, Pre-Calculus | Set 1: AP Chemistry | Set 2: AP Biology"
+                ],
+                "actionSteps": [
+                  "Review this plan with counselor for final section placement.",
+                  "Confirm year-long commitments before mid-year changes.",
+                  "Track workload weekly and adjust study plan early.",
+                  "Scoring priority applied: priorityStyle=balanced_path modestly increased workload and interest fit.",
+                  "Scoring priority applied: optimizationTarget=lighter_workload increased workload-fit and reduced stretch pressure.",
+                  "Scoring priority applied: countryIntent=main_focus increased country alignment weight."
+                ],
+                "futureImpactSummary": "This path supports your likely direction (medicine) and prioritizes: English 11, Physics, Math for Business / Business Math, AP Chemistry, AP Computer Science Principles."
+              }
+            },
+            "generatedAt": "2026-04-02T17:26:40.199Z"
+          }
+        },
+        {
+          "id": "e41a1434-0026-4cf9-ab67-d3addca8ee49",
+          "createdAt": "2026-04-02T17:30:28.325Z",
+          "updatedAt": "2026-04-02T17:30:28.325Z",
+          "studentId": "20200164",
+          "answers": {
+            "currentGrade": 11,
+            "semester": "Semester1",
+            "currentCourses": [],
+            "currentAPs": [],
+            "strengths": [
+              "Humanities"
+            ],
+            "weaknesses": [
+              "Science"
+            ],
+            "selfReportedAcademicConfidence": "Medium",
+            "workloadTolerance": "Medium",
+            "interests": [],
+            "careerGoals": [],
+            "goalClarity": "Medium",
+            "mainCountry": "UAE",
+            "additionalCountries": [],
+            "countryIntent": "main_focus",
+            "priorityStyle": "balanced_path",
+            "optimizationTarget": "career_alignment",
+            "preferencesToAvoid": [],
+            "preferences": [],
+            "futurePlans": "",
+            "riskPreference": "Balanced",
+            "scholarshipImportance": "Medium"
+          },
+          "scenario": {
+            "semester": "Semester1",
+            "isMidYear": false,
+            "preferLowerWorkload": false
+          },
+          "outputs": {
+            "bundle": {
+              "bestFit": {
+                "kind": "bestFit",
+                "label": "Optimal",
+                "selections": {
+                  "core": [
+                    "ENG_11",
+                    "PHYS_11",
+                    "MATH_BUSINESS"
+                  ],
+                  "set1": [
+                    "AP_CHEM"
+                  ],
+                  "set2": [
+                    "AP_CSP"
+                  ],
+                  "categorySelections": {
+                    "english_category": "ENG_11",
+                    "science_category": "PHYS_11",
+                    "math_category": "MATH_BUSINESS",
+                    "set1_elective": "AP_CHEM",
+                    "set2_elective": "AP_CSP"
+                  }
+                },
+                "score": 63.8,
+                "confidence": {
+                  "overall": 0.638,
+                  "factors": [
+                    {
+                      "label": "Interest alignment",
+                      "value": 0
+                    },
+                    {
+                      "label": "Strength match",
+                      "value": 1.8
+                    },
+                    {
+                      "label": "Workload fit",
+                      "value": 9.2
+                    },
+                    {
+                      "label": "Career/pathway alignment",
+                      "value": 10
+                    },
+                    {
+                      "label": "Country alignment",
+                      "value": 9.1
+                    },
+                    {
+                      "label": "Future relevance",
+                      "value": 11.5
+                    },
+                    {
+                      "label": "Learning stretch",
+                      "value": 7.9
+                    },
+                    {
+                      "label": "Real-world application relevance",
+                      "value": 8
+                    },
+                    {
+                      "label": "Scholarship competitiveness",
+                      "value": 6.3
+                    }
+                  ]
+                },
+                "rationale": {
+                  "targetPathway": "undecided",
+                  "topContributingFactors": [
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: none provided."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 10,
+                      "evidence": [
+                        "Detected pathway: undecided.",
+                        "Average pathway affinity: 55%.",
+                        "Career goals considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 9.2,
+                      "evidence": [
+                        "Average workload points: 4.00 vs tolerance target 3.3."
+                      ]
+                    }
+                  ],
+                  "factorBreakdown": [
+                    {
+                      "key": "interest_alignment",
+                      "label": "Interest alignment",
+                      "points": 0,
+                      "evidence": [
+                        "Matched 0/5 selected courses with student interests.",
+                        "Interests considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "strength_match",
+                      "label": "Strength match",
+                      "points": 1.8,
+                      "evidence": [
+                        "Strength-tag overlap in 1/5 selected courses.",
+                        "Strengths considered: Humanities."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 9.2,
+                      "evidence": [
+                        "Average workload points: 4.00 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 10,
+                      "evidence": [
+                        "Detected pathway: undecided.",
+                        "Average pathway affinity: 55%.",
+                        "Career goals considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 9.1,
+                      "evidence": [
+                        "Default/flexible country logic applies (UAE/Qatar/US).",
+                        "Target countries: UAE."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: none provided."
+                      ]
+                    },
+                    {
+                      "key": "learning_stretch",
+                      "label": "Learning stretch",
+                      "points": 7.9,
+                      "evidence": [
+                        "Average rigor points: 3.80 vs confidence-adjusted target 3.4.",
+                        "Risk preference: Balanced."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 8,
+                      "evidence": [
+                        "Average real-world relevance points: 4.40/5."
+                      ]
+                    },
+                    {
+                      "key": "scholarship_competitiveness",
+                      "label": "Scholarship competitiveness",
+                      "points": 6.3,
+                      "evidence": [
+                        "Scholarship importance: Medium.",
+                        "Scholarship competitiveness proxy: 87%."
+                      ]
+                    }
+                  ]
+                },
+                "explanation": "Best Fit balances your goals, workload tolerance, and future impact for Grade 11.",
+                "continuationSuggestions": [
+                  {
+                    "fromCourseCode": "AP_CHEM",
+                    "toCourseCode": "AP_CHEM",
+                    "kind": "required"
+                  },
+                  {
+                    "fromCourseCode": "AP_CSP",
+                    "toCourseCode": "AP_CSP",
+                    "kind": "required"
+                  }
+                ],
+                "whyMayNotFit": [
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "whyMayFeelHard": [
+                  "Difficulty appears manageable for your declared workload tolerance."
+                ],
+                "confidenceExplanation": "Medium confidence (64%). Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.",
+                "scoringWeightModel": {
+                  "baseWeights": {
+                    "interest_alignment": 0.14,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.12,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.08,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "adjustedWeights": {
+                    "interest_alignment": 0.15400000000000003,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.132,
+                    "pathway_alignment": 0.2,
+                    "country_alignment": 0.1,
+                    "future_relevance": 0.13799999999999998,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "normalizedWeights": {
+                    "interest_alignment": 0.13949275362318841,
+                    "strength_match": 0.09057971014492754,
+                    "workload_fit": 0.11956521739130434,
+                    "pathway_alignment": 0.18115942028985507,
+                    "country_alignment": 0.09057971014492754,
+                    "future_relevance": 0.12499999999999997,
+                    "learning_stretch": 0.09057971014492754,
+                    "real_world_relevance": 0.09057971014492754,
+                    "scholarship_competitiveness": 0.07246376811594202
+                  },
+                  "appliedAdjustments": [
+                    "priorityStyle=balanced_path modestly increased workload and interest fit.",
+                    "optimizationTarget=career_alignment increased pathway/future relevance.",
+                    "countryIntent=main_focus increased country alignment weight."
+                  ]
+                },
+                "hardRisks": [],
+                "softWarnings": [
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "tradeOffs": [
+                  "Higher rigor can improve competitiveness but increase workload pressure.",
+                  "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks."
+                ],
+                "alternatives": [
+                  "Core: AP Language & Composition, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Computer Science Principles",
+                  "Core: English 11, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Biology",
+                  "Core: English 11, Physics, Integrated Math 3 | Set 1: AP Chemistry | Set 2: AP Computer Science Principles"
+                ],
+                "actionSteps": [
+                  "Review this plan with counselor for final section placement.",
+                  "Confirm year-long commitments before mid-year changes.",
+                  "Track workload weekly and adjust study plan early.",
+                  "Scoring priority applied: priorityStyle=balanced_path modestly increased workload and interest fit.",
+                  "Scoring priority applied: optimizationTarget=career_alignment increased pathway/future relevance.",
+                  "Scoring priority applied: countryIntent=main_focus increased country alignment weight."
+                ],
+                "futureImpactSummary": "This path supports your likely direction (undecided) and prioritizes: English 11, Physics, Math for Business / Business Math, AP Chemistry, AP Computer Science Principles."
+              },
+              "balanced": {
+                "kind": "balanced",
+                "label": "Recommended",
+                "selections": {
+                  "core": [
+                    "AP_LANG_COMP",
+                    "PHYS_11",
+                    "MATH_INT_3"
+                  ],
+                  "set1": [
+                    "AP_CHEM"
+                  ],
+                  "set2": [
+                    "AP_BIO"
+                  ],
+                  "categorySelections": {
+                    "english_category": "AP_LANG_COMP",
+                    "science_category": "PHYS_11",
+                    "math_category": "MATH_INT_3",
+                    "set1_elective": "AP_CHEM",
+                    "set2_elective": "AP_BIO"
+                  }
+                },
+                "score": 59.1,
+                "confidence": {
+                  "overall": 0.591,
+                  "factors": [
+                    {
+                      "label": "Interest alignment",
+                      "value": 0
+                    },
+                    {
+                      "label": "Strength match",
+                      "value": 1.8
+                    },
+                    {
+                      "label": "Workload fit",
+                      "value": 6.8
+                    },
+                    {
+                      "label": "Career/pathway alignment",
+                      "value": 9.6
+                    },
+                    {
+                      "label": "Country alignment",
+                      "value": 9.1
+                    },
+                    {
+                      "label": "Future relevance",
+                      "value": 12.5
+                    },
+                    {
+                      "label": "Learning stretch",
+                      "value": 5.4
+                    },
+                    {
+                      "label": "Real-world application relevance",
+                      "value": 6.9
+                    },
+                    {
+                      "label": "Scholarship competitiveness",
+                      "value": 7
+                    }
+                  ]
+                },
+                "rationale": {
+                  "targetPathway": "undecided",
+                  "topContributingFactors": [
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 12.5,
+                      "evidence": [
+                        "Average future relevance points: 5.00/5.",
+                        "Career goal text signal: none provided."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 9.6,
+                      "evidence": [
+                        "Detected pathway: undecided.",
+                        "Average pathway affinity: 53%.",
+                        "Career goals considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 9.1,
+                      "evidence": [
+                        "Default/flexible country logic applies (UAE/Qatar/US).",
+                        "Target countries: UAE."
+                      ]
+                    }
+                  ],
+                  "factorBreakdown": [
+                    {
+                      "key": "interest_alignment",
+                      "label": "Interest alignment",
+                      "points": 0,
+                      "evidence": [
+                        "Matched 0/5 selected courses with student interests.",
+                        "Interests considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "strength_match",
+                      "label": "Strength match",
+                      "points": 1.8,
+                      "evidence": [
+                        "Strength-tag overlap in 1/5 selected courses.",
+                        "Strengths considered: Humanities."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 6.8,
+                      "evidence": [
+                        "Average workload points: 4.60 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 9.6,
+                      "evidence": [
+                        "Detected pathway: undecided.",
+                        "Average pathway affinity: 53%.",
+                        "Career goals considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 9.1,
+                      "evidence": [
+                        "Default/flexible country logic applies (UAE/Qatar/US).",
+                        "Target countries: UAE."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 12.5,
+                      "evidence": [
+                        "Average future relevance points: 5.00/5.",
+                        "Career goal text signal: none provided."
+                      ]
+                    },
+                    {
+                      "key": "learning_stretch",
+                      "label": "Learning stretch",
+                      "points": 5.4,
+                      "evidence": [
+                        "Average rigor points: 4.60 vs confidence-adjusted target 3.4.",
+                        "Risk preference: Balanced."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 6.9,
+                      "evidence": [
+                        "Average real-world relevance points: 3.80/5."
+                      ]
+                    },
+                    {
+                      "key": "scholarship_competitiveness",
+                      "label": "Scholarship competitiveness",
+                      "points": 7,
+                      "evidence": [
+                        "Scholarship importance: Medium.",
+                        "Scholarship competitiveness proxy: 97%."
+                      ]
+                    }
+                  ]
+                },
+                "explanation": "Balanced keeps a strong overall fit while avoiding unnecessary overload.",
+                "continuationSuggestions": [
+                  {
+                    "fromCourseCode": "AP_LANG_COMP",
+                    "toCourseCode": "AP_LANG_COMP",
+                    "kind": "required",
+                    "note": "Year-long AP continuation."
+                  },
+                  {
+                    "fromCourseCode": "AP_CHEM",
+                    "toCourseCode": "AP_CHEM",
+                    "kind": "required"
+                  },
+                  {
+                    "fromCourseCode": "AP_BIO",
+                    "toCourseCode": "AP_BIO",
+                    "kind": "required"
+                  }
+                ],
+                "whyMayNotFit": [
+                  "Workload appears high (4.6/5) relative to your declared tolerance (Medium).",
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "whyMayFeelHard": [
+                  "Workload-pressure risk exists relative to your tolerance and confidence profile."
+                ],
+                "confidenceExplanation": "Medium confidence (59%). Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.",
+                "scoringWeightModel": {
+                  "baseWeights": {
+                    "interest_alignment": 0.14,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.12,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.08,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "adjustedWeights": {
+                    "interest_alignment": 0.15400000000000003,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.132,
+                    "pathway_alignment": 0.2,
+                    "country_alignment": 0.1,
+                    "future_relevance": 0.13799999999999998,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "normalizedWeights": {
+                    "interest_alignment": 0.13949275362318841,
+                    "strength_match": 0.09057971014492754,
+                    "workload_fit": 0.11956521739130434,
+                    "pathway_alignment": 0.18115942028985507,
+                    "country_alignment": 0.09057971014492754,
+                    "future_relevance": 0.12499999999999997,
+                    "learning_stretch": 0.09057971014492754,
+                    "real_world_relevance": 0.09057971014492754,
+                    "scholarship_competitiveness": 0.07246376811594202
+                  },
+                  "appliedAdjustments": [
+                    "priorityStyle=balanced_path modestly increased workload and interest fit.",
+                    "optimizationTarget=career_alignment increased pathway/future relevance.",
+                    "countryIntent=main_focus increased country alignment weight."
+                  ]
+                },
+                "hardRisks": [],
+                "softWarnings": [
+                  "Workload appears high (4.6/5) relative to your declared tolerance (Medium).",
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "tradeOffs": [
+                  "Higher rigor can improve competitiveness but increase workload pressure.",
+                  "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks."
+                ],
+                "alternatives": [
+                  "Core: AP Language & Composition, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Computer Science Principles",
+                  "Core: English 11, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Biology",
+                  "Core: English 11, Physics, Integrated Math 3 | Set 1: AP Chemistry | Set 2: AP Computer Science Principles"
+                ],
+                "actionSteps": [
+                  "Review this plan with counselor for final section placement.",
+                  "Confirm year-long commitments before mid-year changes.",
+                  "Track workload weekly and adjust study plan early.",
+                  "Scoring priority applied: priorityStyle=balanced_path modestly increased workload and interest fit.",
+                  "Scoring priority applied: optimizationTarget=career_alignment increased pathway/future relevance.",
+                  "Scoring priority applied: countryIntent=main_focus increased country alignment weight."
+                ],
+                "futureImpactSummary": "This path supports your likely direction (undecided) and prioritizes: AP Language & Composition, Physics, Integrated Math 3, AP Chemistry, AP Biology."
+              },
+              "stretch": {
+                "kind": "stretch",
+                "label": "Recommended",
+                "selections": {
+                  "core": [
+                    "ENG_11",
+                    "PHYS_11",
+                    "MATH_BUSINESS"
+                  ],
+                  "set1": [
+                    "AP_CHEM"
+                  ],
+                  "set2": [
+                    "AP_CSP"
+                  ],
+                  "categorySelections": {
+                    "english_category": "ENG_11",
+                    "science_category": "PHYS_11",
+                    "math_category": "MATH_BUSINESS",
+                    "set1_elective": "AP_CHEM",
+                    "set2_elective": "AP_CSP"
+                  }
+                },
+                "score": 63.8,
+                "confidence": {
+                  "overall": 0.638,
+                  "factors": [
+                    {
+                      "label": "Interest alignment",
+                      "value": 0
+                    },
+                    {
+                      "label": "Strength match",
+                      "value": 1.8
+                    },
+                    {
+                      "label": "Workload fit",
+                      "value": 9.2
+                    },
+                    {
+                      "label": "Career/pathway alignment",
+                      "value": 10
+                    },
+                    {
+                      "label": "Country alignment",
+                      "value": 9.1
+                    },
+                    {
+                      "label": "Future relevance",
+                      "value": 11.5
+                    },
+                    {
+                      "label": "Learning stretch",
+                      "value": 7.9
+                    },
+                    {
+                      "label": "Real-world application relevance",
+                      "value": 8
+                    },
+                    {
+                      "label": "Scholarship competitiveness",
+                      "value": 6.3
+                    }
+                  ]
+                },
+                "rationale": {
+                  "targetPathway": "undecided",
+                  "topContributingFactors": [
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: none provided."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 10,
+                      "evidence": [
+                        "Detected pathway: undecided.",
+                        "Average pathway affinity: 55%.",
+                        "Career goals considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 9.2,
+                      "evidence": [
+                        "Average workload points: 4.00 vs tolerance target 3.3."
+                      ]
+                    }
+                  ],
+                  "factorBreakdown": [
+                    {
+                      "key": "interest_alignment",
+                      "label": "Interest alignment",
+                      "points": 0,
+                      "evidence": [
+                        "Matched 0/5 selected courses with student interests.",
+                        "Interests considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "strength_match",
+                      "label": "Strength match",
+                      "points": 1.8,
+                      "evidence": [
+                        "Strength-tag overlap in 1/5 selected courses.",
+                        "Strengths considered: Humanities."
+                      ]
+                    },
+                    {
+                      "key": "workload_fit",
+                      "label": "Workload fit",
+                      "points": 9.2,
+                      "evidence": [
+                        "Average workload points: 4.00 vs tolerance target 3.3."
+                      ]
+                    },
+                    {
+                      "key": "pathway_alignment",
+                      "label": "Career/pathway alignment",
+                      "points": 10,
+                      "evidence": [
+                        "Detected pathway: undecided.",
+                        "Average pathway affinity: 55%.",
+                        "Career goals considered: none provided."
+                      ]
+                    },
+                    {
+                      "key": "country_alignment",
+                      "label": "Country alignment",
+                      "points": 9.1,
+                      "evidence": [
+                        "Default/flexible country logic applies (UAE/Qatar/US).",
+                        "Target countries: UAE."
+                      ]
+                    },
+                    {
+                      "key": "future_relevance",
+                      "label": "Future relevance",
+                      "points": 11.5,
+                      "evidence": [
+                        "Average future relevance points: 4.60/5.",
+                        "Career goal text signal: none provided."
+                      ]
+                    },
+                    {
+                      "key": "learning_stretch",
+                      "label": "Learning stretch",
+                      "points": 7.9,
+                      "evidence": [
+                        "Average rigor points: 3.80 vs confidence-adjusted target 3.4.",
+                        "Risk preference: Balanced."
+                      ]
+                    },
+                    {
+                      "key": "real_world_relevance",
+                      "label": "Real-world application relevance",
+                      "points": 8,
+                      "evidence": [
+                        "Average real-world relevance points: 4.40/5."
+                      ]
+                    },
+                    {
+                      "key": "scholarship_competitiveness",
+                      "label": "Scholarship competitiveness",
+                      "points": 6.3,
+                      "evidence": [
+                        "Scholarship importance: Medium.",
+                        "Scholarship competitiveness proxy: 87%."
+                      ]
+                    }
+                  ]
+                },
+                "explanation": "Stretch increases rigor and challenge to improve competitiveness when appropriate.",
+                "continuationSuggestions": [
+                  {
+                    "fromCourseCode": "AP_CHEM",
+                    "toCourseCode": "AP_CHEM",
+                    "kind": "required"
+                  },
+                  {
+                    "fromCourseCode": "AP_CSP",
+                    "toCourseCode": "AP_CSP",
+                    "kind": "required"
+                  }
+                ],
+                "whyMayNotFit": [
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "whyMayFeelHard": [
+                  "Difficulty appears manageable for your declared workload tolerance."
+                ],
+                "confidenceExplanation": "Medium confidence (64%). Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.",
+                "scoringWeightModel": {
+                  "baseWeights": {
+                    "interest_alignment": 0.14,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.12,
+                    "pathway_alignment": 0.16,
+                    "country_alignment": 0.08,
+                    "future_relevance": 0.12,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "adjustedWeights": {
+                    "interest_alignment": 0.15400000000000003,
+                    "strength_match": 0.1,
+                    "workload_fit": 0.132,
+                    "pathway_alignment": 0.2,
+                    "country_alignment": 0.1,
+                    "future_relevance": 0.13799999999999998,
+                    "learning_stretch": 0.1,
+                    "real_world_relevance": 0.1,
+                    "scholarship_competitiveness": 0.08
+                  },
+                  "normalizedWeights": {
+                    "interest_alignment": 0.13949275362318841,
+                    "strength_match": 0.09057971014492754,
+                    "workload_fit": 0.11956521739130434,
+                    "pathway_alignment": 0.18115942028985507,
+                    "country_alignment": 0.09057971014492754,
+                    "future_relevance": 0.12499999999999997,
+                    "learning_stretch": 0.09057971014492754,
+                    "real_world_relevance": 0.09057971014492754,
+                    "scholarship_competitiveness": 0.07246376811594202
+                  },
+                  "appliedAdjustments": [
+                    "priorityStyle=balanced_path modestly increased workload and interest fit.",
+                    "optimizationTarget=career_alignment increased pathway/future relevance.",
+                    "countryIntent=main_focus increased country alignment weight."
+                  ]
+                },
+                "hardRisks": [],
+                "softWarnings": [
+                  "Selected plan shows weak alignment with stated interests/career goals."
+                ],
+                "tradeOffs": [
+                  "Higher rigor can improve competitiveness but increase workload pressure.",
+                  "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks."
+                ],
+                "alternatives": [
+                  "Core: AP Language & Composition, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Computer Science Principles",
+                  "Core: English 11, Physics, Math for Business / Business Math | Set 1: AP Chemistry | Set 2: AP Biology",
+                  "Core: English 11, Physics, Integrated Math 3 | Set 1: AP Chemistry | Set 2: AP Computer Science Principles"
+                ],
+                "actionSteps": [
+                  "Review this plan with counselor for final section placement.",
+                  "Confirm year-long commitments before mid-year changes.",
+                  "Track workload weekly and adjust study plan early.",
+                  "Scoring priority applied: priorityStyle=balanced_path modestly increased workload and interest fit.",
+                  "Scoring priority applied: optimizationTarget=career_alignment increased pathway/future relevance.",
+                  "Scoring priority applied: countryIntent=main_focus increased country alignment weight."
+                ],
+                "futureImpactSummary": "This path supports your likely direction (undecided) and prioritizes: English 11, Physics, Math for Business / Business Math, AP Chemistry, AP Computer Science Principles."
+              }
+            },
+            "generatedAt": "2026-04-02T17:30:28.321Z"
+          }
+        }
+      ]
+    }
+  }
+}
