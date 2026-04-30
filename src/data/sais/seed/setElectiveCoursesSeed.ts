@@ -1,0 +1,240 @@
+import type { Course } from "@/lib/domain/models/course";
+import type { ElectiveSet } from "@/lib/domain/models/common";
+
+function el(
+  code: string,
+  name: string,
+  electiveSet: ElectiveSet,
+  opts: Partial<Course> & Pick<Course, "workloadPoints" | "rigorPoints">,
+): Course {
+  return {
+    code,
+    name,
+    type: opts.type ?? "elective",
+    electiveSet,
+    replacesCoreSubjects: [],
+    yearLong: opts.yearLong ?? false,
+    prerequisites: [],
+    workloadPoints: opts.workloadPoints,
+    rigorPoints: opts.rigorPoints,
+    realWorldRelevancePoints: opts.realWorldRelevancePoints ?? 3,
+    futureRelevancePoints: opts.futureRelevancePoints ?? 4,
+    tags: opts.tags ?? ["STEM"],
+    pathwayAffinity: opts.pathwayAffinity ?? { undecided: 0.55 },
+  };
+}
+
+/** Set 1 + Set 2 electives (Grades 11–12) — names from confirmed SAIS prompt. */
+export const set1Set2ElectiveCoursesSeed: Course[] = [
+  el("AP_CHEM", "AP Chemistry", "Set1", {
+    type: "AP",
+    yearLong: true,
+    workloadPoints: 5,
+    rigorPoints: 5,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 0.9, engineering: 0.6, undecided: 0.4 },
+  }),
+  el("PSYCH_I", "Psychology I", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities"],
+    pathwayAffinity: { medicine: 0.5, undecided: 0.65 },
+  }),
+  el("PSYCH_II", "Psychology II", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities"],
+    pathwayAffinity: { medicine: 0.5, undecided: 0.65 },
+  }),
+  el("GRAPHIC_DESIGN_I", "Graphic Design I", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.85, undecided: 0.5 },
+  }),
+  el("GRAPHIC_DESIGN_II", "Graphic Design II", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.85, undecided: 0.5 },
+  }),
+  el("PUBLIC_SPEAKING_DEBATE", "Public Speaking & Debate", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities", "ProjectBased"],
+    pathwayAffinity: { business_finance: 0.55, creative: 0.5, undecided: 0.6 },
+  }),
+  el("ARABIC_DRAMA", "Arabic Drama", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.75, undecided: 0.55 },
+  }),
+  el("FORENSIC_SCI", "Forensic Science", "Set1", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 0.65, engineering: 0.4, undecided: 0.45 },
+  }),
+  el("MICROECON", "Microeconomics", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Business", "STEM"],
+    pathwayAffinity: { business_finance: 0.85, undecided: 0.55 },
+  }),
+  el("MACROECON", "Macroeconomics", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Business", "STEM"],
+    pathwayAffinity: { business_finance: 0.85, undecided: 0.55 },
+  }),
+  el("DATA_SCIENCE", "Data Science", "Set1", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Coding"],
+    pathwayAffinity: { ai_tech: 0.85, engineering: 0.55, business_finance: 0.5, undecided: 0.5 },
+  }),
+  el("AI_I", "Artificial Intelligence I", "Set1", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Coding"],
+    pathwayAffinity: { ai_tech: 0.9, engineering: 0.5, undecided: 0.5 },
+  }),
+  el("AI_II", "Artificial Intelligence II", "Set1", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Coding"],
+    pathwayAffinity: { ai_tech: 0.9, engineering: 0.5, undecided: 0.5 },
+  }),
+  el("INTL_LAW", "International Law", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities"],
+    pathwayAffinity: { business_finance: 0.5, undecided: 0.6 },
+  }),
+  el("INTERIOR_DESIGN_I", "Interior Design I", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.8, undecided: 0.5 },
+  }),
+  el("INTERIOR_DESIGN_II", "Interior Design II", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.8, undecided: 0.5 },
+  }),
+  el("SOCIOLOGY_I", "Sociology I", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities"],
+    pathwayAffinity: { undecided: 0.65, medicine: 0.4 },
+  }),
+  el("SOCIOLOGY_II", "Sociology II", "Set1", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities"],
+    pathwayAffinity: { undecided: 0.65, medicine: 0.4 },
+  }),
+
+  el("AP_BIO", "AP Biology", "Set2", {
+    type: "AP",
+    yearLong: true,
+    workloadPoints: 5,
+    rigorPoints: 5,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 1.0, engineering: 0.3, undecided: 0.4 },
+  }),
+  el("AP_CSP", "AP Computer Science Principles", "Set2", {
+    type: "AP",
+    yearLong: true,
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["Coding", "STEM", "ProjectBased"],
+    pathwayAffinity: { ai_tech: 0.9, engineering: 0.5, business_finance: 0.3, undecided: 0.4 },
+  }),
+  el("DIGITAL_ART_I", "Digital Art I", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.85, ai_tech: 0.45, undecided: 0.55 },
+  }),
+  el("DIGITAL_ART_II", "Digital Art II", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.85, ai_tech: 0.45, undecided: 0.55 },
+  }),
+  el("IAJJAZ_EL_AALMI", "Iajjaz El Aalmi", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Humanities"],
+    pathwayAffinity: { undecided: 0.6 },
+  }),
+  el("GENETICS", "Genetics", "Set2", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 0.85, undecided: 0.45 },
+  }),
+  el("BIOMED_SCI", "Biomedical Science", "Set2", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 0.9, undecided: 0.45 },
+  }),
+  el("HUMAN_ANATOMY_I", "Human Anatomy I", "Set2", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 0.95, undecided: 0.4 },
+  }),
+  el("HUMAN_ANATOMY_II", "Human Anatomy II", "Set2", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["STEM", "Lab", "Health"],
+    pathwayAffinity: { medicine: 0.95, undecided: 0.4 },
+  }),
+  el("ETHICAL_BUSINESS_LEADERSHIP", "Ethical Business Leadership", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Business", "Humanities"],
+    pathwayAffinity: { business_finance: 0.85, undecided: 0.55 },
+  }),
+  el("PYTHON_PROG", "Python Programming", "Set2", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["Coding", "STEM"],
+    pathwayAffinity: { ai_tech: 0.85, engineering: 0.5, undecided: 0.5 },
+  }),
+  el("BLOCKCHAIN_CRYPTO", "Blockchain & Cryptocurrency", "Set2", {
+    workloadPoints: 4,
+    rigorPoints: 4,
+    tags: ["Coding", "STEM", "Business"],
+    pathwayAffinity: { ai_tech: 0.75, business_finance: 0.65, undecided: 0.45 },
+  }),
+  el("PAINTING_SKETCHING_I", "Painting & Sketching I", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.85, undecided: 0.55 },
+  }),
+  el("PAINTING_SKETCHING_II", "Painting & Sketching II", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Arts", "ProjectBased"],
+    pathwayAffinity: { creative: 0.85, undecided: 0.55 },
+  }),
+  el("ACCOUNTING", "Accounting", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Business"],
+    pathwayAffinity: { business_finance: 0.9, undecided: 0.5 },
+  }),
+  el("MARKETING", "Marketing", "Set2", {
+    workloadPoints: 3,
+    rigorPoints: 3,
+    tags: ["Business"],
+    pathwayAffinity: { business_finance: 0.88, undecided: 0.5 },
+  }),
+];

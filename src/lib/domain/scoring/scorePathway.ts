@@ -100,43 +100,80 @@ export function scorePathway(params: {
   const scholarshipBase = clamp01((avgRigor / 5 + avgFuture) / 2);
   const scholarshipNorm = profile.scholarshipImportance === "High" ? scholarshipBase : 0.8 * scholarshipBase + 0.2;
 
+  const interestLine =
+    profile.interests.length > 0
+      ? `Several of your picks connect to interests you mentioned (${profile.interests.slice(0, 3).join(", ")}).`
+      : "We looked at how well this mix lines up with what students usually enjoy in each subject area.";
+  const strengthLine =
+    profile.strengths.length > 0
+      ? `Your stated strengths (${profile.strengths.slice(0, 4).join(", ")}) show up in useful places in this schedule.`
+      : "This path doesn’t assume a specific strength profile — it stays balanced across subjects.";
+
   const factors: ScoringFactorContribution[] = [
     contribution(weightModel.normalizedWeights, "interest_alignment", "Interest alignment", interestNorm, [
-      `Matched ${interestMatches}/${selectedCourses.length || 1} selected courses with student interests.`,
-      `Interests considered: ${profile.interests.join(", ") || "none provided"}.`,
+      interestNorm >= 0.55
+        ? "This combination lines up well with the subjects and themes you said you care about."
+        : "Some courses match your interests more closely than others — worth a second look if something feels off.",
+      interestLine,
     ]),
     contribution(weightModel.normalizedWeights, "strength_match", "Strength match", strengthNorm, [
-      `Strength-tag overlap in ${strengthMatches}/${selectedCourses.length || 1} selected courses.`,
-      `Strengths considered: ${profile.strengths.join(", ") || "none provided"}.`,
+      strengthNorm >= 0.55
+        ? "The plan leans on areas where you’re more likely to feel confident."
+        : "You may want extra support in a few spots where the load doesn’t match your strongest subjects.",
+      strengthLine,
     ]),
     contribution(weightModel.normalizedWeights, "workload_fit", "Workload fit", workloadNorm, [
-      `Average workload points: ${avgWorkload.toFixed(2)} vs tolerance target ${desiredWorkload.toFixed(1)}.`,
+      workloadNorm >= 0.55
+        ? "Overall intensity feels aligned with how much you said you want on your plate."
+        : "This may feel a bit heavier or lighter than your comfort zone — adjust with your counselor if needed.",
+      profile.workloadTolerance === "Low"
+        ? "You indicated you prefer a lighter load; we weighted balance accordingly."
+        : profile.workloadTolerance === "High"
+          ? "You said you can handle more; this path can include more demanding combinations."
+          : "You chose a middle-ground workload preference.",
     ]),
     contribution(weightModel.normalizedWeights, "pathway_alignment", "Career/pathway alignment", pathwayNorm, [
-      `Detected pathway: ${targetPathway}.`,
-      `Average pathway affinity: ${(pathwayNorm * 100).toFixed(0)}%.`,
-      `Career goals considered: ${profile.careerGoals.join(", ") || "none provided"}.`,
+      pathwayNorm >= 0.55
+        ? `Course choices support the direction we’re seeing (${String(targetPathway).replace(/_/g, " ")}).`
+        : "If your career ideas shift, a few swaps could sharpen the fit — that’s normal.",
+      profile.careerGoals.length > 0
+        ? `Your career ideas (${profile.careerGoals.slice(0, 2).join(", ")}) helped guide this mix.`
+        : "Because you’re still exploring careers, we kept the path flexible where we could.",
     ]),
     contribution(weightModel.normalizedWeights, "country_alignment", "Country alignment", countryNorm, [
       hasStrictCountries
-        ? "Egypt/Jordan selected: plan favors academically rigorous, broadly recognized options."
-        : "Default/flexible country logic applies (UAE/Qatar/US).",
-      `Target countries: ${selectedCountries.join(", ")}.`,
-    ]),
+        ? "For Egypt/Jordan goals, this leans toward broadly recognized, rigorous options counselors often highlight."
+        : "For UAE, US, or similar destinations, you have more flexibility — this path keeps doors open.",
+      selectedCountries.length > 0 ? `Destination focus: ${selectedCountries.join(", ")}.` : "",
+    ].filter(Boolean)),
     contribution(weightModel.normalizedWeights, "future_relevance", "Future relevance", avgFuture, [
-      `Average future relevance points: ${(avgFuture * 5).toFixed(2)}/5.`,
-      `Career goal text signal: ${goalText || "none provided"}.`,
-    ]),
+      avgFuture >= 0.55
+        ? "These courses tend to keep future university and career options open."
+        : "Some choices are more specialized — great if you’re sure, less so if you want maximum flexibility.",
+      goalText ? "We considered how your stated goals show up in subject choices." : "",
+    ].filter(Boolean)),
     contribution(weightModel.normalizedWeights, "learning_stretch", "Learning stretch", stretchNorm, [
-      `Average rigor points: ${avgRigor.toFixed(2)} vs confidence-adjusted target ${confidenceTarget.toFixed(1)}.`,
-      `Risk preference: ${profile.riskPreference}.`,
+      stretchNorm >= 0.55
+        ? "Challenge level looks reasonable compared with how confident you said you feel academically."
+        : "This may feel like a stretch — or softer than you want — depending on how school feels this year.",
+      profile.riskPreference === "Embrace stretch"
+        ? "You said you’re open to stretch; this path can include tougher combinations."
+        : profile.riskPreference === "Avoid risk"
+          ? "You preferred playing it safe; we avoided unnecessary extra risk where possible."
+          : "You wanted a balanced risk level between comfort and growth.",
     ]),
     contribution(weightModel.normalizedWeights, "real_world_relevance", "Real-world application relevance", avgRealWorld, [
-      `Average real-world relevance points: ${(avgRealWorld * 5).toFixed(2)}/5.`,
+      avgRealWorld >= 0.55
+        ? "Several courses connect clearly to real-world skills and projects."
+        : "If you love hands-on work, ask your counselor where you can add more applied courses later.",
     ]),
     contribution(weightModel.normalizedWeights, "scholarship_competitiveness", "Scholarship competitiveness", scholarshipNorm, [
-      `Scholarship importance: ${profile.scholarshipImportance}.`,
-      `Scholarship competitiveness proxy: ${(scholarshipNorm * 100).toFixed(0)}%.`,
+      profile.scholarshipImportance === "High"
+        ? "Because scholarships matter to you, we favored a profile that stays competitive without guessing aid outcomes."
+        : "Scholarships are one factor among many here — not the only driver of this plan.",
+      scholarshipNorm >= 0.55
+        ? "This mix still looks solid if you’re thinking about competitive applications later."
+        : "If scholarships become a top priority later, you may want to revisit rigor with your counselor.",
     ]),
   ];
 

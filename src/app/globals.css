@@ -13,6 +13,92 @@ body {
 }
 
 body {
-  @apply bg-gradient-to-b from-slate-50 via-slate-50 to-sky-50 text-slate-900;
+  @apply bg-gradient-to-br from-slate-50 via-cyan-50/40 to-teal-100/45 text-slate-900 antialiased;
+}
+
+/* Wider journey pages — consistent shell */
+.apf-journey-shell {
+  @apply mx-auto w-full max-w-screen-2xl px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12;
+}
+
+.apf-journey-card {
+  @apply rounded-3xl border-2 border-teal-200/50 bg-gradient-to-br from-white/95 via-cyan-50/20 to-teal-50/30 shadow-xl shadow-teal-900/10 ring-1 ring-cyan-100/60;
+}
+
+.apf-journey-hero {
+  @apply rounded-2xl border border-cyan-200/60 bg-gradient-to-r from-teal-50/90 via-white to-cyan-50/80 px-4 py-3 shadow-sm ring-1 ring-teal-100/50 sm:px-5 sm:py-4;
+}
+
+@keyframes apf-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes apf-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.apf-fade-up {
+  animation: apf-fade-up 0.5s ease-out both;
+}
+
+.apf-delay-1 {
+  animation-delay: 0.08s;
+}
+.apf-delay-2 {
+  animation-delay: 0.16s;
+}
+.apf-delay-3 {
+  animation-delay: 0.24s;
+}
+
+.apf-progress-shimmer {
+  background: linear-gradient(90deg, rgb(13 148 136 / 0.15), rgb(14 165 233 / 0.35), rgb(13 148 136 / 0.15));
+  background-size: 200% 100%;
+  animation: apf-shimmer 2.5s ease-in-out infinite;
+}
+
+.apf-soft-bounce {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.apf-soft-bounce:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes apf-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.apf-step-in {
+  animation: apf-step-in 0.45s ease-out both;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+  .counselor-print-root {
+    max-width: none;
+    padding: 0;
+  }
 }
 

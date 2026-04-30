@@ -13,7 +13,13 @@ interface DbShape {
   students: Record<string, StudentRecord>;
 }
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+function resolveDataDir(): string {
+  const configured = process.env.DATA_DIR?.trim();
+  if (!configured) return path.join(process.cwd(), ".data");
+  return path.isAbsolute(configured) ? configured : path.resolve(process.cwd(), configured);
+}
+
+const DATA_DIR = resolveDataDir();
 const DATA_FILE = path.join(DATA_DIR, "student-plans.json");
 
 async function ensureDb(): Promise<DbShape> {
@@ -79,5 +85,13 @@ export async function clearActiveSession(studentId: string): Promise<void> {
   record.activeSessionId = null;
   db.students[studentId] = record;
   await saveDb(db);
+}
+
+/** Counselor read: no auto-create; null if student has never saved a plan. */
+export async function getStudentRecordForCounselor(studentId: string): Promise<StudentRecord | null> {
+  const db = await ensureDb();
+  const record = db.students[studentId];
+  if (!record || record.sessions.length === 0) return null;
+  return record;
 }
 

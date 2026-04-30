@@ -6,7 +6,9 @@ export function checkExcessiveWorkload(input: SoftValidationInput): string[] {
   const avgWorkload = avg(input.selected.all.map((c) => c.workloadPoints));
   const tolerance = input.profile.workloadTolerance;
   if ((tolerance === "Low" && avgWorkload > 3.1) || (tolerance === "Medium" && avgWorkload > 4.1)) {
-    return [`Workload appears high (${avgWorkload.toFixed(1)}/5) relative to your declared tolerance (${tolerance}).`];
+    return [
+      "This mix may feel heavier week-to-week than the workload level you said you want — talk it through with your counselor.",
+    ];
   }
   return [];
 }
@@ -16,7 +18,9 @@ export function checkWeakReadinessForAdvancedRigor(input: SoftValidationInput): 
   const lowConfidence = input.profile.selfReportedAcademicConfidence === "Low";
   const hasMathWeakness = input.profile.weaknesses.map((w) => w.toLowerCase()).includes("math");
   if (highRigorCount >= 2 && (lowConfidence || hasMathWeakness)) {
-    return ["Plan includes multiple high-rigor courses while readiness signals suggest potential strain."];
+    return [
+      "You picked several demanding courses while also signaling lower confidence or math as a stretch area — pacing and support matter here.",
+    ];
   }
   return [];
 }
@@ -25,7 +29,7 @@ export function checkPoorInterestCareerAlignment(input: SoftValidationInput): st
   const factor = input.scoring.factors.find((f) => f.key === "interest_alignment");
   const pathway = input.scoring.factors.find((f) => f.key === "pathway_alignment");
   if ((factor?.points ?? 0) < 6 || (pathway?.points ?? 0) < 8) {
-    return ["Selected plan shows weak alignment with stated interests/career goals."];
+    return ["A few choices don’t line up as tightly with the interests or career ideas you shared — you might swap one elective after talking with your counselor."];
   }
   return [];
 }
@@ -34,7 +38,9 @@ export function checkScholarshipCompetitiveness(input: SoftValidationInput): str
   if (input.profile.scholarshipImportance !== "High") return [];
   const factor = input.scoring.factors.find((f) => f.key === "scholarship_competitiveness");
   if ((factor?.points ?? 0) < 4.5) {
-    return ["Given scholarship importance, this plan may be less competitive than stronger alternatives."];
+    return [
+      "Because scholarships are important to you, you may want to compare this path with a slightly more rigorous alternative your counselor suggests.",
+    ];
   }
   return [];
 }
@@ -50,7 +56,7 @@ export function checkCountrySensitiveChoices(input: SoftValidationInput): string
 export function checkLowFutureRelevance(input: SoftValidationInput): string[] {
   const factor = input.scoring.factors.find((f) => f.key === "future_relevance");
   if ((factor?.points ?? 0) < 6) {
-    return ["Future relevance is relatively low for your stated direction."];
+    return ["If you stay on this exact mix, some doors for your stated direction stay narrower — ask what one swap could open up."];
   }
   return [];
 }
@@ -58,7 +64,7 @@ export function checkLowFutureRelevance(input: SoftValidationInput): string[] {
 export function checkLowLearningStretch(input: SoftValidationInput): string[] {
   const factor = input.scoring.factors.find((f) => f.key === "learning_stretch");
   if ((factor?.points ?? 0) < 4.5) {
-    return ["Learning stretch appears limited; the plan may be too easy for growth goals."];
+    return ["This path may feel a bit easy if you’re trying to grow — consider where one step-up course could help."];
   }
   return [];
 }
@@ -68,7 +74,7 @@ export function checkUnnecessaryRigor(input: SoftValidationInput): string[] {
   const avoidRisk = input.profile.riskPreference === "Avoid risk";
   const lowGoalClarity = input.profile.goalClarity === "Low";
   if (avgRigor >= 4.3 && (avoidRisk || lowGoalClarity)) {
-    return ["This plan may be more rigorous than necessary for your current goals/risk preference."];
+    return ["Given how you said you like to take risks and how clear your goals are, this might be more intense than you need right now."];
   }
   return [];
 }
@@ -76,7 +82,7 @@ export function checkUnnecessaryRigor(input: SoftValidationInput): string[] {
 export function checkLowRealWorldRelevance(input: SoftValidationInput): string[] {
   const factor = input.scoring.factors.find((f) => f.key === "real_world_relevance");
   if ((factor?.points ?? 0) < 5.5) {
-    return ["Real-world application relevance appears modest for your chosen direction."];
+    return ["If you love hands-on or applied learning, ask your counselor where a more project-based elective could fit later."];
   }
   return [];
 }

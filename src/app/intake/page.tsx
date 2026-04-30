@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,69 +9,106 @@ import { Input } from "@/components/ui/Input";
 import { Progress } from "@/components/ui/Progress";
 import { StudentHeader } from "@/components/student/StudentHeader";
 import { Chip } from "@/components/ui/Chip";
+import { ChoiceTile } from "@/components/student/ChoiceTile";
+import { IntakePanel } from "@/components/student/IntakePanel";
+import {
+  getSemester2CurrentCoursePanels,
+  hydrateCurrentSelectionsFromCodes,
+  splitCurrentCoursesForApi,
+} from "@/lib/student/intakeCurrentCourses";
 
-type IntakeForm = {
-  currentGrade: 9 | 10 | 11 | 12;
-  semester: "Semester1" | "Semester2";
-  currentCourses: string;
-  currentAPs: string;
+/** Draft state — no default selections; user must choose before continuing. */
+type IntakeFormDraft = {
+  currentGrade?: 9 | 10 | 11 | 12;
+  semester?: "Semester1" | "Semester2";
+  currentSelections: Record<string, string>;
   strengths: string[];
   weaknesses: string[];
-  selfReportedAcademicConfidence: "Low" | "Medium" | "High";
-  workloadTolerance: "Low" | "Medium" | "High";
+  selfReportedAcademicConfidence?: "Low" | "Medium" | "High";
+  workloadTolerance?: "Low" | "Medium" | "High";
   interests: string[];
   careerGoals: string[];
-  goalClarity: "Low" | "Medium" | "High";
-  mainCountry: "UAE" | "Qatar" | "US" | "Egypt" | "Jordan";
+  goalClarity?: "Low" | "Medium" | "High";
+  mainCountry?: "UAE" | "Other" | "US" | "Egypt" | "Jordan";
   additionalCountries: string[];
-  countryIntent: "main_focus" | "keep_options_open" | "unsure";
-  priorityStyle: "strongest_path" | "balanced_path" | "safest_highest_grade" | "not_sure";
-  optimizationTarget: "career_alignment" | "lighter_workload" | "university_competitiveness" | "keeping_options_open" | "higher_grades";
+  countryIntent?: "main_focus" | "keep_options_open" | "unsure";
+  priorityStyle?: "strongest_path" | "balanced_path" | "safest_highest_grade" | "not_sure";
+  optimizationTarget?:
+    | "career_alignment"
+    | "lighter_workload"
+    | "university_competitiveness"
+    | "keeping_options_open"
+    | "higher_grades";
   preferencesToAvoid: string[];
   preferences: string[];
   futurePlans: string;
-  riskPreference: "Avoid risk" | "Balanced" | "Embrace stretch";
-  scholarshipImportance: "Low" | "Medium" | "High";
+  riskPreference?: "Avoid risk" | "Balanced" | "Embrace stretch";
+  scholarshipImportance?: "Low" | "Medium" | "High";
 };
 
-const initial: IntakeForm = {
-  currentGrade: 11,
-  semester: "Semester1",
-  currentCourses: "",
-  currentAPs: "",
+const initial: IntakeFormDraft = {
+  currentSelections: {},
   strengths: [],
   weaknesses: [],
-  selfReportedAcademicConfidence: "Medium",
-  workloadTolerance: "Medium",
   interests: [],
   careerGoals: [],
-  goalClarity: "Medium",
-  mainCountry: "UAE",
   additionalCountries: [],
-  countryIntent: "main_focus",
-  priorityStyle: "balanced_path",
-  optimizationTarget: "career_alignment",
   preferencesToAvoid: [],
   preferences: [],
   futurePlans: "",
-  riskPreference: "Balanced",
-  scholarshipImportance: "Medium",
 };
 
-const STEPS = ["Academic context", "Interests and future", "Decision style"] as const;
+const JOURNEY_STEPS = [
+  { label: "Academic context", emoji: "📘", blurb: "Start with where you are — grade, semester, and how school feels." },
+  { label: "Interests & future", emoji: "🚀", blurb: "Light up what excites you and where you might be headed." },
+  { label: "Decision style", emoji: "🎯", blurb: "Last stop: how you like to plan — then we unlock your path." },
+] as const;
 
-const STRENGTH_OPTIONS = ["Math", "English", "Science", "Writing", "Coding", "Arts", "Humanities"];
-const INTEREST_OPTIONS = ["AI / CS", "Engineering", "Medicine / Health", "Business / Finance", "Design / Creative", "Undecided"];
-const CAREER_OPTIONS = ["Computer Science / AI", "Engineering", "Medicine / Health", "Business / Finance", "Design / Creative", "Not sure yet"];
+const STRENGTH_OPTIONS = ["Math", "English", "Science", "Coding", "Arts", "Humanities"] as const;
+const COUNTRY_OPTIONS = ["UAE", "US", "Egypt", "Jordan", "Other"] as const;
+
+function migrateCountryCode(c: string): string {
+  return c === "Qatar" ? "Other" : c;
+}
+
+function migrateStrengthWeaknessList(arr: string[]): string[] {
+  return [...new Set(arr.map((s) => (s === "Writing" ? "English" : s)))];
+}
+
+function strengthChipLabel(s: string): string {
+  return s === "English" ? "English & writing" : s;
+}
+
+function countryChipLabel(c: string): string {
+  return c === "Other" ? "Other" : c;
+}
+/** What you enjoy or lean toward now — not the same as career title. */
+const INTEREST_OPTIONS = [
+  "STEM, coding & building things",
+  "Arts, media & design",
+  "People, health & how bodies work",
+  "Business, leadership & organizations",
+  "Writing, debate & big ideas",
+  "Still exploring — lots of things sound fun",
+] as const;
+/** Possible fields or job families you might pursue later. */
+const CAREER_OPTIONS = [
+  "Medicine or healthcare careers",
+  "Engineering or tech careers",
+  "Business, finance, or entrepreneurship",
+  "Creative industries (film, games, design)",
+  "Policy, law, or social impact",
+  "Not sure yet — keeping options wide",
+] as const;
 const AVOID_OPTIONS = ["Heavy lab load", "Too many APs", "Very math-heavy", "Very writing-heavy"];
 const PREF_OPTIONS = ["Project-based", "Real-world applications", "Collaboration", "Independent work"];
 
-export default function IntakePage() {
+function IntakePageInner() {
   const router = useRouter();
   const search = useSearchParams();
   const isEdit = search.get("mode") === "edit";
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<IntakeForm>(initial);
+  const [form, setForm] = useState<IntakeFormDraft>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,37 +120,132 @@ export default function IntakePage() {
       const json = await res.json();
       const a = json?.activeSession?.answers;
       if (!a) return;
+      const courses = Array.isArray(a.currentCourses) ? a.currentCourses : [];
+      const aps = Array.isArray(a.currentAPs) ? a.currentAPs : [];
+      const merged = [...courses, ...aps];
+      const { currentCourses: _c, currentAPs: _p, ...rest } = a as Record<string, unknown>;
+      const rawMain = a.mainCountry != null ? migrateCountryCode(String(a.mainCountry)) : undefined;
+      const validMain =
+        rawMain && (COUNTRY_OPTIONS as readonly string[]).includes(rawMain)
+          ? (rawMain as IntakeFormDraft["mainCountry"])
+          : undefined;
       setForm((prev) => ({
         ...prev,
-        ...a,
-        strengths: Array.isArray(a.strengths) ? a.strengths : prev.strengths,
-        weaknesses: Array.isArray(a.weaknesses) ? a.weaknesses : prev.weaknesses,
-        additionalCountries: Array.isArray(a.additionalCountries) ? a.additionalCountries : prev.additionalCountries,
+        ...(rest as Partial<IntakeFormDraft>),
+        mainCountry: validMain ?? prev.mainCountry,
+        strengths: Array.isArray(a.strengths) ? migrateStrengthWeaknessList(a.strengths as string[]) : prev.strengths,
+        weaknesses: Array.isArray(a.weaknesses) ? migrateStrengthWeaknessList(a.weaknesses as string[]) : prev.weaknesses,
+        additionalCountries: Array.isArray(a.additionalCountries)
+          ? [
+              ...new Set(
+                (a.additionalCountries as string[])
+                  .map((c) => migrateCountryCode(c))
+                  .filter(
+                    (c) =>
+                      (COUNTRY_OPTIONS as readonly string[]).includes(c) && c !== (validMain ?? prev.mainCountry),
+                  ),
+              ),
+            ]
+          : prev.additionalCountries,
+        interests: Array.isArray(a.interests) ? (a.interests as string[]) : prev.interests,
+        careerGoals: Array.isArray(a.careerGoals) ? (a.careerGoals as string[]) : prev.careerGoals,
+        preferencesToAvoid: Array.isArray(a.preferencesToAvoid) ? (a.preferencesToAvoid as string[]) : prev.preferencesToAvoid,
+        preferences: Array.isArray(a.preferences) ? (a.preferences as string[]) : prev.preferences,
+        currentSelections:
+          merged.length > 0 && a.currentGrade
+            ? hydrateCurrentSelectionsFromCodes(a.currentGrade as 9 | 10 | 11 | 12, merged)
+            : typeof (a as { currentSelections?: unknown }).currentSelections === "object" &&
+                (a as { currentSelections?: unknown }).currentSelections !== null
+              ? ((a as { currentSelections: Record<string, string> }).currentSelections)
+              : {},
       }));
     })();
   }, [isEdit]);
 
-  const progress = useMemo(() => ((step + 1) / STEPS.length) * 100, [step]);
+  const progress = useMemo(() => ((step + 1) / JOURNEY_STEPS.length) * 100, [step]);
+  const semester2Panels = useMemo(
+    () =>
+      form.semester === "Semester2" &&
+      (form.currentGrade === 11 || form.currentGrade === 12) &&
+      form.currentGrade != null
+        ? getSemester2CurrentCoursePanels(form.currentGrade)
+        : [],
+    [form.semester, form.currentGrade],
+  );
+
+  function semester2SelectionsComplete(f: IntakeFormDraft) {
+    if (f.semester !== "Semester2") return true;
+    if (!f.currentGrade || f.currentGrade === 9 || f.currentGrade === 10) return true;
+    const panels = getSemester2CurrentCoursePanels(f.currentGrade);
+    if (!panels.length) return true;
+    return panels.every((p) => Boolean(f.currentSelections[p.id]));
+  }
 
   function canProceedCurrentStep() {
-    if (step === 0) return Boolean(form.currentGrade && form.semester);
-    if (step === 1) return Boolean(form.mainCountry);
-    return true;
+    if (step === 0) {
+      return Boolean(
+        form.currentGrade &&
+          form.semester &&
+          form.selfReportedAcademicConfidence &&
+          form.workloadTolerance &&
+          semester2SelectionsComplete(form),
+      );
+    }
+    if (step === 1) {
+      return Boolean(
+        form.mainCountry &&
+          form.goalClarity &&
+          (form.additionalCountries.length === 0 || Boolean(form.countryIntent)),
+      );
+    }
+    return Boolean(
+      form.priorityStyle && form.optimizationTarget && form.riskPreference && form.scholarshipImportance,
+    );
+  }
+
+  function canSubmitFull() {
+    return (
+      Boolean(
+        form.currentGrade &&
+          form.semester &&
+          form.selfReportedAcademicConfidence &&
+          form.workloadTolerance &&
+          form.mainCountry &&
+          form.goalClarity &&
+          (form.additionalCountries.length === 0 || Boolean(form.countryIntent)) &&
+          form.priorityStyle &&
+          form.optimizationTarget &&
+          form.riskPreference &&
+          form.scholarshipImportance,
+      ) && semester2SelectionsComplete(form)
+    );
   }
 
   async function submit() {
     setError(null);
+    if (!canSubmitFull()) {
+      setError("Please complete all required choices in each step.");
+      return;
+    }
     setSubmitting(true);
+    const { currentCourses, currentAPs } =
+      form.semester === "Semester2" ? splitCurrentCoursesForApi(form.currentSelections) : { currentCourses: [], currentAPs: [] };
+    const { currentSelections: _omit, ...rest } = form;
     const payload = {
-      ...form,
-      currentCourses: form.currentCourses
-        .split(",")
-        .map((x) => x.trim())
-        .filter(Boolean),
-      currentAPs: form.currentAPs
-        .split(",")
-        .map((x) => x.trim())
-        .filter(Boolean),
+      ...rest,
+      currentGrade: form.currentGrade!,
+      semester: form.semester!,
+      selfReportedAcademicConfidence: form.selfReportedAcademicConfidence!,
+      workloadTolerance: form.workloadTolerance!,
+      goalClarity: form.goalClarity!,
+      mainCountry: form.mainCountry!,
+      countryIntent: form.additionalCountries.length > 0 ? form.countryIntent! : "main_focus",
+      priorityStyle: form.priorityStyle!,
+      optimizationTarget: form.optimizationTarget!,
+      riskPreference: form.riskPreference!,
+      scholarshipImportance: form.scholarshipImportance!,
+      currentCourses,
+      currentAPs,
     };
     const res = await fetch("/api/student/save-and-run", {
       method: "POST",
@@ -124,404 +257,553 @@ export default function IntakePage() {
       setSubmitting(false);
       return;
     }
-    router.push("/dashboard");
+    router.push("/dashboard?fresh=1");
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_130%_90%_at_50%_-25%,rgba(34,211,238,0.2),transparent)]">
       <StudentHeader />
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <Card className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-semibold">Guided Intake</h1>
-              <p className="mt-1 text-sm text-slate-600">More answers = more personalized recommendations.</p>
+      <div className="apf-journey-shell">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-14">
+          <aside className="lg:col-span-3 xl:col-span-3">
+            <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-b from-teal-50/80 to-white/90 p-4 shadow-md ring-1 ring-teal-100/50 lg:p-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-teal-800">
+                Step {step + 1} of {JOURNEY_STEPS.length}
+              </p>
+              <h1 className="mt-2 flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                <span aria-hidden>{JOURNEY_STEPS[step].emoji}</span>
+                <span>{JOURNEY_STEPS[step].label}</span>
+              </h1>
+              <p className="mt-3 text-sm font-medium leading-snug text-slate-600 line-clamp-4">{JOURNEY_STEPS[step].blurb}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {STEPS.map((s, idx) => (
-                <Chip key={s} label={`${idx + 1}. ${s}`} tone={idx === step ? "teal" : "slate"} />
+            <ol className="mt-5 hidden flex-col gap-2 sm:flex">
+              {JOURNEY_STEPS.map((s, i) => (
+                <li
+                  key={s.label}
+                  className={clsx(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition duration-300",
+                    i === step && "bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-950 ring-2 ring-teal-400/60 shadow-md",
+                    i < step && "bg-emerald-50/95 text-emerald-900 ring-1 ring-emerald-200/80",
+                    i > step && "bg-slate-100/70 text-slate-500",
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                      i === step && "bg-gradient-to-br from-teal-600 to-cyan-600 text-white shadow",
+                      i < step && "bg-emerald-600 text-white",
+                      i > step && "bg-slate-300 text-white",
+                    )}
+                  >
+                    {i < step ? "✓" : i + 1}
+                  </span>
+                  <span>
+                    <span className="mr-1.5" aria-hidden>
+                      {s.emoji}
+                    </span>
+                    {s.label}
+                  </span>
+                </li>
               ))}
+            </ol>
+            <div className="mt-6 hidden sm:block">
+              <p className="mb-2 text-xs font-bold text-slate-700">Your progress</p>
+              <Progress value={progress} size="lg" />
+              <div className="mt-2 flex justify-between text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                <span>Start</span>
+                <span>Almost there</span>
+                <span>Done</span>
+              </div>
             </div>
-          </div>
+          </aside>
 
-          <div className="mt-4">
-            <Progress value={progress} />
-            <p className="mt-2 text-xs text-slate-500">
-              Step {step + 1} of {STEPS.length}: {STEPS[step]}
-            </p>
-          </div>
+          <div className="min-w-0 lg:col-span-9 xl:col-span-9">
+            <Card className="apf-journey-card p-6 sm:p-8 lg:p-10">
+              <div className="apf-journey-hero mb-6 sm:mb-8">
+                <p className="text-xs font-bold uppercase tracking-wide text-teal-900">You’re on the path</p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  {step === JOURNEY_STEPS.length - 1
+                    ? "🎉 Final stretch — lock in how you like to decide."
+                    : `Nice — step ${step + 1} builds the next layer of your story.`}
+                </p>
+              </div>
+              <div className="mb-6 sm:hidden">
+                <div className="mb-1 flex items-center justify-between text-xs font-bold text-slate-700">
+                  <span>
+                    Step {step + 1}/{JOURNEY_STEPS.length}
+                  </span>
+                  <span className="text-teal-800">{Math.round(progress)}%</span>
+                </div>
+                <Progress value={progress} size="lg" />
+              </div>
 
-          <div className="mt-6 space-y-5">
+              <div key={step} className="apf-step-in space-y-8 sm:space-y-10 lg:space-y-12">
             {step === 0 ? (
               <>
-                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
-                  <p className="text-sm font-semibold text-slate-900">Academic context</p>
-                  <p className="mt-1 text-xs text-slate-600">Why we ask this: it helps calibrate rigor, workload fit, and continuity advice.</p>
-                </div>
+                <IntakePanel emoji="🏫" title="Where are you in school?" hint="Pick grade + semester — both required.">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {([9, 10, 11, 12] as const).map((g) => (
+                      <ChoiceTile
+                        key={g}
+                        size="lg"
+                        title={`Grade ${g}`}
+                        selected={form.currentGrade === g}
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            currentGrade: g,
+                            currentSelections: prev.currentGrade === g ? prev.currentSelections : {},
+                          }))
+                        }
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <ChoiceTile
+                      title="Semester 1"
+                      subtitle="Start of year planning"
+                      selected={form.semester === "Semester1"}
+                      onClick={() => setForm((prev) => ({ ...prev, semester: "Semester1", currentSelections: {} }))}
+                    />
+                    <ChoiceTile
+                      title="Semester 2"
+                      subtitle="Mid-year — tell us what you’re taking now"
+                      selected={form.semester === "Semester2"}
+                      onClick={() => setForm((prev) => ({ ...prev, semester: "Semester2" }))}
+                    />
+                  </div>
+                </IntakePanel>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <label className="block text-sm">
-                    <span className="font-medium">Current Grade *</span>
-                    <select className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.currentGrade} onChange={(e) => setForm({ ...form, currentGrade: Number(e.target.value) as 9 | 10 | 11 | 12 })}>
-                    <option value={9}>Grade 9</option><option value={10}>Grade 10</option><option value={11}>Grade 11</option><option value={12}>Grade 12</option>
-                    </select>
-                  </label>
-                  <label className="block text-sm">
-                    <span className="font-medium">Current Semester *</span>
-                    <select className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value as "Semester1" | "Semester2" })}>
-                      <option value="Semester1">Semester 1</option>
-                      <option value="Semester2">Semester 2</option>
-                    </select>
-                  </label>
-                </div>
-                {form.semester === "Semester2" ? (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <label className="block text-sm"><span className="font-medium">Current Courses (optional)</span><Input value={form.currentCourses} onChange={(e) => setForm({ ...form, currentCourses: e.target.value })} placeholder="Comma-separated (optional)" /></label>
-                    <label className="block text-sm"><span className="font-medium">Current APs (optional)</span><Input value={form.currentAPs} onChange={(e) => setForm({ ...form, currentAPs: e.target.value })} placeholder="Comma-separated (optional)" /></label>
-                  </div>
+                {form.semester === "Semester2" && semester2Panels.length > 0 ? (
+                  <IntakePanel
+                    emoji="📚"
+                    title="Your courses this semester"
+                    hint="One pick per row. APs live in the same row as their subject."
+                  >
+                    <div className="space-y-6">
+                      {semester2Panels.map((panel) => (
+                        <div key={panel.id}>
+                          <p className="mb-2 text-sm font-medium text-slate-800">{panel.label}</p>
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {panel.options.map((o) => (
+                              <ChoiceTile
+                                key={o.code}
+                                title={o.name}
+                                subtitle={o.isAp ? "AP course" : undefined}
+                                selected={form.currentSelections[panel.id] === o.code}
+                                onClick={() =>
+                                  setForm((prev) => ({
+                                    ...prev,
+                                    currentSelections: { ...prev.currentSelections, [panel.id]: o.code },
+                                  }))
+                                }
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </IntakePanel>
                 ) : null}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Strengths (choose 1–3)</p>
-                    <div className="flex flex-wrap gap-2">
-                      {STRENGTH_OPTIONS.map((s) => {
-                        const selected = form.strengths.includes(s);
-                        return (
-                          <Chip
-                            key={s}
-                            label={s}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                strengths: selected ? form.strengths.filter((v) => v !== s) : [...form.strengths, s],
-                              })
-                            }
-                          />
-                        );
-                      })}
+
+                <IntakePanel emoji="💪" title="Strengths & stretch areas" hint="Optional — tap what feels true.">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Stronger in</p>
+                      <div className="flex flex-wrap gap-2">
+                        {STRENGTH_OPTIONS.map((s) => {
+                          const selected = form.strengths.includes(s);
+                          return (
+                            <Chip
+                              key={s}
+                              label={strengthChipLabel(s)}
+                              selected={selected}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  strengths: selected ? form.strengths.filter((v) => v !== s) : [...form.strengths, s],
+                                })
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">More challenging</p>
+                      <div className="flex flex-wrap gap-2">
+                        {STRENGTH_OPTIONS.map((s) => {
+                          const selected = form.weaknesses.includes(s);
+                          return (
+                            <Chip
+                              key={s}
+                              label={strengthChipLabel(s)}
+                              selected={selected}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  weaknesses: selected ? form.weaknesses.filter((v) => v !== s) : [...form.weaknesses, s],
+                                })
+                              }
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Areas you find harder</p>
-                    <div className="flex flex-wrap gap-2">
-                      {STRENGTH_OPTIONS.map((s) => {
-                        const selected = form.weaknesses.includes(s);
-                        return (
+                </IntakePanel>
+
+                <IntakePanel emoji="⚡" title="Confidence & workload" hint="Required — helps us tune the feel of your plan.">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Academic confidence</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(["Low", "Medium", "High"] as const).map((lvl) => (
                           <Chip
-                            key={s}
-                            label={s}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                weaknesses: selected ? form.weaknesses.filter((v) => v !== s) : [...form.weaknesses, s],
-                              })
-                            }
+                            key={lvl}
+                            label={lvl}
+                            selected={form.selfReportedAcademicConfidence === lvl}
+                            onClick={() => setForm({ ...form, selfReportedAcademicConfidence: lvl })}
                           />
-                        );
-                      })}
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Workload tolerance</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(["Low", "Medium", "High"] as const).map((lvl) => (
+                          <Chip
+                            key={lvl}
+                            label={lvl}
+                            selected={form.workloadTolerance === lvl}
+                            onClick={() => setForm({ ...form, workloadTolerance: lvl })}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <label className="block text-sm"><span className="font-medium">Academic Confidence</span><select className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.selfReportedAcademicConfidence} onChange={(e) => setForm({ ...form, selfReportedAcademicConfidence: e.target.value as IntakeForm["selfReportedAcademicConfidence"] })}><option>Low</option><option>Medium</option><option>High</option></select></label>
-                  <label className="block text-sm"><span className="font-medium">Workload Tolerance</span><select className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.workloadTolerance} onChange={(e) => setForm({ ...form, workloadTolerance: e.target.value as IntakeForm["workloadTolerance"] })}><option>Low</option><option>Medium</option><option>High</option></select></label>
-                </div>
+                </IntakePanel>
               </>
             ) : null}
 
             {step === 1 ? (
               <>
-                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
-                  <p className="text-sm font-semibold text-slate-900">Interests and future</p>
-                  <p className="mt-1 text-xs text-slate-600">Helps align choices to goals and keep the right options open.</p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">What are you most interested in?</p>
-                    <div className="flex flex-wrap gap-2">
-                      {INTEREST_OPTIONS.map((opt) => {
-                        const selected = form.interests.includes(opt);
-                        return (
-                          <Chip
-                            key={opt}
-                            label={opt}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                interests: selected ? form.interests.filter((v) => v !== opt) : [...form.interests, opt],
-                              })
-                            }
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Any early career ideas?</p>
-                    <div className="flex flex-wrap gap-2">
-                      {CAREER_OPTIONS.map((opt) => {
-                        const selected = form.careerGoals.includes(opt);
-                        return (
-                          <Chip
-                            key={opt}
-                            label={opt}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                careerGoals: selected ? form.careerGoals.filter((v) => v !== opt) : [...form.careerGoals, opt],
-                              })
-                            }
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <label className="block text-sm"><span className="font-medium">How sure are you about your future plans?</span><select className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm" value={form.goalClarity} onChange={(e) => setForm({ ...form, goalClarity: e.target.value as IntakeForm["goalClarity"] })}><option>Low</option><option>Medium</option><option>High</option></select></label>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Main target country *</p>
-                    <div className="flex flex-wrap gap-2">
-                      {["UAE", "Qatar", "US", "Egypt", "Jordan"].map((c) => (
-                        <Chip
-                          key={c}
-                          label={c}
-                          selected={form.mainCountry === c}
-                          onClick={() => setForm({ ...form, mainCountry: c as IntakeForm["mainCountry"] })}
+                <IntakePanel emoji="✨" title="What pulls you in?" hint="Pick anything that sparks curiosity — multi-select.">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {INTEREST_OPTIONS.map((opt) => {
+                      const selected = form.interests.includes(opt);
+                      return (
+                        <ChoiceTile
+                          key={opt}
+                          title={opt}
+                          selected={selected}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              interests: selected ? form.interests.filter((v) => v !== opt) : [...form.interests, opt],
+                            })
+                          }
                         />
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Additional countries (optional)</p>
-                    <div className="flex flex-wrap gap-2">
-                      {["UAE", "Qatar", "US", "Egypt", "Jordan"].map((c) => {
-                        if (c === form.mainCountry) return null;
-                        const selected = form.additionalCountries.includes(c);
-                        return (
+                </IntakePanel>
+
+                <IntakePanel emoji="🧭" title="Career direction" hint="Rough ideas count — you’re not signing a contract.">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {CAREER_OPTIONS.map((opt) => {
+                      const selected = form.careerGoals.includes(opt);
+                      return (
+                        <ChoiceTile
+                          key={opt}
+                          title={opt}
+                          selected={selected}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              careerGoals: selected ? form.careerGoals.filter((v) => v !== opt) : [...form.careerGoals, opt],
+                            })
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                </IntakePanel>
+
+                <IntakePanel emoji="🗺️" title="How clear are your plans?" hint="Required — honest beats perfect.">
+                  <div className="flex flex-wrap gap-2">
+                    {(["Low", "Medium", "High"] as const).map((lvl) => (
+                      <Chip
+                        key={lvl}
+                        label={lvl === "Low" ? "Still exploring" : lvl === "Medium" ? "Somewhat clear" : "Fairly clear"}
+                        selected={form.goalClarity === lvl}
+                        onClick={() => setForm({ ...form, goalClarity: lvl })}
+                      />
+                    ))}
+                  </div>
+                </IntakePanel>
+
+                <IntakePanel
+                  emoji="🌍"
+                  title="Future destination"
+                  hint="Pick your main country first. If you add more countries below, we’ll ask how you want to balance them."
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Main focus country</p>
+                      <div className="flex flex-wrap gap-2">
+                        {COUNTRY_OPTIONS.map((c) => (
                           <Chip
                             key={c}
-                            label={c}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                additionalCountries: selected
-                                  ? form.additionalCountries.filter((v) => v !== c)
-                                  : [...form.additionalCountries, c],
-                              })
-                            }
+                            label={countryChipLabel(c)}
+                            selected={form.mainCountry === c}
+                            onClick={() => setForm({ ...form, mainCountry: c })}
                           />
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Also considering (optional)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {COUNTRY_OPTIONS.map((c) => {
+                          if (c === form.mainCountry) return null;
+                          const selected = form.additionalCountries.includes(c);
+                          return (
+                            <Chip
+                              key={c}
+                              label={countryChipLabel(c)}
+                              selected={selected}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  additionalCountries: selected
+                                    ? form.additionalCountries.filter((v) => v !== c)
+                                    : [...form.additionalCountries, c],
+                                })
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {form.additionalCountries.length > 0 ? (
+                      <div>
+                        <p className="mb-2 text-sm font-medium text-slate-800">How do these countries fit together?</p>
+                        <p className="mb-2 text-xs font-medium text-slate-500">Required because you picked more than one country.</p>
+                        <div className="flex flex-wrap gap-2">
+                          <Chip
+                            label="One main destination"
+                            selected={form.countryIntent === "main_focus"}
+                            onClick={() => setForm({ ...form, countryIntent: "main_focus" })}
+                          />
+                          <Chip
+                            label="Keep options open"
+                            selected={form.countryIntent === "keep_options_open"}
+                            onClick={() => setForm({ ...form, countryIntent: "keep_options_open" })}
+                          />
+                          <Chip
+                            label="Not sure yet"
+                            selected={form.countryIntent === "unsure"}
+                            onClick={() => setForm({ ...form, countryIntent: "unsure" })}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <p className="font-medium">Country intent</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Chip
-                      label="Main focus"
-                      selected={form.countryIntent === "main_focus"}
-                      onClick={() => setForm({ ...form, countryIntent: "main_focus" })}
-                    />
-                    <Chip
-                      label="Keep options open"
-                      selected={form.countryIntent === "keep_options_open"}
-                      onClick={() => setForm({ ...form, countryIntent: "keep_options_open" })}
-                    />
-                    <Chip
-                      label="Unsure"
-                      selected={form.countryIntent === "unsure"}
-                      onClick={() => setForm({ ...form, countryIntent: "unsure" })}
-                    />
-                  </div>
-                </div>
+                </IntakePanel>
               </>
             ) : null}
 
             {step === 2 ? (
               <>
-                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
-                  <p className="text-sm font-semibold text-slate-900">Decision style</p>
-                  <p className="mt-1 text-xs text-slate-600">Why we ask this: it adjusts what the engine prioritizes (without ignoring other factors).</p>
-                </div>
+                <IntakePanel emoji="🎚️" title="Priority style" hint="Required — how you want to steer this year.">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <ChoiceTile
+                      title="Strongest path"
+                      subtitle="Maximize fit to your direction"
+                      selected={form.priorityStyle === "strongest_path"}
+                      onClick={() => setForm({ ...form, priorityStyle: "strongest_path" })}
+                    />
+                    <ChoiceTile
+                      title="Balanced"
+                      subtitle="Solid mix of fit and sustainability"
+                      selected={form.priorityStyle === "balanced_path"}
+                      onClick={() => setForm({ ...form, priorityStyle: "balanced_path" })}
+                    />
+                    <ChoiceTile
+                      title="Safest / higher grades"
+                      subtitle="Reduce unnecessary risk"
+                      selected={form.priorityStyle === "safest_highest_grade"}
+                      onClick={() => setForm({ ...form, priorityStyle: "safest_highest_grade" })}
+                    />
+                    <ChoiceTile
+                      title="Not sure"
+                      subtitle="We’ll keep recommendations flexible"
+                      selected={form.priorityStyle === "not_sure"}
+                      onClick={() => setForm({ ...form, priorityStyle: "not_sure" })}
+                    />
+                  </div>
+                </IntakePanel>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Priority style</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Chip
-                        label="Strongest path"
-                        selected={form.priorityStyle === "strongest_path"}
-                        onClick={() => setForm({ ...form, priorityStyle: "strongest_path" })}
+                <IntakePanel emoji="🚀" title="Optimize for" hint="Required — what matters most right now.">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {(
+                      [
+                        ["career_alignment", "Career alignment"],
+                        ["lighter_workload", "Lighter workload"],
+                        ["university_competitiveness", "University competitiveness"],
+                        ["keeping_options_open", "Keeping options open"],
+                        ["higher_grades", "Higher grades"],
+                      ] as const
+                    ).map(([k, label]) => (
+                      <ChoiceTile
+                        key={k}
+                        title={label}
+                        selected={form.optimizationTarget === k}
+                        onClick={() => setForm({ ...form, optimizationTarget: k })}
                       />
-                      <Chip
-                        label="Balanced"
-                        selected={form.priorityStyle === "balanced_path"}
-                        onClick={() => setForm({ ...form, priorityStyle: "balanced_path" })}
-                      />
-                      <Chip
-                        label="Safest / higher grades"
-                        selected={form.priorityStyle === "safest_highest_grade"}
-                        onClick={() => setForm({ ...form, priorityStyle: "safest_highest_grade" })}
-                      />
-                      <Chip
-                        label="Not sure"
-                        selected={form.priorityStyle === "not_sure"}
-                        onClick={() => setForm({ ...form, priorityStyle: "not_sure" })}
-                      />
-                    </div>
+                    ))}
                   </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">What should we optimize most for?</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Chip
-                        label="Career alignment"
-                        selected={form.optimizationTarget === "career_alignment"}
-                        onClick={() => setForm({ ...form, optimizationTarget: "career_alignment" })}
-                      />
-                      <Chip
-                        label="Lighter workload"
-                        selected={form.optimizationTarget === "lighter_workload"}
-                        onClick={() => setForm({ ...form, optimizationTarget: "lighter_workload" })}
-                      />
-                      <Chip
-                        label="University competitiveness"
-                        selected={form.optimizationTarget === "university_competitiveness"}
-                        onClick={() => setForm({ ...form, optimizationTarget: "university_competitiveness" })}
-                      />
-                      <Chip
-                        label="Keep options open"
-                        selected={form.optimizationTarget === "keeping_options_open"}
-                        onClick={() => setForm({ ...form, optimizationTarget: "keeping_options_open" })}
-                      />
-                      <Chip
-                        label="Higher grades"
-                        selected={form.optimizationTarget === "higher_grades"}
-                        onClick={() => setForm({ ...form, optimizationTarget: "higher_grades" })}
-                      />
+                </IntakePanel>
+
+                <IntakePanel emoji="🛡️" title="Risk & scholarships" hint="Required — both chips.">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Risk preference</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Chip
+                          label="Play it safe"
+                          selected={form.riskPreference === "Avoid risk"}
+                          onClick={() => setForm({ ...form, riskPreference: "Avoid risk" })}
+                        />
+                        <Chip
+                          label="Balanced"
+                          selected={form.riskPreference === "Balanced"}
+                          onClick={() => setForm({ ...form, riskPreference: "Balanced" })}
+                        />
+                        <Chip
+                          label="Open to stretch"
+                          selected={form.riskPreference === "Embrace stretch"}
+                          onClick={() => setForm({ ...form, riskPreference: "Embrace stretch" })}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Risk preference</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Chip
-                        label="Avoid risk"
-                        selected={form.riskPreference === "Avoid risk"}
-                        onClick={() => setForm({ ...form, riskPreference: "Avoid risk" })}
-                      />
-                      <Chip
-                        label="Balanced"
-                        selected={form.riskPreference === "Balanced"}
-                        onClick={() => setForm({ ...form, riskPreference: "Balanced" })}
-                      />
-                      <Chip
-                        label="Embrace stretch"
-                        selected={form.riskPreference === "Embrace stretch"}
-                        onClick={() => setForm({ ...form, riskPreference: "Embrace stretch" })}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Scholarship importance</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Chip
-                        label="Low"
-                        selected={form.scholarshipImportance === "Low"}
-                        onClick={() => setForm({ ...form, scholarshipImportance: "Low" })}
-                      />
-                      <Chip
-                        label="Medium"
-                        selected={form.scholarshipImportance === "Medium"}
-                        onClick={() => setForm({ ...form, scholarshipImportance: "Medium" })}
-                      />
-                      <Chip
-                        label="High"
-                        selected={form.scholarshipImportance === "High"}
-                        onClick={() => setForm({ ...form, scholarshipImportance: "High" })}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">Things you want to avoid</p>
-                    <div className="flex flex-wrap gap-2">
-                      {AVOID_OPTIONS.map((opt) => {
-                        const selected = form.preferencesToAvoid.includes(opt);
-                        return (
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Scholarship importance</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(["Low", "Medium", "High"] as const).map((lvl) => (
                           <Chip
-                            key={opt}
-                            label={opt}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                preferencesToAvoid: selected
-                                  ? form.preferencesToAvoid.filter((v) => v !== opt)
-                                  : [...form.preferencesToAvoid, opt],
-                              })
-                            }
+                            key={lvl}
+                            label={lvl}
+                            selected={form.scholarshipImportance === lvl}
+                            onClick={() => setForm({ ...form, scholarshipImportance: lvl })}
                           />
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-medium">What you usually prefer</p>
-                    <div className="flex flex-wrap gap-2">
-                      {PREF_OPTIONS.map((opt) => {
-                        const selected = form.preferences.includes(opt);
-                        return (
-                          <Chip
-                            key={opt}
-                            label={opt}
-                            selected={selected}
-                            onClick={() =>
-                              setForm({
-                                ...form,
-                                preferences: selected ? form.preferences.filter((v) => v !== opt) : [...form.preferences, opt],
-                              })
-                            }
-                          />
-                        );
-                      })}
+                </IntakePanel>
+
+                <IntakePanel emoji="🎨" title="Preferences" hint="Optional — fine-tune the vibe.">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">Try to avoid</p>
+                      <div className="flex flex-wrap gap-2">
+                        {AVOID_OPTIONS.map((opt) => {
+                          const selected = form.preferencesToAvoid.includes(opt);
+                          return (
+                            <Chip
+                              key={opt}
+                              label={opt}
+                              selected={selected}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  preferencesToAvoid: selected
+                                    ? form.preferencesToAvoid.filter((v) => v !== opt)
+                                    : [...form.preferencesToAvoid, opt],
+                                })
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-800">You usually prefer</p>
+                      <div className="flex flex-wrap gap-2">
+                        {PREF_OPTIONS.map((opt) => {
+                          const selected = form.preferences.includes(opt);
+                          return (
+                            <Chip
+                              key={opt}
+                              label={opt}
+                              selected={selected}
+                              onClick={() =>
+                                setForm({
+                                  ...form,
+                                  preferences: selected ? form.preferences.filter((v) => v !== opt) : [...form.preferences, opt],
+                                })
+                              }
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
+                </IntakePanel>
+
+                <div className="rounded-2xl border-2 border-dashed border-cyan-200/70 bg-gradient-to-br from-cyan-50/50 to-white p-4 ring-1 ring-cyan-100/40">
+                  <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                    <span aria-hidden>💬</span>
+                    Anything else? (optional)
+                  </label>
+                  <Input
+                    className="mt-2"
+                    value={form.futurePlans}
+                    onChange={(e) => setForm({ ...form, futurePlans: e.target.value })}
+                    placeholder="Short note — e.g. exchange year, sport, family preference"
+                  />
                 </div>
-                <label className="block text-sm"><span className="font-medium">Future Plans (optional)</span><Input value={form.futurePlans} onChange={(e) => setForm({ ...form, futurePlans: e.target.value })} placeholder="Any extra context you want us to consider" /></label>
               </>
             ) : null}
           </div>
 
-          {error ? <div className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+          {error ? <div className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-800 ring-1 ring-red-100">{error}</div> : null}
 
-          <div className="mt-6 flex items-center justify-between">
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <Button variant="secondary" disabled={step === 0 || submitting} onClick={() => setStep(step - 1)}>
               Back
             </Button>
-            {step < STEPS.length - 1 ? (
-              <Button disabled={!canProceedCurrentStep() || submitting} onClick={() => setStep(step + 1)}>
-                Next
+            {step < JOURNEY_STEPS.length - 1 ? (
+              <Button className="sm:min-w-[220px]" disabled={!canProceedCurrentStep() || submitting} onClick={() => setStep(step + 1)}>
+                Next step →
               </Button>
             ) : (
-              <Button disabled={submitting} onClick={submit}>
-                {submitting ? "Generating..." : "See Recommendations"}
+              <Button className="sm:min-w-[240px]" disabled={submitting || !canSubmitFull()} onClick={submit}>
+                {submitting ? "Building your plan…" : "Unlock my plan 🎯"}
               </Button>
             )}
           </div>
-        </Card>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+export default function IntakePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(34,211,238,0.18),transparent)] text-sm font-semibold text-slate-600">
+          <span className="h-10 w-10 animate-pulse rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 shadow-md" />
+          <span>Setting up your journey…</span>
+        </div>
+      }
+    >
+      <IntakePageInner />
+    </Suspense>
+  );
+}

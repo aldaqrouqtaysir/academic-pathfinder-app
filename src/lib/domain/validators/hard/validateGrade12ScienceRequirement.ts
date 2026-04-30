@@ -33,7 +33,8 @@ export function validateGrade12ScienceRequirement(params: {
     {
       ruleKey: "prerequisite_satisfied",
       blocked: true,
-      message: "Grade 12 requires a science elective path. Please include a science choice in your Set 1/Set 2 electives (e.g., Environmental Science, AP Biology, AP Chemistry).",
+      message:
+        "Grade 12 requires a science path. Pick a science row course (e.g., Environmental Science) and/or a science-heavy elective/AP in your plan (e.g., AP Biology, AP Chemistry).",
     },
   ];
 }

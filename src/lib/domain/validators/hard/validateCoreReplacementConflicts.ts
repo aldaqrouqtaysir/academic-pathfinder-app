@@ -12,7 +12,8 @@ const REPLACEMENTS = [
   { ap: "AP_CALC_AB", core: "AP_STATS", subject: "Math" },
   { ap: "AP_CALC_AB", core: "CALCULUS", subject: "Math" },
   { ap: "AP_CALC_AB", core: "CALC_BUSINESS", subject: "Math" },
-  { ap: "AP_CALC_AB", core: "CALC_FOUNDATION", subject: "Math" },
+  { ap: "AP_CALC_AB", core: "FUND_MATH_I", subject: "Math" },
+  { ap: "AP_CALC_AB", core: "FUND_MATH_II", subject: "Math" },
 ];
 
 export function validateCoreReplacementConflicts(params: {

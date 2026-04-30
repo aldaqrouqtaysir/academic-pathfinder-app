@@ -50,6 +50,8 @@ export interface PathRecommendation {
 
   rationale: RecommendationRationale;
   explanation: string;
+  /** Student-facing lines tying each category pick (and path kind) to profile answers — not scoring jargon. */
+  selectionBecause?: string[];
   continuationSuggestions: Array<{
     fromCourseCode: string;
     toCourseCode: string;

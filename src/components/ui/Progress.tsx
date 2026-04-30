@@ -1,11 +1,18 @@
 type Props = {
   value: number; // 0..100
+  /** `lg` — taller bar for primary journey progress (e.g. intake). */
+  size?: "md" | "lg";
 };
 
-export function Progress({ value }: Props) {
+export function Progress({ value, size = "md" }: Props) {
+  const w = Math.min(100, Math.max(0, value));
+  const h = size === "lg" ? "h-4 sm:h-5" : "h-3";
   return (
-    <div className="h-2.5 w-full rounded-full bg-slate-100">
-      <div className="h-2.5 rounded-full bg-gradient-to-r from-teal-600 to-sky-500" style={{ width: `${Math.min(100, Math.max(0, value))}%` }} />
+    <div className={`w-full overflow-hidden rounded-full bg-slate-200/90 shadow-inner ring-1 ring-slate-200/60 ${h}`}>
+      <div
+        className={`apf-progress-shimmer rounded-full bg-gradient-to-r from-teal-500 via-sky-500 to-violet-500 transition-[width] duration-700 ease-out ${h}`}
+        style={{ width: `${w}%` }}
+      />
     </div>
   );
 }

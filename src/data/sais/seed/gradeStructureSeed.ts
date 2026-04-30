@@ -56,7 +56,7 @@ export const gradeStructureSeed: GradeCoreStructure[] = [
   {
     grade: 12,
     coreCourseGroups: [
-      { groupKey: "Math", required: true, options: ["AP_CALC_AB", "AP_STATS", "CALCULUS", "CALC_BUSINESS", "CALC_FOUNDATION"] },
+      { groupKey: "Math", required: true, options: ["AP_CALC_AB", "AP_STATS", "CALCULUS", "CALC_BUSINESS"] },
       // Science requirement is enforced as “elective science path” (set1/set2)
     ],
     semesterElectivesEnabled: true,
@@ -66,11 +66,17 @@ export const gradeStructureSeed: GradeCoreStructure[] = [
 ];
 
 export const scienceElectiveCodesSeed: string[] = [
-  // Confirmed or grounded in current context:
   "AP_CHEM",
   "AP_BIO",
   "ENV_SCI",
   "THERMO",
   "ORG_CHEM",
+  "ELECTROMAG",
+  "BIOCHEM",
+  "FORENSIC_SCI",
+  "GENETICS",
+  "BIOMED_SCI",
+  "HUMAN_ANATOMY_I",
+  "HUMAN_ANATOMY_II",
 ];
 

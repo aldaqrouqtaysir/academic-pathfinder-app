@@ -1,4 +1,6 @@
 import type { Course } from "@/lib/domain/models/course";
+import { set1Set2ElectiveCoursesSeed } from "./setElectiveCoursesSeed";
+import { setElectiveEnrichmentsSeed } from "./setElectiveEnrichmentsSeed";
 
 /**
  * SAIS starter seed course catalog (Phase 2) — SAIS-specific starter.
@@ -17,13 +19,13 @@ import type { Course } from "@/lib/domain/models/course";
  *   - Math: Integrated Math 3 OR Pre-Calculus OR Math for Business
  *   - Science: Physics OR AP Physics C1 (core replacement, year-long)
  *   - English: English 11 OR AP Language & Composition (core replacement, year-long)
- * - Grade 12 core math options:
- *   - AP Calculus AB, AP Statistics, Calculus, Calculus for Business (+ optional Calculus Foundation)
+ * - Grade 12 core math options (open planning): AP Calculus AB, AP Statistics, Calculus, Calculus for Business
  * - Grade 12: science is mandatory and selected as a science elective (enforced via rules later)
- * - Confirmed elective AP placements:
- *   - AP Chemistry -> Set 1
- *   - AP Biology -> Set 2
- *   - AP Computer Science Principles (AP CSP) -> Set 2
+ * - Grades 11–12 Set 1 / Set 2: full confirmed lists in `setElectiveCoursesSeed` + `confirmedSaisElectiveInventory`.
+ * - Grade 12 science path (Environmental Science, Thermodynamics, Organic Chemistry, Electromagnetism,
+ *   Biochemistry) uses the `science_category` template row, not Set 1/2; catalog marks them `electiveSet: Core`
+ *   so mid-year continuity ties to core selections.
+ * - Fundamentals Math I (11) / II (12): included in templates where SAIS offers a fundamentals track — confirm official titles with the school.
  *
  * Constraints:
  * - We do NOT encode “fake” hard prerequisites. Any readiness guidance becomes soft warnings/scoring only.
@@ -164,6 +166,21 @@ export const courseCatalogSeed: Course[] = [
     pathwayAffinity: { business_finance: 0.9, engineering: 0.3, ai_tech: 0.3, undecided: 0.6 },
   },
   {
+    code: "FUND_MATH_I",
+    name: "Fundamentals Math I",
+    type: "core",
+    electiveSet: "Core",
+    replacesCoreSubjects: [],
+    yearLong: true,
+    prerequisites: [],
+    workloadPoints: 3,
+    rigorPoints: 2,
+    realWorldRelevancePoints: 3,
+    futureRelevancePoints: 3,
+    tags: ["STEM"],
+    pathwayAffinity: { undecided: 0.7, business_finance: 0.5, medicine: 0.4, engineering: 0.35, ai_tech: 0.35, creative: 0.3 },
+  },
+  {
     code: "PHYS_11",
     name: "Physics",
     type: "core",
@@ -292,44 +309,32 @@ export const courseCatalogSeed: Course[] = [
     pathwayAffinity: { business_finance: 0.9, ai_tech: 0.4, engineering: 0.4, undecided: 0.6 },
   },
   {
-    code: "CALC_FOUNDATION",
-    name: "Calculus Foundation",
+    code: "FUND_MATH_II",
+    name: "Fundamentals Math II",
     type: "core",
     electiveSet: "Core",
     replacesCoreSubjects: [],
-    yearLong: true, // ASSUMPTION: include only if SAIS confirms; treated as optional
+    yearLong: true,
     prerequisites: [],
     workloadPoints: 3,
-    rigorPoints: 3,
-    realWorldRelevancePoints: 4,
-    futureRelevancePoints: 4,
+    rigorPoints: 2,
+    realWorldRelevancePoints: 3,
+    futureRelevancePoints: 3,
     tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.5, ai_tech: 0.4, business_finance: 0.4, undecided: 0.5 },
+    pathwayAffinity: { undecided: 0.7, business_finance: 0.55, medicine: 0.45, engineering: 0.4, ai_tech: 0.4, creative: 0.35 },
   },
 
   // -------------------------
-  // Set 1 elective AP placement (confirmed) + seeded science electives
+  // Grades 11–12 Set 1 + Set 2 electives (confirmed lists — see setElectiveCoursesSeed)
   // -------------------------
-  {
-    code: "AP_CHEM",
-    name: "AP Chemistry",
-    type: "AP",
-    electiveSet: "Set1",
-    replacesCoreSubjects: [],
-    yearLong: true, // confirmed AP year-long
-    prerequisites: [],
-    workloadPoints: 5,
-    rigorPoints: 5,
-    realWorldRelevancePoints: 4,
-    futureRelevancePoints: 5,
-    tags: ["STEM", "Lab", "Health"],
-    pathwayAffinity: { medicine: 0.9, engineering: 0.6, undecided: 0.4 },
-  },
+  ...set1Set2ElectiveCoursesSeed,
+
+  // Grade 12 science_category row (not Set 1 elective slot)
   {
     code: "ENV_SCI",
     name: "Environmental Science",
     type: "elective",
-    electiveSet: "Set1",
+    electiveSet: "Core",
     replacesCoreSubjects: [],
     yearLong: true, // confirmed year-long
     prerequisites: [],
@@ -344,7 +349,7 @@ export const courseCatalogSeed: Course[] = [
     code: "THERMO",
     name: "Thermodynamics",
     type: "elective",
-    electiveSet: "Set1",
+    electiveSet: "Core",
     replacesCoreSubjects: [],
     yearLong: false, // ASSUMPTION: semester elective
     prerequisites: [],
@@ -359,7 +364,7 @@ export const courseCatalogSeed: Course[] = [
     code: "ORG_CHEM",
     name: "Organic Chemistry",
     type: "elective",
-    electiveSet: "Set1",
+    electiveSet: "Core",
     replacesCoreSubjects: [],
     yearLong: false, // ASSUMPTION: semester elective
     prerequisites: [],
@@ -374,7 +379,7 @@ export const courseCatalogSeed: Course[] = [
     code: "ELECTROMAG",
     name: "Electromagnetism",
     type: "elective",
-    electiveSet: "Set1",
+    electiveSet: "Core",
     replacesCoreSubjects: [],
     yearLong: false,
     prerequisites: [],
@@ -389,7 +394,7 @@ export const courseCatalogSeed: Course[] = [
     code: "BIOCHEM",
     name: "Biochemistry",
     type: "elective",
-    electiveSet: "Set1",
+    electiveSet: "Core",
     replacesCoreSubjects: [],
     yearLong: false,
     prerequisites: [],
@@ -401,39 +406,6 @@ export const courseCatalogSeed: Course[] = [
     pathwayAffinity: { medicine: 0.8, engineering: 0.3, undecided: 0.3 },
   },
 
-  // -------------------------
-  // Set 2 elective AP placements (confirmed)
-  // -------------------------
-  {
-    code: "AP_BIO",
-    name: "AP Biology",
-    type: "AP",
-    electiveSet: "Set2",
-    replacesCoreSubjects: [],
-    yearLong: true, // confirmed AP year-long
-    prerequisites: [],
-    workloadPoints: 5,
-    rigorPoints: 5,
-    realWorldRelevancePoints: 4,
-    futureRelevancePoints: 5,
-    tags: ["STEM", "Lab", "Health"],
-    pathwayAffinity: { medicine: 1.0, engineering: 0.3, undecided: 0.4 },
-  },
-  {
-    code: "AP_CSP",
-    name: "AP Computer Science Principles",
-    type: "AP",
-    electiveSet: "Set2",
-    replacesCoreSubjects: [],
-    yearLong: true, // confirmed AP year-long
-    prerequisites: [],
-    workloadPoints: 4,
-    rigorPoints: 4,
-    realWorldRelevancePoints: 5,
-    futureRelevancePoints: 5,
-    tags: ["Coding", "STEM", "ProjectBased"],
-    pathwayAffinity: { ai_tech: 0.9, engineering: 0.5, business_finance: 0.3, undecided: 0.4 },
-  },
 ];
 
 type Enrichment = Pick<
@@ -442,6 +414,7 @@ type Enrichment = Pick<
 >;
 
 const enrichmentByCode: Record<string, Enrichment> = {
+  ...setElectiveEnrichmentsSeed,
   // Grade 11 categories
   ENG_11: { categoryKeys: ["english_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
   AP_LANG_COMP: {
@@ -460,6 +433,7 @@ const enrichmentByCode: Record<string, Enrichment> = {
   MATH_INT_3: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
   PRECALC: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
   MATH_BUSINESS: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
+  FUND_MATH_I: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
 
   // Grade 12 categories
   AP_CALC_AB: {
@@ -476,7 +450,7 @@ const enrichmentByCode: Record<string, Enrichment> = {
   },
   CALCULUS: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
   CALC_BUSINESS: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
-  CALC_FOUNDATION: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
+  FUND_MATH_II: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
   ENV_SCI: {
     categoryKeys: ["science_category"],
     gradeAvailability: [12],
@@ -503,11 +477,6 @@ const enrichmentByCode: Record<string, Enrichment> = {
   },
   ELECTROMAG: { categoryKeys: ["science_category"], gradeAvailability: [12], semesterAvailability: ["Semester2"], continuations: [] },
   BIOCHEM: { categoryKeys: ["science_category"], gradeAvailability: [12], semesterAvailability: ["Semester2"], continuations: [] },
-
-  // Set electives/APs
-  AP_CHEM: { categoryKeys: ["set1_elective"], gradeAvailability: [11, 12], semesterAvailability: ["Semester1", "Semester2"], continuations: [{ toCourseCode: "AP_CHEM", kind: "required" }] },
-  AP_BIO: { categoryKeys: ["set2_elective"], gradeAvailability: [11, 12], semesterAvailability: ["Semester1", "Semester2"], continuations: [{ toCourseCode: "AP_BIO", kind: "required" }] },
-  AP_CSP: { categoryKeys: ["set2_elective"], gradeAvailability: [11, 12], semesterAvailability: ["Semester1", "Semester2"], continuations: [{ toCourseCode: "AP_CSP", kind: "required" }] },
 };
 
 function toLevel(points: 1 | 2 | 3 | 4 | 5): "low" | "medium" | "high" | "very_high" {

@@ -9,7 +9,9 @@ type Props = {
 
 export function Chip({ label, tone = "slate", selected, onClick, type }: Props) {
   const baseTone = tone === "teal" ? "bg-teal-50 text-teal-800 ring-teal-100" : "bg-slate-50 text-slate-700 ring-slate-200";
-  const active = selected ? "ring-2 ring-teal-500 bg-teal-50 text-teal-900" : "";
+  const active = selected
+    ? "ring-2 ring-teal-500 ring-offset-2 ring-offset-white bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-900 shadow-md"
+    : "";
 
   if (onClick) {
     return (
@@ -17,7 +19,7 @@ export function Chip({ label, tone = "slate", selected, onClick, type }: Props) 
         type={type ?? "button"}
         onClick={onClick}
         className={clsx(
-          "inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition hover:bg-teal-50 hover:text-teal-900",
+          "inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition-all duration-300 hover:bg-teal-50/90 hover:text-teal-900 active:scale-95",
           baseTone,
           active,
         )}

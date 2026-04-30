@@ -1,11 +1,14 @@
 import { categoryTemplatesSeed } from "@/data/sais";
 import { getSelectedCountries, type StudentProfile } from "../models/studentProfile";
 import type { CourseCatalog, RecommendationComputeInput } from "../engine/types";
-import type { PathRecommendation, RecommendationBundle } from "../models/recommendations";
+import type { PathRecommendation, RecommendationBundle, ScoringFactorContribution } from "../models/recommendations";
 import type { Course, PlanCategoryKey } from "../models/course";
 import { scorePathway } from "../scoring/scorePathway";
+import { determineTargetPathway } from "../scoring/helpers";
+import { buildDynamicWeights } from "../scoring/weights";
 import { validateHardConstraints } from "../validators/validateHardConstraints";
 import { validateSoftConstraints } from "../validators/validateSoftConstraints";
+import { buildSelectionBecauseBullets } from "./selectionBecause";
 
 interface CandidatePlan {
   categorySelections: Partial<Record<PlanCategoryKey, string>>;
@@ -21,8 +24,21 @@ function buildCategorySelections(profile: StudentProfile, plan: { core: string[]
   const map: Partial<Record<PlanCategoryKey, string>> = {};
   for (const code of plan.core) {
     if (["ENG_11", "AP_LANG_COMP"].includes(code)) map.english_category = code;
-    if (["PHYS_11", "AP_PHYSICS_C1", "ENV_SCI", "THERMO", "ORG_CHEM"].includes(code)) map.science_category = code;
-    if (["MATH_INT_3", "PRECALC", "MATH_BUSINESS", "AP_CALC_AB", "AP_STATS", "CALCULUS", "CALC_BUSINESS", "CALC_FOUNDATION"].includes(code)) {
+    if (["PHYS_11", "AP_PHYSICS_C1", "ENV_SCI", "THERMO", "ORG_CHEM", "ELECTROMAG", "BIOCHEM"].includes(code))
+      map.science_category = code;
+    if (
+      [
+        "MATH_INT_3",
+        "PRECALC",
+        "MATH_BUSINESS",
+        "FUND_MATH_I",
+        "AP_CALC_AB",
+        "AP_STATS",
+        "CALCULUS",
+        "CALC_BUSINESS",
+        "FUND_MATH_II",
+      ].includes(code)
+    ) {
       map.math_category = code;
     }
   }
@@ -144,6 +160,51 @@ function courseName(code: string, catalog: CourseCatalog) {
   return catalog.courses.find((c) => c.code === code)?.name ?? code;
 }
 
+function pathwayStudentPhrase(pathway: string): string {
+  const map: Record<string, string> = {
+    undecided: "students who are still exploring directions",
+    engineering: "a STEM / engineering-leaning direction",
+    ai_tech: "technology and computer science interests",
+    medicine: "medicine and health sciences",
+    business_finance: "business and finance",
+    creative: "creative and design-heavy paths",
+  };
+  return map[pathway] ?? "your mix of goals";
+}
+
+function studentTrustNarrative(overall: number): string {
+  if (overall >= 0.75) {
+    return "This recommendation lines up strongly with what you told us — use it as a confident starting point with your counselor.";
+  }
+  if (overall >= 0.5) {
+    return "This is a solid match to your answers; a few details are worth double-checking with your counselor.";
+  }
+  return "Treat this as a draft plan: your profile left some open questions, so counselor input matters a bit more here.";
+}
+
+function friendlyPriorityNote(raw: string): string {
+  if (raw.includes("strongest_path")) return "We emphasized courses that push your stated direction forward.";
+  if (raw.includes("balanced_path")) return "We balanced sustainability with fit so the year feels doable.";
+  if (raw.includes("safest_highest_grade")) return "We leaned toward safer choices that usually support strong grades.";
+  if (raw.includes("not_sure")) return "You weren’t sure how to prioritize — we kept the plan flexible.";
+  if (raw.includes("lighter_workload")) return "We avoided the heaviest combinations where SAIS rules allow.";
+  if (raw.includes("university_competitiveness")) return "We favored options that keep competitive university paths realistic.";
+  if (raw.includes("keeping_options_open")) return "We kept electives broad so you can change mind next term.";
+  if (raw.includes("higher_grades")) return "We weighted choices that often pair well with strong outcomes.";
+  if (raw.includes("career_alignment")) return "We prioritized the career themes you mentioned.";
+  return "We tuned this plan using how you answered the SAIS planning questions.";
+}
+
+function whoIsThisPathFor(kind: PathRecommendation["kind"], profile: StudentProfile): string {
+  if (kind === "bestFit") {
+    return `Students in Grade ${profile.currentGrade} who want a schedule that matches their answers without leaning extremely safe or extremely intense.`;
+  }
+  if (kind === "balanced") {
+    return `Students who want a strong SAIS schedule with a bit more breathing room than the most demanding mix.`;
+  }
+  return `Students who are ready to take on more challenge for stronger preparation or more competitive applications.`;
+}
+
 function buildPathRecommendation(params: {
   kind: PathRecommendation["kind"];
   label: PathRecommendation["label"];
@@ -156,15 +217,50 @@ function buildPathRecommendation(params: {
   const { kind, label, plan, profile, alternatives } = params;
   const top = [...plan.score.factors].sort((a, b) => b.points - a.points).slice(0, 3);
   const selectedNames = [...plan.core, ...plan.set1, ...plan.set2].map((c) => courseName(c, params.catalog));
-  const workloadPoints = plan.score.factors.find((f) => f.key === "workload_fit")?.points ?? 0;
+  const conf = Math.min(1, plan.score.total / 100);
+  const pathwayPhrase = pathwayStudentPhrase(plan.score.targetPathway);
+  const categorySelectionsForBecause = buildCategorySelections(profile, plan);
+  const selectionBecause = buildSelectionBecauseBullets({
+    profile,
+    categorySelections: categorySelectionsForBecause,
+    catalog: params.catalog,
+    semester: params.scenario.semester,
+    kind,
+  });
+
+  const courseList =
+    selectedNames.length > 0
+      ? `This schedule centers ${selectedNames.slice(0, 4).join(", ")}${selectedNames.length > 4 ? ", and more" : ""}. `
+      : "";
+  const explanation =
+    kind === "bestFit"
+      ? `${courseList}Your Best Fit is the strongest match to how you answered about interests, workload, and priorities — walk through it with your counselor to confirm sections and prerequisites.`
+      : kind === "balanced"
+        ? `${courseList}Balanced keeps a strong SAIS year with a little more room than the toughest mix — good when you want credibility without running at max intensity every week.`
+        : `${courseList}Stretch raises rigor and prep versus Balanced — use it if you want sharper readiness for competitive next steps and said you can handle the pace.`;
+
+  const whyMayFeelHard =
+    kind === "stretch"
+      ? [
+          "Expect a faster pace and more independent work than the lightest path at SAIS.",
+          "Labs and AP-style courses often spike around exams — plan study time early.",
+        ]
+      : kind === "balanced"
+        ? ["Some weeks will still feel full; that’s normal with Physics, English, and electives in play.", "If one subject drains you, ask early about tutoring or section support."]
+        : [
+            "You may still hit crunch weeks even on Best Fit — especially before major assessments.",
+            "If something feels off after a few weeks, one elective swap can change the whole feel of the term.",
+          ];
+
+  const priorityNotes = plan.score.weightModel.appliedAdjustments.map(friendlyPriorityNote);
 
   return {
     kind,
     label,
-    selections: { core: plan.core, set1: plan.set1, set2: plan.set2, categorySelections: buildCategorySelections(profile, plan) },
+    selections: { core: plan.core, set1: plan.set1, set2: plan.set2, categorySelections: categorySelectionsForBecause },
     score: plan.score.total,
     confidence: {
-      overall: Math.min(1, plan.score.total / 100),
+      overall: conf,
       factors: plan.score.factors.map((f) => ({ label: f.label, value: f.points })),
     },
     rationale: {
@@ -172,26 +268,20 @@ function buildPathRecommendation(params: {
       topContributingFactors: top,
       factorBreakdown: plan.score.factors,
     },
-    explanation:
-      kind === "bestFit"
-        ? `Best Fit balances your goals, workload tolerance, and future impact for Grade ${profile.currentGrade}.`
-        : kind === "balanced"
-          ? `Balanced keeps a strong overall fit while avoiding unnecessary overload.`
-          : `Stretch increases rigor and challenge to improve competitiveness when appropriate.`,
+    explanation,
+    selectionBecause,
     continuationSuggestions: buildContinuationSuggestions({
       selectedCodes: [...plan.core, ...plan.set1, ...plan.set2],
       catalog: params.catalog,
       profile,
       scenario: params.scenario,
     }),
-    whyMayNotFit: plan.softWarnings.length > 0 ? plan.softWarnings.slice(0, 2) : ["No major fit risks detected under current inputs."],
-    whyMayFeelHard:
-      workloadPoints < 7
-        ? ["Workload-pressure risk exists relative to your tolerance and confidence profile."]
-        : ["Difficulty appears manageable for your declared workload tolerance."],
-    confidenceExplanation:
-      bandConfidence(Math.min(1, plan.score.total / 100)) +
-      ` Confidence reflects your answers (completeness + consistency) and how strongly the plan matches your priorities.`,
+    whyMayNotFit:
+      plan.softWarnings.length > 0
+        ? plan.softWarnings.slice(0, 3)
+        : ["No major red flags from your answers — SAIS rules and your counselor still have the final say on placement."],
+    whyMayFeelHard,
+    confidenceExplanation: studentTrustNarrative(conf),
     scoringWeightModel: {
       baseWeights: plan.score.weightModel.baseWeights,
       adjustedWeights: plan.score.weightModel.adjustedWeights,
@@ -201,25 +291,19 @@ function buildPathRecommendation(params: {
     hardRisks: [],
     softWarnings: plan.softWarnings,
     tradeOffs: [
-      "Higher rigor can improve competitiveness but increase workload pressure.",
-      "Country-sensitive targets (Egypt/Jordan) may require additional counselor compliance checks.",
+      "More APs and lab science usually mean stronger preparation — and less free time after school.",
+      "If Egypt or Jordan is a main destination, your counselor should confirm equivalency for any AP-heavy mix.",
+      "Year-long APs at SAIS can’t be dropped mid-year without a formal process — commit before you sign.",
     ],
     alternatives,
     actionSteps: [
-      "Review this plan with counselor for final section placement.",
-      "Confirm year-long commitments before mid-year changes.",
-      "Track workload weekly and adjust study plan early.",
-      ...plan.score.weightModel.appliedAdjustments.map((x) => `Scoring priority applied: ${x}`),
+      "Book a short check-in with your counselor to confirm section availability and prerequisites.",
+      "If you chose a year-long AP, confirm you’re ready to stay with it through Semester 2.",
+      "Try a two-week study rhythm now so you know how this load feels before midterms.",
+      ...priorityNotes,
     ],
-    futureImpactSummary: `This path supports your likely direction (${plan.score.targetPathway}) and prioritizes: ${selectedNames.join(", ")}.`,
+    futureImpactSummary: `Centers on ${selectedNames.slice(0, 5).join(", ")} — a mix that supports ${pathwayPhrase} while staying within typical SAIS Grade ${profile.currentGrade} structure. Best for: ${whoIsThisPathFor(kind, profile)}.`,
   };
-}
-
-function bandConfidence(overall: number) {
-  const pct = Math.round(overall * 100);
-  if (overall >= 0.75) return `High confidence (${pct}%).`;
-  if (overall >= 0.5) return `Medium confidence (${pct}%).`;
-  return `Lower confidence (${pct}%).`;
 }
 
 function buildLowerGradeGuidanceRecommendation(params: {
@@ -227,33 +311,92 @@ function buildLowerGradeGuidanceRecommendation(params: {
   profile: StudentProfile;
 }): PathRecommendation {
   const { kind, profile } = params;
-  const targetPathway = profile.careerGoals.length > 0 ? "undecided" : "undecided";
+  const targetPathway = determineTargetPathway(profile);
+  const g = profile.currentGrade;
+  const yr = g === 9 ? "Grade 9" : "Grade 10";
+  const interestHint =
+    profile.interests.length > 0
+      ? `You mentioned ${profile.interests.slice(0, 3).join(", ")} — notice which classes make time fly vs. drag.`
+      : "Notice which classes feel energizing vs. draining; that signal matters when you pick tracks later.";
+  const strengthHint =
+    profile.strengths.length > 0
+      ? `You said you’re stronger in ${profile.strengths.slice(0, 3).join(", ")} — protect those with steady habits so they stay assets in Grade 11.`
+      : "Build one reliable study habit (short daily review beats cramming) so Grade 11 choices aren’t a panic move.";
+  const careerHint =
+    profile.careerGoals.length > 0
+      ? `Your early career ideas (${profile.careerGoals.slice(0, 2).join(", ")}) don’t lock you in — use ${yr} to sample related clubs or projects so Grade 11 picks feel grounded.`
+      : "It’s fine not to know a career yet — use this year to try one new activity so you have real examples when you plan Grade 11.";
+
+  const guidanceStory: ScoringFactorContribution[] = [
+    {
+      key: "interest_alignment",
+      label: "Focus for this year",
+      points: 10,
+      evidence: [
+        `${yr}: keep core grades healthy and pay attention to what you actually enjoy. ${interestHint}`,
+      ],
+    },
+    {
+      key: "pathway_alignment",
+      label: "What changes in Grade 11",
+      points: 9,
+      evidence: [
+        "At SAIS, the big forks — English, Science, and Math categories plus Set 1 and Set 2 electives — start in Grade 11. You’re not choosing those yet; you’re building the skills and self-knowledge that make those choices sane.",
+      ],
+    },
+    {
+      key: "strength_match",
+      label: "Strengths & habits",
+      points: 8,
+      evidence: [strengthHint],
+    },
+    {
+      key: "future_relevance",
+      label: "Future you (without pressure)",
+      points: 7,
+      evidence: [careerHint],
+    },
+  ];
+
   return {
     kind,
     label: kind === "bestFit" ? "Optimal" : "Recommended",
     selections: { core: [], set1: [], set2: [], categorySelections: {} },
     score: 0,
-    confidence: { overall: 0.75, factors: [{ label: "Guidance mode confidence", value: 75 }] },
-    rationale: { targetPathway, topContributingFactors: [], factorBreakdown: [] },
-    explanation: "Grade 9–10 guidance mode: no elective-set schedule is generated. This output focuses on pathway awareness and Grade 11 readiness.",
+    confidence: { overall: 0.82, factors: [] },
+    rationale: {
+      targetPathway,
+      topContributingFactors: [...guidanceStory],
+      factorBreakdown: [],
+    },
+    explanation: `You’re in ${yr}: SAIS still runs a shared core for everyone — the app isn’t picking electives for you yet. The useful part is knowing what to focus on now so Grade 11 (when English, Science, Math, and elective slots open up) doesn’t feel like a blind guess.`,
+    selectionBecause: [],
     continuationSuggestions: [],
     whyMayNotFit: [],
-    whyMayFeelHard: [],
-    confidenceExplanation: "Guidance mode confidence reflects profile completeness, not schedule optimization.",
+    whyMayFeelHard: [
+      "It’s normal to feel unsure in Grades 9–10 — that’s why we keep advice simple: habits, curiosity, and one honest counselor chat.",
+      "If a subject feels constantly overwhelming, ask for help early; fixing it now is easier than digging out in Grade 11.",
+    ],
+    confidenceExplanation:
+      "This page is guidance for Grades 9–10, not a generated schedule. Your counselor still places courses; we’re highlighting what actually matters before selection season.",
     hardRisks: [],
     softWarnings: [],
-    tradeOffs: ["At this stage, skill-building and exploration matter more than fixed specialization."],
+    tradeOffs: [
+      "Locking into one “identity” too early can backfire; ignoring what you’re good at makes later picks feel random.",
+      "Core math and science confidence still matter even when you’re not choosing APs yet.",
+    ],
     alternatives: [
-      "Build stronger Math + Science base if aiming for AP Physics/AP Calculus in Grade 11/12.",
-      "Track interests through projects to clarify future pathway choices by Grade 11.",
+      "Curious about STEM later: keep math questions answered weekly and stay engaged in lab science.",
+      "Thinking about many countries for university: stay flexible — you’ll map equivalency details closer to applications.",
+      "Try one concrete project or club this year so you have stories when you plan Grade 11.",
     ],
     actionSteps: [
-      "Focus on foundational performance in current core subjects.",
-      "Document interests and strengths this year for Grade 11 planning.",
-      "Review Grade 11 category options early with counselor.",
+      "Book a short counselor chat — ask what Grade 11 category choices look like at SAIS.",
+      "Pick one subject for a small upgrade (office hours, study buddy, weekly review).",
+      "List two subjects you like and one that worries you; bring it to your next planning meeting.",
+      "In Grade 11, run this planner again when you’re actually choosing categories and electives.",
     ],
-    futureImpactSummary:
-      "Current recommendations are readiness-focused. Major high-impact choices begin in Grade 11 (Math/Science/English category paths + Set 1/Set 2 electives).",
+    futureImpactSummary: `${yr} is about steady cores, honest interests, and habits — that combo makes Grade 11 decisions feel doable instead of overwhelming. Best for: SAIS students who want realistic prep, not fake precision.`,
   };
 }
 
@@ -326,12 +469,23 @@ export function generateRecommendationBundle(params: {
   }
 
   if (accepted.length === 0) {
+    const weightModel = buildDynamicWeights({
+      priorityStyle: profile.priorityStyle,
+      optimizationTarget: profile.optimizationTarget,
+      countryIntent: profile.countryIntent,
+    });
     const emptyPlan: CandidatePlan = {
       categorySelections: {},
       core: [],
       set1: [],
       set2: [],
-      score: { total: 0, factors: [], targetPathway: "undecided", topReasons: [] },
+      score: {
+        total: 0,
+        factors: [],
+        targetPathway: "undecided",
+        topReasons: [],
+        weightModel,
+      },
       softWarnings: ["No valid recommendation could be generated under current hard constraints."],
     };
     return {
