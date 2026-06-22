@@ -4,7 +4,7 @@ import type { CourseCatalog, RecommendationComputeInput } from "../engine/types"
 import type { PathRecommendation, RecommendationBundle, ScoringFactorContribution } from "../models/recommendations";
 import type { Course, PlanCategoryKey } from "../models/course";
 import { scorePathway } from "../scoring/scorePathway";
-import { determineTargetPathway } from "../scoring/helpers";
+import { avg, determineTargetPathway } from "../scoring/helpers";
 import { buildDynamicWeights } from "../scoring/weights";
 import { validateHardConstraints } from "../validators/validateHardConstraints";
 import { validateSoftConstraints } from "../validators/validateSoftConstraints";
@@ -160,6 +160,139 @@ function courseName(code: string, catalog: CourseCatalog) {
   return catalog.courses.find((c) => c.code === code)?.name ?? code;
 }
 
+function planCourses(plan: Pick<CandidatePlan, "core" | "set1" | "set2">, catalog: CourseCatalog): Course[] {
+  return toCourses([...plan.core, ...plan.set1, ...plan.set2], catalog);
+}
+
+function containsAny(text: string, keywords: string[]): boolean {
+  return keywords.some((k) => text.includes(k.toLowerCase()));
+}
+
+function profileText(profile: StudentProfile): string {
+  return [...profile.interests, ...profile.careerGoals, profile.futurePlans].join(" ").toLowerCase();
+}
+
+function safetyValue(course: Course): number {
+  if (course.gradeSafetyLevel === "high") return 1;
+  if (course.gradeSafetyLevel === "medium") return 0.65;
+  if (course.gradeSafetyLevel === "low") return 0.25;
+  return Math.max(0, Math.min(1, 1 - (course.workloadPoints - 1) / 4));
+}
+
+function explorationValue(course: Course): number {
+  if (course.explorationValue === "high") return 1;
+  if (course.explorationValue === "medium") return 0.65;
+  if (course.explorationValue === "low") return 0.25;
+  return 0.5;
+}
+
+function wantsSaferPath(profile: StudentProfile): boolean {
+  return (
+    profile.workloadTolerance === "Low" ||
+    profile.riskPreference === "Avoid risk" ||
+    profile.priorityStyle === "safest_highest_grade" ||
+    profile.optimizationTarget === "lighter_workload" ||
+    profile.optimizationTarget === "higher_grades"
+  );
+}
+
+function wantsCompetitivePath(profile: StudentProfile): boolean {
+  return (
+    profile.workloadTolerance === "High" ||
+    profile.riskPreference === "Embrace stretch" ||
+    profile.priorityStyle === "strongest_path" ||
+    profile.optimizationTarget === "university_competitiveness"
+  );
+}
+
+function planRankScore(params: {
+  plan: CandidatePlan;
+  profile: StudentProfile;
+  catalog: CourseCatalog;
+  mode: "best" | "balanced" | "stretch";
+}): number {
+  const { plan, profile, catalog, mode } = params;
+  const courses = planCourses(plan, catalog);
+  const text = profileText(profile);
+  const target = plan.score.targetPathway;
+  const safer = wantsSaferPath(profile);
+  const competitive = wantsCompetitivePath(profile);
+  const avgWorkload = avg(courses.map((c) => c.workloadPoints));
+  const avgRigor = avg(courses.map((c) => c.rigorPoints));
+  const avgSafety = avg(courses.map(safetyValue));
+  const avgExploration = avg(courses.map(explorationValue));
+  const apCount = courses.filter((c) => c.type === "AP").length;
+  const advancedStemScienceCount = courses.filter((c) =>
+    ["THERMO", "ELECTROMAG", "ORG_CHEM", "BIOCHEM", "AP_CHEM", "AP_BIO", "AP_PHYSICS_C1"].includes(c.code),
+  ).length;
+  const business = target === "business_finance" || containsAny(text, ["business", "finance", "economics", "econ", "accounting", "marketing"]);
+  const stats = containsAny(text, ["data", "statistics", "analytics", "psychology", "business", "health", "medicine", "social"]);
+  const stem = target === "engineering" || target === "ai_tech" || target === "medicine";
+  const math = plan.categorySelections.math_category;
+  const science = plan.categorySelections.science_category;
+
+  let score = plan.score.total - plan.softWarnings.length * 0.8;
+
+  if (safer) score += avgSafety * 4 - Math.max(0, avgWorkload - 3.25) * 3;
+  if (competitive) score += avgRigor * 1.25 + apCount * 0.75;
+  if (target === "undecided" || profile.goalClarity === "Low" || profile.optimizationTarget === "keeping_options_open") {
+    score += avgExploration * 3;
+  }
+  if (!stem || safer) score -= advancedStemScienceCount * (safer ? 2.4 : 1.4);
+
+  if (math === "AP_CALC_AB" && stem && competitive) score += 2.2;
+  if (math === "AP_STATS" && (stats || target === "undecided" || target === "business_finance" || target === "medicine")) score += 2;
+  if (math === "CALC_BUSINESS" || math === "MATH_BUSINESS") {
+    if (business) score += 2.6;
+    else if (stem && competitive) score -= 4;
+    else if (target === "undecided" || profile.goalClarity === "Low") score -= 2;
+  }
+
+  if (science === "ENV_SCI") {
+    if (safer || target === "undecided") score += 2;
+    if (stem && competitive && !safer) score -= 2.2;
+  } else if (science === "THERMO" || science === "ELECTROMAG") {
+    if (target === "engineering" || containsAny(text, ["engineering", "physics", "mechanical", "electrical"])) score += 2;
+  } else if (science === "ORG_CHEM" || science === "BIOCHEM") {
+    if (target === "medicine" || containsAny(text, ["medicine", "doctor", "health", "biology", "chemistry", "pre-med"])) score += 2;
+  }
+
+  if (mode === "balanced") {
+    const targetWorkload = profile.workloadTolerance === "Low" ? 3 : profile.workloadTolerance === "High" ? 3.8 : 3.35;
+    const targetRigor = profile.selfReportedAcademicConfidence === "High" ? 3.9 : profile.selfReportedAcademicConfidence === "Low" ? 3 : 3.45;
+    score -= Math.abs(avgWorkload - targetWorkload) * 4;
+    score -= Math.abs(avgRigor - targetRigor) * 2;
+    score += avgSafety * 2;
+  }
+
+  if (mode === "stretch") {
+    score += avgRigor * 4 + apCount * 1.5;
+    if (safer) score -= Math.max(0, avgWorkload - 4) * 2;
+  }
+
+  return score;
+}
+
+function comparePlans(profile: StudentProfile, catalog: CourseCatalog, mode: "best" | "balanced" | "stretch") {
+  return (a: CandidatePlan, b: CandidatePlan) => planRankScore({ plan: b, profile, catalog, mode }) - planRankScore({ plan: a, profile, catalog, mode });
+}
+
+function planSignature(plan: CandidatePlan): string {
+  return JSON.stringify(plan.categorySelections);
+}
+
+function pickRankedPlan(params: {
+  accepted: CandidatePlan[];
+  profile: StudentProfile;
+  catalog: CourseCatalog;
+  mode: "best" | "balanced" | "stretch";
+  avoidSignatures?: Set<string>;
+}): CandidatePlan {
+  const sorted = [...params.accepted].sort(comparePlans(params.profile, params.catalog, params.mode));
+  const distinct = sorted.find((p) => !params.avoidSignatures?.has(planSignature(p)));
+  return distinct ?? sorted[0];
+}
+
 function pathwayStudentPhrase(pathway: string): string {
   const map: Record<string, string> = {
     undecided: "students who are still exploring directions",
@@ -205,6 +338,34 @@ function whoIsThisPathFor(kind: PathRecommendation["kind"], profile: StudentProf
   return `Students who are ready to take on more challenge for stronger preparation or more competitive applications.`;
 }
 
+function buildMajorChoiceSummary(categorySelections: Partial<Record<PlanCategoryKey, string>>): string {
+  const parts: string[] = [];
+  const math = categorySelections.math_category;
+  const science = categorySelections.science_category;
+
+  if (math === "AP_CALC_AB") {
+    parts.push("AP Calculus AB gives the strongest math signal for STEM-heavy goals.");
+  } else if (math === "AP_STATS") {
+    parts.push("AP Statistics leans into data, interpretation, and applied reasoning.");
+  } else if (math === "CALCULUS") {
+    parts.push("Calculus keeps a solid standard Grade 12 math path.");
+  } else if (math === "CALC_BUSINESS" || math === "MATH_BUSINESS") {
+    parts.push("Business math keeps the math choice aligned with business goals or a safer workload.");
+  }
+
+  if (science === "ENV_SCI") {
+    parts.push("Environmental Science keeps science safer and lighter.");
+  } else if (science === "THERMO" || science === "ELECTROMAG") {
+    parts.push("The physics-style science choice strengthens engineering preparation.");
+  } else if (science === "ORG_CHEM" || science === "BIOCHEM") {
+    parts.push("The chemistry/biology science choice strengthens medicine preparation.");
+  } else if (science === "AP_PHYSICS_C1") {
+    parts.push("AP Physics C1 raises the STEM rigor signal.");
+  }
+
+  return parts.join(" ");
+}
+
 function buildPathRecommendation(params: {
   kind: PathRecommendation["kind"];
   label: PathRecommendation["label"];
@@ -232,12 +393,14 @@ function buildPathRecommendation(params: {
     selectedNames.length > 0
       ? `This schedule centers ${selectedNames.slice(0, 4).join(", ")}${selectedNames.length > 4 ? ", and more" : ""}. `
       : "";
+  const majorChoiceSummary = buildMajorChoiceSummary(categorySelectionsForBecause);
+  const choiceLine = majorChoiceSummary ? `${majorChoiceSummary} ` : "";
   const explanation =
     kind === "bestFit"
-      ? `${courseList}Your Best Fit is the strongest match to how you answered about interests, workload, and priorities — walk through it with your counselor to confirm sections and prerequisites.`
+      ? `${courseList}${choiceLine}Your Best Fit is the strongest match to how you answered about interests, workload, and priorities.`
       : kind === "balanced"
-        ? `${courseList}Balanced keeps a strong SAIS year with a little more room than the toughest mix — good when you want credibility without running at max intensity every week.`
-        : `${courseList}Stretch raises rigor and prep versus Balanced — use it if you want sharper readiness for competitive next steps and said you can handle the pace.`;
+        ? `${courseList}${choiceLine}Balanced keeps a strong SAIS year with a little more room than the toughest mix.`
+        : `${courseList}${choiceLine}Stretch raises rigor and prep versus Balanced when you want sharper readiness for competitive next steps.`;
 
   const whyMayFeelHard =
     kind === "stretch"
@@ -360,7 +523,7 @@ function buildLowerGradeGuidanceRecommendation(params: {
 
   return {
     kind,
-    label: kind === "bestFit" ? "Optimal" : "Recommended",
+    label: "Recommended",
     selections: { core: [], set1: [], set2: [], categorySelections: {} },
     score: 0,
     confidence: { overall: 0.82, factors: [] },
@@ -369,7 +532,7 @@ function buildLowerGradeGuidanceRecommendation(params: {
       topContributingFactors: [...guidanceStory],
       factorBreakdown: [],
     },
-    explanation: `You’re in ${yr}: SAIS still runs a shared core for everyone — the app isn’t picking electives for you yet. The useful part is knowing what to focus on now so Grade 11 (when English, Science, Math, and elective slots open up) doesn’t feel like a blind guess.`,
+    explanation: `You’re in ${yr}: SAIS still runs a shared core for everyone, so this is a readiness plan instead of a three-path course recommendation. Focus on habits, honest interests, and the skills that will make Grade 11 choices feel clear.`,
     selectionBecause: [],
     continuationSuggestions: [],
     whyMayNotFit: [],
@@ -495,15 +658,22 @@ export function generateRecommendationBundle(params: {
     };
   }
 
-  accepted.sort((a, b) => b.score.total - a.score.total);
+  accepted.sort(comparePlans(profile, catalog, "best"));
   const best = accepted[0];
-  const balanced = accepted[Math.floor(accepted.length / 2)];
-  const stretch = [...accepted]
-    .sort((a, b) => {
-      const rigorA = a.score.factors.find((f) => f.key === "learning_stretch")?.points ?? 0;
-      const rigorB = b.score.factors.find((f) => f.key === "learning_stretch")?.points ?? 0;
-      return rigorB - rigorA;
-    })[0];
+  const balanced = pickRankedPlan({
+    accepted,
+    profile,
+    catalog,
+    mode: "balanced",
+    avoidSignatures: new Set([planSignature(best)]),
+  });
+  const stretch = pickRankedPlan({
+    accepted,
+    profile,
+    catalog,
+    mode: "stretch",
+    avoidSignatures: new Set([planSignature(best), planSignature(balanced)]),
+  });
 
   const alternatives = accepted
     .slice(1, 4)
@@ -520,4 +690,3 @@ export function generateRecommendationBundle(params: {
     stretch: buildPathRecommendation({ kind: "stretch", label: "Recommended", plan: stretch, profile, catalog, scenario, alternatives }),
   };
 }
-

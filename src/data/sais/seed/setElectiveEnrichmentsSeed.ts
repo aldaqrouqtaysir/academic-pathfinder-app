@@ -8,7 +8,15 @@ import {
 
 type Enrichment = Pick<
   Course,
-  "categoryKeys" | "gradeAvailability" | "semesterAvailability" | "continuations" | "rigorLevel" | "perceivedDifficulty" | "workloadLevel"
+  | "categoryKeys"
+  | "gradeAvailability"
+  | "semesterAvailability"
+  | "continuations"
+  | "rigorLevel"
+  | "perceivedDifficulty"
+  | "workloadLevel"
+  | "gradeSafetyLevel"
+  | "explorationValue"
 >;
 
 function inS1(code: string) {
@@ -42,6 +50,11 @@ export const setElectiveEnrichmentsSeed: Record<string, Enrichment> = {
     gradeAvailability: [11, 12],
     semesterAvailability: semesterAvailabilityFor("AP_CHEM"),
     continuations: [{ toCourseCode: "AP_CHEM", kind: "required", note: "Year-long AP continuation." }],
+    workloadLevel: "very_high",
+    rigorLevel: "very_high",
+    perceivedDifficulty: "very_high",
+    gradeSafetyLevel: "low",
+    explorationValue: "medium",
   },
   PSYCH_I: {
     categoryKeys: ["set1_elective"],
@@ -151,12 +164,22 @@ export const setElectiveEnrichmentsSeed: Record<string, Enrichment> = {
     gradeAvailability: [11, 12],
     semesterAvailability: semesterAvailabilityFor("AP_BIO"),
     continuations: [{ toCourseCode: "AP_BIO", kind: "required", note: "Year-long AP continuation." }],
+    workloadLevel: "very_high",
+    rigorLevel: "very_high",
+    perceivedDifficulty: "very_high",
+    gradeSafetyLevel: "low",
+    explorationValue: "medium",
   },
   AP_CSP: {
     categoryKeys: ["set2_elective"],
     gradeAvailability: [11, 12],
     semesterAvailability: semesterAvailabilityFor("AP_CSP"),
     continuations: [{ toCourseCode: "AP_CSP", kind: "required", note: "Year-long AP continuation." }],
+    workloadLevel: "high",
+    rigorLevel: "high",
+    perceivedDifficulty: "high",
+    gradeSafetyLevel: "medium",
+    explorationValue: "high",
   },
   DIGITAL_ART_I: {
     categoryKeys: ["set2_elective"],

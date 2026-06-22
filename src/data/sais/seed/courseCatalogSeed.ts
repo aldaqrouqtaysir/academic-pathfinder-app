@@ -68,7 +68,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 3,
     realWorldRelevancePoints: 3,
     futureRelevancePoints: 4,
-    tags: ["STEM"],
+    tags: ["STEM", "Quantitative"],
     pathwayAffinity: { engineering: 0.4, ai_tech: 0.3, business_finance: 0.3, medicine: 0.3, undecided: 0.4 },
   },
   {
@@ -83,7 +83,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 3,
     realWorldRelevancePoints: 3,
     futureRelevancePoints: 4,
-    tags: ["STEM"],
+    tags: ["STEM", "Quantitative"],
     pathwayAffinity: { engineering: 0.5, ai_tech: 0.4, business_finance: 0.3, medicine: 0.4, undecided: 0.4 },
   },
   {
@@ -132,8 +132,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 3,
     futureRelevancePoints: 5,
-    tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.7, ai_tech: 0.6, business_finance: 0.4, medicine: 0.5, undecided: 0.5 },
+    tags: ["STEM", "Quantitative"],
+    pathwayAffinity: { engineering: 0.65, ai_tech: 0.55, business_finance: 0.4, medicine: 0.5, undecided: 0.55 },
   },
   {
     code: "PRECALC",
@@ -147,8 +147,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 3,
     futureRelevancePoints: 5,
-    tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.8, ai_tech: 0.6, business_finance: 0.5, medicine: 0.6, undecided: 0.5 },
+    tags: ["STEM", "Quantitative"],
+    pathwayAffinity: { engineering: 0.88, ai_tech: 0.68, business_finance: 0.42, medicine: 0.62, undecided: 0.45 },
   },
   {
     code: "MATH_BUSINESS",
@@ -162,8 +162,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 3,
     realWorldRelevancePoints: 5,
     futureRelevancePoints: 4,
-    tags: ["STEM", "Business"],
-    pathwayAffinity: { business_finance: 0.9, engineering: 0.3, ai_tech: 0.3, undecided: 0.6 },
+    tags: ["Business", "AppliedMath"],
+    pathwayAffinity: { business_finance: 0.92, engineering: 0.18, ai_tech: 0.2, medicine: 0.18, undecided: 0.52 },
   },
   {
     code: "FUND_MATH_I",
@@ -177,7 +177,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 2,
     realWorldRelevancePoints: 3,
     futureRelevancePoints: 3,
-    tags: ["STEM"],
+    tags: ["STEM", "AppliedMath"],
     pathwayAffinity: { undecided: 0.7, business_finance: 0.5, medicine: 0.4, engineering: 0.35, ai_tech: 0.35, creative: 0.3 },
   },
   {
@@ -192,7 +192,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
-    tags: ["STEM", "Lab"],
+    tags: ["STEM", "Lab", "Quantitative"],
     pathwayAffinity: { engineering: 0.9, ai_tech: 0.4, medicine: 0.4, undecided: 0.5 },
   },
   {
@@ -207,7 +207,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 3,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 4,
-    tags: ["Writing", "Humanities"],
+    tags: ["Writing", "Humanities", "Communication"],
     pathwayAffinity: { business_finance: 0.5, creative: 0.6, undecided: 0.6 },
   },
 
@@ -226,7 +226,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 5,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
-    tags: ["Writing", "Humanities"],
+    tags: ["Writing", "Humanities", "Communication"],
     pathwayAffinity: { business_finance: 0.5, creative: 0.6, undecided: 0.6 },
   },
   {
@@ -241,7 +241,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 5,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
-    tags: ["STEM", "Lab"],
+    tags: ["STEM", "Lab", "Quantitative"],
     pathwayAffinity: { engineering: 1.0, ai_tech: 0.5, medicine: 0.3 },
   },
   {
@@ -256,8 +256,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 5,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
-    tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.9, ai_tech: 0.6, medicine: 0.5, business_finance: 0.4 },
+    tags: ["STEM", "Quantitative", "AppliedMath"],
+    pathwayAffinity: { engineering: 1.0, ai_tech: 0.82, medicine: 0.65, business_finance: 0.35, undecided: 0.25 },
   },
 
   // -------------------------
@@ -275,8 +275,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 5,
     futureRelevancePoints: 5,
-    tags: ["STEM"],
-    pathwayAffinity: { business_finance: 0.8, ai_tech: 0.7, engineering: 0.5, medicine: 0.4, undecided: 0.6 },
+    tags: ["STEM", "Data", "AppliedMath", "Business", "Health", "SocialScience"],
+    pathwayAffinity: { business_finance: 0.9, ai_tech: 0.75, engineering: 0.48, medicine: 0.65, undecided: 0.68 },
   },
   {
     code: "CALCULUS",
@@ -290,8 +290,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
-    tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.8, ai_tech: 0.6, medicine: 0.5, business_finance: 0.4 },
+    tags: ["STEM", "Quantitative", "AppliedMath"],
+    pathwayAffinity: { engineering: 0.78, ai_tech: 0.58, medicine: 0.55, business_finance: 0.42, undecided: 0.52 },
   },
   {
     code: "CALC_BUSINESS",
@@ -305,8 +305,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 3,
     realWorldRelevancePoints: 5,
     futureRelevancePoints: 5,
-    tags: ["STEM", "Business"],
-    pathwayAffinity: { business_finance: 0.9, ai_tech: 0.4, engineering: 0.4, undecided: 0.6 },
+    tags: ["Business", "AppliedMath"],
+    pathwayAffinity: { business_finance: 0.94, ai_tech: 0.2, engineering: 0.18, medicine: 0.18, undecided: 0.48 },
   },
   {
     code: "FUND_MATH_II",
@@ -320,7 +320,7 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 2,
     realWorldRelevancePoints: 3,
     futureRelevancePoints: 3,
-    tags: ["STEM"],
+    tags: ["STEM", "AppliedMath"],
     pathwayAffinity: { undecided: 0.7, business_finance: 0.55, medicine: 0.45, engineering: 0.4, ai_tech: 0.4, creative: 0.35 },
   },
 
@@ -338,12 +338,12 @@ export const courseCatalogSeed: Course[] = [
     replacesCoreSubjects: [],
     yearLong: true, // confirmed year-long
     prerequisites: [],
-    workloadPoints: 4,
+    workloadPoints: 3,
     rigorPoints: 3,
     realWorldRelevancePoints: 5,
     futureRelevancePoints: 4,
-    tags: ["STEM", "Research", "Health"],
-    pathwayAffinity: { medicine: 0.6, engineering: 0.4, undecided: 0.6 },
+    tags: ["STEM", "Research", "Health", "Environmental", "SocialScience"],
+    pathwayAffinity: { medicine: 0.45, engineering: 0.35, business_finance: 0.35, creative: 0.25, undecided: 0.72 },
   },
   {
     code: "THERMO",
@@ -357,8 +357,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 4,
-    tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.8, ai_tech: 0.4, undecided: 0.3 },
+    tags: ["STEM", "Quantitative", "Lab"],
+    pathwayAffinity: { engineering: 0.88, ai_tech: 0.45, medicine: 0.25, undecided: 0.25 },
   },
   {
     code: "ORG_CHEM",
@@ -368,12 +368,12 @@ export const courseCatalogSeed: Course[] = [
     replacesCoreSubjects: [],
     yearLong: false, // ASSUMPTION: semester elective
     prerequisites: [],
-    workloadPoints: 5,
-    rigorPoints: 5,
+    workloadPoints: 4,
+    rigorPoints: 4,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
     tags: ["STEM", "Lab", "Health"],
-    pathwayAffinity: { medicine: 0.9, engineering: 0.4 },
+    pathwayAffinity: { medicine: 0.92, engineering: 0.32, undecided: 0.2 },
   },
   {
     code: "ELECTROMAG",
@@ -387,8 +387,8 @@ export const courseCatalogSeed: Course[] = [
     rigorPoints: 4,
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 4,
-    tags: ["STEM"],
-    pathwayAffinity: { engineering: 0.8, ai_tech: 0.4, undecided: 0.3 },
+    tags: ["STEM", "Quantitative", "Lab"],
+    pathwayAffinity: { engineering: 0.88, ai_tech: 0.48, medicine: 0.25, undecided: 0.25 },
   },
   {
     code: "BIOCHEM",
@@ -403,37 +403,97 @@ export const courseCatalogSeed: Course[] = [
     realWorldRelevancePoints: 4,
     futureRelevancePoints: 5,
     tags: ["STEM", "Lab", "Health"],
-    pathwayAffinity: { medicine: 0.8, engineering: 0.3, undecided: 0.3 },
+    pathwayAffinity: { medicine: 0.88, engineering: 0.28, undecided: 0.25 },
   },
 
 ];
 
 type Enrichment = Pick<
   Course,
-  "categoryKeys" | "gradeAvailability" | "semesterAvailability" | "continuations" | "rigorLevel" | "perceivedDifficulty" | "workloadLevel"
+  | "categoryKeys"
+  | "gradeAvailability"
+  | "semesterAvailability"
+  | "continuations"
+  | "rigorLevel"
+  | "perceivedDifficulty"
+  | "workloadLevel"
+  | "gradeSafetyLevel"
+  | "explorationValue"
 >;
 
 const enrichmentByCode: Record<string, Enrichment> = {
   ...setElectiveEnrichmentsSeed,
   // Grade 11 categories
-  ENG_11: { categoryKeys: ["english_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
+  ENG_11: {
+    categoryKeys: ["english_category"],
+    gradeAvailability: [11],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "medium",
+    explorationValue: "medium",
+  },
   AP_LANG_COMP: {
     categoryKeys: ["english_category"],
     gradeAvailability: [11],
     semesterAvailability: ["Semester1", "Semester2"],
     continuations: [{ toCourseCode: "AP_LANG_COMP", kind: "required", note: "Year-long AP continuation." }],
+    workloadLevel: "very_high",
+    rigorLevel: "very_high",
+    perceivedDifficulty: "very_high",
+    gradeSafetyLevel: "low",
+    explorationValue: "medium",
   },
-  PHYS_11: { categoryKeys: ["science_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
+  PHYS_11: {
+    categoryKeys: ["science_category"],
+    gradeAvailability: [11],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "medium",
+    explorationValue: "medium",
+  },
   AP_PHYSICS_C1: {
     categoryKeys: ["science_category"],
     gradeAvailability: [11],
     semesterAvailability: ["Semester1", "Semester2"],
     continuations: [{ toCourseCode: "AP_PHYSICS_C1", kind: "required", note: "Year-long AP continuation." }],
+    workloadLevel: "very_high",
+    rigorLevel: "very_high",
+    perceivedDifficulty: "very_high",
+    gradeSafetyLevel: "low",
+    explorationValue: "low",
   },
-  MATH_INT_3: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
-  PRECALC: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
-  MATH_BUSINESS: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
-  FUND_MATH_I: { categoryKeys: ["math_category"], gradeAvailability: [11], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
+  MATH_INT_3: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [11],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "medium",
+    explorationValue: "medium",
+  },
+  PRECALC: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [11],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "medium",
+    explorationValue: "low",
+  },
+  MATH_BUSINESS: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [11],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "high",
+    explorationValue: "medium",
+  },
+  FUND_MATH_I: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [11],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "high",
+    explorationValue: "low",
+  },
 
   // Grade 12 categories
   AP_CALC_AB: {
@@ -441,21 +501,60 @@ const enrichmentByCode: Record<string, Enrichment> = {
     gradeAvailability: [12],
     semesterAvailability: ["Semester1", "Semester2"],
     continuations: [{ toCourseCode: "AP_CALC_AB", kind: "required", note: "Year-long AP continuation." }],
+    workloadLevel: "very_high",
+    rigorLevel: "very_high",
+    perceivedDifficulty: "very_high",
+    gradeSafetyLevel: "low",
+    explorationValue: "low",
   },
   AP_STATS: {
     categoryKeys: ["math_category"],
     gradeAvailability: [12],
     semesterAvailability: ["Semester1", "Semester2"],
     continuations: [{ toCourseCode: "AP_STATS", kind: "recommended", note: "Typically year-long when offered." }],
+    workloadLevel: "high",
+    rigorLevel: "high",
+    perceivedDifficulty: "high",
+    gradeSafetyLevel: "medium",
+    explorationValue: "high",
   },
-  CALCULUS: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
-  CALC_BUSINESS: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
-  FUND_MATH_II: { categoryKeys: ["math_category"], gradeAvailability: [12], semesterAvailability: ["Semester1", "Semester2"], continuations: [] },
+  CALCULUS: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [12],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "medium",
+    explorationValue: "medium",
+  },
+  CALC_BUSINESS: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [12],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    workloadLevel: "medium",
+    rigorLevel: "medium",
+    perceivedDifficulty: "medium",
+    gradeSafetyLevel: "high",
+    explorationValue: "medium",
+  },
+  FUND_MATH_II: {
+    categoryKeys: ["math_category"],
+    gradeAvailability: [12],
+    semesterAvailability: ["Semester1", "Semester2"],
+    continuations: [],
+    gradeSafetyLevel: "high",
+    explorationValue: "low",
+  },
   ENV_SCI: {
     categoryKeys: ["science_category"],
     gradeAvailability: [12],
     semesterAvailability: ["Semester1", "Semester2"],
     continuations: [{ toCourseCode: "ENV_SCI", kind: "recommended", note: "Recommended continuation into Semester 2 unless switching improves fit." }],
+    workloadLevel: "medium",
+    rigorLevel: "medium",
+    perceivedDifficulty: "medium",
+    gradeSafetyLevel: "high",
+    explorationValue: "high",
   },
   THERMO: {
     categoryKeys: ["science_category"],
@@ -465,6 +564,11 @@ const enrichmentByCode: Record<string, Enrichment> = {
       { toCourseCode: "ELECTROMAG", kind: "recommended", note: "Common Semester 2 continuation after Thermodynamics." },
       { toCourseCode: "BIOCHEM", kind: "optional", note: "Switching track is allowed when alignment improves." },
     ],
+    workloadLevel: "high",
+    rigorLevel: "high",
+    perceivedDifficulty: "high",
+    gradeSafetyLevel: "medium",
+    explorationValue: "low",
   },
   ORG_CHEM: {
     categoryKeys: ["science_category"],
@@ -474,9 +578,34 @@ const enrichmentByCode: Record<string, Enrichment> = {
       { toCourseCode: "BIOCHEM", kind: "recommended", note: "Common Semester 2 continuation after Organic Chemistry." },
       { toCourseCode: "ELECTROMAG", kind: "optional", note: "Switching track is allowed when alignment improves." },
     ],
+    workloadLevel: "high",
+    rigorLevel: "high",
+    perceivedDifficulty: "high",
+    gradeSafetyLevel: "medium",
+    explorationValue: "low",
   },
-  ELECTROMAG: { categoryKeys: ["science_category"], gradeAvailability: [12], semesterAvailability: ["Semester2"], continuations: [] },
-  BIOCHEM: { categoryKeys: ["science_category"], gradeAvailability: [12], semesterAvailability: ["Semester2"], continuations: [] },
+  ELECTROMAG: {
+    categoryKeys: ["science_category"],
+    gradeAvailability: [12],
+    semesterAvailability: ["Semester2"],
+    continuations: [],
+    workloadLevel: "high",
+    rigorLevel: "high",
+    perceivedDifficulty: "high",
+    gradeSafetyLevel: "medium",
+    explorationValue: "low",
+  },
+  BIOCHEM: {
+    categoryKeys: ["science_category"],
+    gradeAvailability: [12],
+    semesterAvailability: ["Semester2"],
+    continuations: [],
+    workloadLevel: "high",
+    rigorLevel: "high",
+    perceivedDifficulty: "high",
+    gradeSafetyLevel: "medium",
+    explorationValue: "low",
+  },
 };
 
 function toLevel(points: 1 | 2 | 3 | 4 | 5): "low" | "medium" | "high" | "very_high" {
@@ -484,6 +613,23 @@ function toLevel(points: 1 | 2 | 3 | 4 | 5): "low" | "medium" | "high" | "very_h
   if (points === 3) return "medium";
   if (points === 4) return "high";
   return "very_high";
+}
+
+function toGradeSafety(course: Course): "low" | "medium" | "high" {
+  const intensity = (course.workloadPoints + course.rigorPoints) / 2;
+  if (intensity <= 3) return "high";
+  if (intensity <= 4) return "medium";
+  return "low";
+}
+
+function toExplorationValue(course: Course): "low" | "medium" | "high" {
+  if ((course.pathwayAffinity.undecided ?? 0) >= 0.65) return "high";
+  if (course.tags.some((tag) => ["Data", "SocialScience", "Communication", "ProjectBased", "Environmental"].includes(tag))) {
+    return "high";
+  }
+  if ((course.pathwayAffinity.undecided ?? 0) >= 0.45) return "medium";
+  if (course.type === "AP" && course.rigorPoints >= 5) return "low";
+  return "medium";
 }
 
 export const categoryBasedCourseCatalogSeed: Course[] = courseCatalogSeed.map((course) => {
@@ -494,6 +640,7 @@ export const categoryBasedCourseCatalogSeed: Course[] = courseCatalogSeed.map((c
     rigorLevel: extra.rigorLevel ?? toLevel(course.rigorPoints),
     perceivedDifficulty: extra.perceivedDifficulty ?? toLevel(course.rigorPoints),
     workloadLevel: extra.workloadLevel ?? toLevel(course.workloadPoints),
+    gradeSafetyLevel: extra.gradeSafetyLevel ?? toGradeSafety(course),
+    explorationValue: extra.explorationValue ?? toExplorationValue(course),
   };
 });
-

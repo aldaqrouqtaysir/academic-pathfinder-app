@@ -10,3 +10,6 @@ coverage
 .env.test.local
 .env.production.local
 
+.cursor
+public.zip
+*.zip

@@ -37,14 +37,14 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
   el("PSYCH_I", "Psychology I", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Humanities"],
-    pathwayAffinity: { medicine: 0.5, undecided: 0.65 },
+    tags: ["Humanities", "SocialScience", "Health"],
+    pathwayAffinity: { medicine: 0.55, business_finance: 0.35, undecided: 0.7 },
   }),
   el("PSYCH_II", "Psychology II", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Humanities"],
-    pathwayAffinity: { medicine: 0.5, undecided: 0.65 },
+    tags: ["Humanities", "SocialScience", "Health"],
+    pathwayAffinity: { medicine: 0.55, business_finance: 0.35, undecided: 0.7 },
   }),
   el("GRAPHIC_DESIGN_I", "Graphic Design I", "Set1", {
     workloadPoints: 3,
@@ -61,7 +61,7 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
   el("PUBLIC_SPEAKING_DEBATE", "Public Speaking & Debate", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Humanities", "ProjectBased"],
+    tags: ["Humanities", "Communication", "ProjectBased"],
     pathwayAffinity: { business_finance: 0.55, creative: 0.5, undecided: 0.6 },
   }),
   el("ARABIC_DRAMA", "Arabic Drama", "Set1", {
@@ -79,19 +79,19 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
   el("MICROECON", "Microeconomics", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Business", "STEM"],
+    tags: ["Business", "SocialScience", "AppliedMath"],
     pathwayAffinity: { business_finance: 0.85, undecided: 0.55 },
   }),
   el("MACROECON", "Macroeconomics", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Business", "STEM"],
+    tags: ["Business", "SocialScience", "AppliedMath"],
     pathwayAffinity: { business_finance: 0.85, undecided: 0.55 },
   }),
   el("DATA_SCIENCE", "Data Science", "Set1", {
     workloadPoints: 4,
     rigorPoints: 4,
-    tags: ["STEM", "Coding"],
+    tags: ["STEM", "Coding", "Data", "Quantitative"],
     pathwayAffinity: { ai_tech: 0.85, engineering: 0.55, business_finance: 0.5, undecided: 0.5 },
   }),
   el("AI_I", "Artificial Intelligence I", "Set1", {
@@ -109,7 +109,7 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
   el("INTL_LAW", "International Law", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Humanities"],
+    tags: ["Humanities", "SocialScience", "Communication"],
     pathwayAffinity: { business_finance: 0.5, undecided: 0.6 },
   }),
   el("INTERIOR_DESIGN_I", "Interior Design I", "Set1", {
@@ -127,14 +127,14 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
   el("SOCIOLOGY_I", "Sociology I", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Humanities"],
-    pathwayAffinity: { undecided: 0.65, medicine: 0.4 },
+    tags: ["Humanities", "SocialScience"],
+    pathwayAffinity: { undecided: 0.7, medicine: 0.4, business_finance: 0.35 },
   }),
   el("SOCIOLOGY_II", "Sociology II", "Set1", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Humanities"],
-    pathwayAffinity: { undecided: 0.65, medicine: 0.4 },
+    tags: ["Humanities", "SocialScience"],
+    pathwayAffinity: { undecided: 0.7, medicine: 0.4, business_finance: 0.35 },
   }),
 
   el("AP_BIO", "AP Biology", "Set2", {
@@ -150,7 +150,7 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
     yearLong: true,
     workloadPoints: 4,
     rigorPoints: 4,
-    tags: ["Coding", "STEM", "ProjectBased"],
+    tags: ["Coding", "STEM", "ProjectBased", "Data"],
     pathwayAffinity: { ai_tech: 0.9, engineering: 0.5, business_finance: 0.3, undecided: 0.4 },
   }),
   el("DIGITAL_ART_I", "Digital Art I", "Set2", {
@@ -198,19 +198,19 @@ export const set1Set2ElectiveCoursesSeed: Course[] = [
   el("ETHICAL_BUSINESS_LEADERSHIP", "Ethical Business Leadership", "Set2", {
     workloadPoints: 3,
     rigorPoints: 3,
-    tags: ["Business", "Humanities"],
+    tags: ["Business", "Humanities", "Communication"],
     pathwayAffinity: { business_finance: 0.85, undecided: 0.55 },
   }),
   el("PYTHON_PROG", "Python Programming", "Set2", {
     workloadPoints: 4,
     rigorPoints: 4,
-    tags: ["Coding", "STEM"],
+    tags: ["Coding", "STEM", "Data"],
     pathwayAffinity: { ai_tech: 0.85, engineering: 0.5, undecided: 0.5 },
   }),
   el("BLOCKCHAIN_CRYPTO", "Blockchain & Cryptocurrency", "Set2", {
     workloadPoints: 4,
     rigorPoints: 4,
-    tags: ["Coding", "STEM", "Business"],
+    tags: ["Coding", "STEM", "Business", "Data"],
     pathwayAffinity: { ai_tech: 0.75, business_finance: 0.65, undecided: 0.45 },
   }),
   el("PAINTING_SKETCHING_I", "Painting & Sketching I", "Set2", {

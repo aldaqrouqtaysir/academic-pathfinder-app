@@ -484,7 +484,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
             {rec.selectionBecause.map((line, i) => (
               <li key={`sb-${i}`} className="flex gap-2">
                 <span className="shrink-0 text-cyan-600">▸</span>
-                <span className="line-clamp-4">{line}</span>
+                <span>{line}</span>
               </li>
             ))}
           </ul>
@@ -857,7 +857,8 @@ export default function DashboardPage() {
   if (!bundle) return null;
 
   const answers = session?.answers ?? {};
-  const showQuickExplore = !isGuidanceMode(bundle.bestFit);
+  const guidanceMode = isGuidanceMode(bundle.bestFit);
+  const showQuickExplore = !guidanceMode;
 
   function runQuickAdjust(mode: QuickAdjustMode) {
     const { scrollId, message } = quickAdjustGuide(mode);
@@ -904,7 +905,9 @@ export default function DashboardPage() {
             Your recommended path
           </h1>
           <p className="mt-3 max-w-2xl text-sm font-medium leading-snug text-slate-600 line-clamp-2">
-            You made it — Best Fit is your home base. Peek at Balanced & Stretch when you want to compare.
+            {guidanceMode
+              ? "You made it - this readiness plan keeps the focus on what to build before Grade 11 choices open up."
+              : "You made it - Best Fit is your home base. Peek at Balanced & Stretch when you want to compare."}
           </p>
         </header>
 
@@ -917,7 +920,8 @@ export default function DashboardPage() {
           onDismissBanner={() => setAdjustBanner(null)}
         />
 
-        <details className="apf-fade-up group mt-10 rounded-2xl border-2 border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 shadow-md open:shadow-lg">
+        {!guidanceMode ? (
+          <details className="apf-fade-up group mt-10 rounded-2xl border-2 border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 shadow-md open:shadow-lg">
           <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 text-sm font-bold text-indigo-950 marker:content-none [&::-webkit-details-marker]:hidden sm:px-5">
             <span aria-hidden>🔁</span>
             <span className="flex-1">Other paths — Balanced & Stretch</span>
@@ -930,9 +934,11 @@ export default function DashboardPage() {
               <SecondaryPathCard rec={bundle.stretch} answers={answers} anchorId="path-stretch" />
             </div>
           </div>
-        </details>
+          </details>
+        ) : null}
 
-        <details className="apf-fade-up group mt-8 rounded-3xl border-2 border-slate-200/85 bg-white/95 shadow-lg shadow-slate-200/30 open:border-teal-200/55 sm:mt-10">
+        {!guidanceMode ? (
+          <details className="apf-fade-up group mt-8 rounded-3xl border-2 border-slate-200/85 bg-white/95 shadow-lg shadow-slate-200/30 open:border-teal-200/55 sm:mt-10">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 marker:content-none [&::-webkit-details-marker]:hidden sm:px-8 sm:py-5">
             <span className="text-xl" aria-hidden>
               ⚖️
@@ -1023,7 +1029,8 @@ export default function DashboardPage() {
               </div>
             ) : null}
           </div>
-        </details>
+          </details>
+        ) : null}
       </div>
     </div>
   );

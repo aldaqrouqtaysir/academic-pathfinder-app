@@ -21,11 +21,19 @@ export type CourseTag =
   | "ProjectBased"
   | "Research"
   | "Business"
-  | "Health";
+  | "Health"
+  | "Data"
+  | "Quantitative"
+  | "AppliedMath"
+  | "SocialScience"
+  | "Communication"
+  | "Environmental";
 
 export type RigorLevel = "low" | "medium" | "high" | "very_high";
 export type DifficultyLevel = "low" | "medium" | "high" | "very_high";
 export type WorkloadLevel = "low" | "medium" | "high" | "very_high";
+export type GradeSafetyLevel = "low" | "medium" | "high";
+export type ExplorationValue = "low" | "medium" | "high";
 
 export type PlanCategoryKey =
   | "english_category"
@@ -75,10 +83,11 @@ export interface Course {
   rigorLevel?: RigorLevel;
   perceivedDifficulty?: DifficultyLevel;
   workloadLevel?: WorkloadLevel;
+  gradeSafetyLevel?: GradeSafetyLevel;
+  explorationValue?: ExplorationValue;
   /**
    * Country compliance is handled at rule/recommendation level (not per-course),
    * per MVP principle: activate Egypt/Jordan logic only when selected and avoid
    * “warning spam” on every course.
    */
 }
-

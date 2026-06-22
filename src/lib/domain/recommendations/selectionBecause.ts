@@ -33,6 +33,7 @@ export function buildSelectionBecauseBullets(params: {
 
   const interestBlob = profile.interests.join(" ").toLowerCase();
   const careerBlob = profile.careerGoals.join(" ").toLowerCase();
+  const combinedBlob = `${interestBlob} ${careerBlob} ${profile.futurePlans.toLowerCase()}`;
 
   for (const cat of template.categories) {
     const key = cat.key as PlanCategoryKey;
@@ -63,6 +64,24 @@ export function buildSelectionBecauseBullets(params: {
     }
 
     if (key === "science_category") {
+      if (selected === "ENV_SCI") {
+        lines.push(
+          `Science: ${selN} is the safer, lower-workload science choice. The trade-off is a softer STEM signal than ${altN}, so it fits best when grades, pacing, or exploration matter most.`,
+        );
+        continue;
+      }
+      if (selected === "THERMO" || selected === "ELECTROMAG") {
+        lines.push(
+          `Science: ${selN} was chosen for engineering or physics-style preparation. It is more demanding than ${altN}, but it gives a stronger quantitative science signal.`,
+        );
+        continue;
+      }
+      if (selected === "ORG_CHEM" || selected === "BIOCHEM") {
+        lines.push(
+          `Science: ${selN} supports medicine and health-science preparation. It is a harder science choice than ${altN}, but it builds useful chemistry and biology depth.`,
+        );
+        continue;
+      }
       const stemish = /engineer|tech|medic|health|stem|science|physics|chem/i.test(careerBlob + interestBlob);
       const harderPick = selRig >= altRig;
       if (harderPick) {
@@ -78,6 +97,30 @@ export function buildSelectionBecauseBullets(params: {
     }
 
     if (key === "math_category") {
+      if (selected === "AP_CALC_AB") {
+        lines.push(
+          `Math: ${selN} was chosen because your profile points toward strong STEM, math-heavy preparation, or competitive applications. The trade-off is a heavier algebra and calculus workload than statistics or business calculus.`,
+        );
+        continue;
+      }
+      if (selected === "AP_STATS") {
+        lines.push(
+          `Math: ${selN} fits data, psychology, business, health, and real-world interpretation. It is still AP-level, but usually less algebra-heavy than AP Calculus AB.`,
+        );
+        continue;
+      }
+      if (selected === "CALCULUS") {
+        lines.push(
+          `Math: ${selN} is the standard solid Grade 12 math path. It keeps quantitative preparation credible without pushing all the way into the AP Calculus workload.`,
+        );
+        continue;
+      }
+      if (selected === "CALC_BUSINESS" || selected === "MATH_BUSINESS") {
+        lines.push(
+          `Math: ${selN} fits business, economics, or a safer workload priority. If you are aiming for engineering, CS, physics, or pre-med, AP Calculus or regular Calculus is usually the stronger signal.`,
+        );
+        continue;
+      }
       const quantHeavy = /AP_CALC|CALCULUS|CALC[^_]|PRECALC|MATH_INT/i.test(selected);
       const quantAlt = /AP_STATS|MATH_BUSINESS|CALC_BUSINESS|FUND/i.test(selected);
       if (quantHeavy) {

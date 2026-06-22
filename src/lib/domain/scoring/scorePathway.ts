@@ -18,6 +18,153 @@ function containsAny(text: string, keywords: string[]): boolean {
   return keywords.some((k) => text.includes(k.toLowerCase()));
 }
 
+function profileText(profile: StudentProfile): string {
+  return [
+    ...profile.interests,
+    ...profile.careerGoals,
+    profile.futurePlans,
+    ...profile.preferences,
+    ...profile.preferencesToAvoid,
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
+function safety01(level: "low" | "medium" | "high" | undefined, fallbackPoints: number): number {
+  if (level === "high") return 1;
+  if (level === "medium") return 0.65;
+  if (level === "low") return 0.25;
+  return clamp01(1 - (fallbackPoints - 1) / 4);
+}
+
+function exploration01(level: "low" | "medium" | "high" | undefined): number {
+  if (level === "high") return 1;
+  if (level === "medium") return 0.65;
+  if (level === "low") return 0.25;
+  return 0.5;
+}
+
+function wantsSaferPath(profile: StudentProfile): boolean {
+  return (
+    profile.workloadTolerance === "Low" ||
+    profile.riskPreference === "Avoid risk" ||
+    profile.priorityStyle === "safest_highest_grade" ||
+    profile.optimizationTarget === "lighter_workload" ||
+    profile.optimizationTarget === "higher_grades"
+  );
+}
+
+function wantsCompetitivePath(profile: StudentProfile): boolean {
+  return (
+    profile.workloadTolerance === "High" ||
+    profile.riskPreference === "Embrace stretch" ||
+    profile.priorityStyle === "strongest_path" ||
+    profile.optimizationTarget === "university_competitiveness"
+  );
+}
+
+function hasStrongMathSignal(profile: StudentProfile, text: string): boolean {
+  return (
+    profile.strengths.includes("Math") ||
+    profile.strengths.includes("Coding") ||
+    containsAny(text, ["engineering", "physics", "computer", "coding", "software", "ai", "math", "stem"])
+  );
+}
+
+function hasBusinessSignal(text: string): boolean {
+  return containsAny(text, ["business", "finance", "economics", "econ", "accounting", "marketing", "management"]);
+}
+
+function hasStatsSignal(text: string): boolean {
+  return containsAny(text, [
+    "data",
+    "statistics",
+    "analytics",
+    "psychology",
+    "business",
+    "finance",
+    "economics",
+    "health",
+    "medicine",
+    "social science",
+    "research",
+  ]);
+}
+
+function isStemPathway(pathway: ReturnType<typeof determineTargetPathway>): boolean {
+  return pathway === "engineering" || pathway === "ai_tech" || pathway === "medicine";
+}
+
+function isAdvancedStemScience(course: Course): boolean {
+  return ["THERMO", "ELECTROMAG", "ORG_CHEM", "BIOCHEM", "AP_CHEM", "AP_BIO", "AP_PHYSICS_C1"].includes(course.code);
+}
+
+function adjustedPathwayAffinity(params: {
+  course: Course;
+  key: PlanCategoryKey;
+  base: number;
+  profile: StudentProfile;
+  targetPathway: ReturnType<typeof determineTargetPathway>;
+  text: string;
+}): number {
+  const { course, key, profile, targetPathway, text } = params;
+  const safer = wantsSaferPath(profile);
+  const competitive = wantsCompetitivePath(profile);
+  const strongMath = hasStrongMathSignal(profile, text);
+  const business = hasBusinessSignal(text) || targetPathway === "business_finance";
+  const stats = hasStatsSignal(text);
+  const safety = safety01(course.gradeSafetyLevel, course.workloadPoints);
+  const exploration = exploration01(course.explorationValue);
+  let base = params.base;
+
+  if (key === "math_category") {
+    if (course.code === "AP_CALC_AB") {
+      if (isStemPathway(targetPathway) && strongMath && competitive) base += 0.2;
+      if (safer && !strongMath) base -= 0.14;
+    } else if (course.code === "AP_STATS") {
+      if (stats || targetPathway === "business_finance" || targetPathway === "medicine") base += 0.16;
+      if (targetPathway === "undecided" || profile.goalClarity === "Low") base += 0.12;
+      if (targetPathway === "engineering" && competitive && strongMath && !stats) base -= 0.08;
+    } else if (course.code === "CALCULUS") {
+      base += targetPathway === "undecided" ? 0.08 : 0.04;
+      if (isStemPathway(targetPathway) && !safer) base += 0.08;
+    } else if (course.code === "CALC_BUSINESS" || course.code === "MATH_BUSINESS") {
+      if (business) base += 0.18;
+      if (safer) base += business ? 0.1 : 0.03;
+      if (isStemPathway(targetPathway) && competitive) base -= 0.28;
+      if (!business && (targetPathway === "undecided" || profile.goalClarity === "Low")) base -= 0.12;
+    } else if (course.code === "PRECALC") {
+      if (isStemPathway(targetPathway) && strongMath) base += 0.12;
+    }
+  }
+
+  if (key === "science_category") {
+    if (course.code === "ENV_SCI") {
+      if (safer) base += 0.22;
+      if (targetPathway === "undecided" || profile.goalClarity === "Low") base += 0.1;
+      if (isStemPathway(targetPathway) && competitive && !safer) base -= 0.2;
+    } else if (["THERMO", "ELECTROMAG"].includes(course.code)) {
+      if (targetPathway === "engineering" || containsAny(text, ["engineering", "physics", "mechanical", "electrical"])) base += 0.2;
+      if (!isStemPathway(targetPathway) || safer) base -= 0.2;
+    } else if (["ORG_CHEM", "BIOCHEM"].includes(course.code)) {
+      if (targetPathway === "medicine" || containsAny(text, ["medicine", "doctor", "health", "biology", "chemistry", "pre-med"])) base += 0.2;
+      if (!isStemPathway(targetPathway) || safer) base -= 0.18;
+    } else if (isAdvancedStemScience(course) && (!isStemPathway(targetPathway) || safer)) {
+      base -= 0.16;
+    }
+  }
+
+  if ((targetPathway === "undecided" || profile.goalClarity === "Low" || profile.optimizationTarget === "keeping_options_open") && key !== "science_category") {
+    base = base * 0.82 + exploration * 0.18;
+  }
+
+  if (safer) {
+    base = base * 0.88 + safety * 0.12;
+  }
+
+  return clamp01(base);
+}
+
 function contribution(
   normalizedWeights: Record<ScoringFactorKey, number>,
   key: ScoringFactorKey,
@@ -54,11 +201,14 @@ export function scorePathway(params: {
     optimizationTarget: profile.optimizationTarget,
     countryIntent: profile.countryIntent,
   });
+  const allProfileText = profileText(profile);
   const interestText = profile.interests.join(" ").toLowerCase();
   const goalText = profile.careerGoals.join(" ").toLowerCase();
 
   const avgWorkload = avg(selectedCourses.map((c) => c.workloadPoints));
   const avgRigor = avg(selectedCourses.map((c) => c.rigorPoints));
+  const avgSafety = avg(selectedCourses.map((c) => safety01(c.gradeSafetyLevel, c.workloadPoints)));
+  const avgExploration = avg(selectedCourses.map((c) => exploration01(c.explorationValue)));
   const avgFuture = avg((categoryCourses.length > 0 ? categoryCourses.map((x) => x.course) : selectedCourses).map((c) => c.futureRelevancePoints)) / 5;
   const avgRealWorld = avg((categoryCourses.length > 0 ? categoryCourses.map((x) => x.course) : selectedCourses).map((c) => c.realWorldRelevancePoints)) / 5;
 
@@ -75,14 +225,15 @@ export function scorePathway(params: {
 
   // Workload fit
   const desiredWorkload = profile.workloadTolerance === "Low" ? 2.2 : profile.workloadTolerance === "Medium" ? 3.3 : 4.4;
-  const workloadNorm = clamp01(1 - Math.abs(avgWorkload - desiredWorkload) / 3);
+  const baseWorkloadNorm = clamp01(1 - Math.abs(avgWorkload - desiredWorkload) / 3);
+  const workloadNorm = wantsSaferPath(profile) ? clamp01(baseWorkloadNorm * 0.6 + avgSafety * 0.4) : baseWorkloadNorm;
 
   // Pathway/career alignment with category-role impact
   const pathwayNorm = avg(
     (categoryCourses.length > 0 ? categoryCourses : selectedCourses.map((course) => ({ key: "set1_elective" as PlanCategoryKey, course }))).map(({ key, course }) => {
       const base = course.pathwayAffinity[targetPathway] ?? 0;
       const roleWeight = key === "math_category" || key === "science_category" || key === "english_category" ? 1.15 : 1;
-      return Math.min(1, base * roleWeight);
+      return adjustedPathwayAffinity({ course, key, base: Math.min(1, base * roleWeight), profile, targetPathway, text: allProfileText });
     }),
   );
 
@@ -97,7 +248,10 @@ export function scorePathway(params: {
   const stretchNorm = clamp01(1 - Math.abs(avgRigor - confidenceTarget) / 3);
 
   // Scholarship competitiveness
-  const scholarshipBase = clamp01((avgRigor / 5 + avgFuture) / 2);
+  const apRigorNorm = avg(
+    selectedCourses.map((c) => (c.type === "AP" ? (c.rigorPoints >= 5 ? 1 : 0.82) : c.rigorPoints >= 4 ? 0.65 : 0.35)),
+  );
+  const scholarshipBase = clamp01((avgRigor / 5 + avgFuture + apRigorNorm) / 3);
   const scholarshipNorm = profile.scholarshipImportance === "High" ? scholarshipBase : 0.8 * scholarshipBase + 0.2;
 
   const interestLine =
@@ -127,7 +281,7 @@ export function scorePathway(params: {
         ? "Overall intensity feels aligned with how much you said you want on your plate."
         : "This may feel a bit heavier or lighter than your comfort zone — adjust with your counselor if needed.",
       profile.workloadTolerance === "Low"
-        ? "You indicated you prefer a lighter load; we weighted balance accordingly."
+        ? "You indicated you prefer a lighter load; we weighted safer, lower-workload choices accordingly."
         : profile.workloadTolerance === "High"
           ? "You said you can handle more; this path can include more demanding combinations."
           : "You chose a middle-ground workload preference.",
@@ -138,7 +292,9 @@ export function scorePathway(params: {
         : "If your career ideas shift, a few swaps could sharpen the fit — that’s normal.",
       profile.careerGoals.length > 0
         ? `Your career ideas (${profile.careerGoals.slice(0, 2).join(", ")}) helped guide this mix.`
-        : "Because you’re still exploring careers, we kept the path flexible where we could.",
+        : avgExploration >= 0.65
+          ? "Because you’re still exploring careers, we favored choices that keep useful doors open."
+          : "Because you’re still exploring careers, we kept the path flexible where we could.",
     ]),
     contribution(weightModel.normalizedWeights, "country_alignment", "Country alignment", countryNorm, [
       hasStrictCountries
@@ -185,4 +341,3 @@ export function scorePathway(params: {
 
   return { total, factors, topReasons, targetPathway, weightModel };
 }
-

@@ -42,6 +42,10 @@ function selectionLine(rec: PathRecommendation) {
   return parts.length ? parts.join(" | ") : "—";
 }
 
+function isGuidanceRecommendation(rec: PathRecommendation) {
+  return Object.keys(rec.selections.categorySelections ?? {}).length === 0;
+}
+
 function PathBlock({ rec, answers }: { rec: PathRecommendation; answers: Record<string, unknown> }) {
   const summary = pathSummaryTopRow(rec);
   const bars = pathMetricBars(rec);
@@ -107,6 +111,7 @@ export function CounselorSummaryDocument(props: {
   const isReport = variant === "report";
   const finalSummaryLine =
     bundle?.bestFit != null ? buildFinalRecommendationSummary(answers, bundle.bestFit as PathRecommendation) : null;
+  const guidanceMode = bundle?.bestFit != null ? isGuidanceRecommendation(bundle.bestFit as PathRecommendation) : false;
 
   return (
     <div className={isReport ? "counselor-report space-y-8 text-slate-900" : "space-y-6"}>
@@ -202,7 +207,7 @@ export function CounselorSummaryDocument(props: {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Recommendation overview</h2>
             <div className="mt-4 space-y-4">
               <div>
-                <h3 className="text-xs font-semibold text-slate-500">Best fit</h3>
+                <h3 className="text-xs font-semibold text-slate-500">{guidanceMode ? "Readiness plan" : "Best fit"}</h3>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200">
                     Fit signal: {confidenceBand(bundle.bestFit.confidence.overall)}
@@ -221,20 +226,22 @@ export function CounselorSummaryDocument(props: {
                   </ul>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-500">Balanced alternative</h3>
-                  <div className="mt-2">
-                    <PathBlock rec={bundle.balanced} answers={answers} />
+              {!guidanceMode ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h3 className="text-xs font-semibold text-slate-500">Balanced alternative</h3>
+                    <div className="mt-2">
+                      <PathBlock rec={bundle.balanced} answers={answers} />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-slate-500">Stretch alternative</h3>
+                    <div className="mt-2">
+                      <PathBlock rec={bundle.stretch} answers={answers} />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-500">Stretch alternative</h3>
-                  <div className="mt-2">
-                    <PathBlock rec={bundle.stretch} answers={answers} />
-                  </div>
-                </div>
-              </div>
+              ) : null}
             </div>
           </Card>
 
