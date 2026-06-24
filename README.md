@@ -2,6 +2,9 @@
 
 > A guided academic planning and recommendation workspace for high school students.
 
+## Live Demo
+[Open the live demo on Render](https://academic-pathfinder.onrender.com/)
+
 ## Problem Statement
 High school academic planning is often a confusing maze of PDFs, prerequisites, and competing graduation requirements. Students struggle to build cohesive schedules that align with their career aspirations, workload tolerance, and university goals, while counselors are overwhelmed manually validating graduation paths.
 
@@ -21,6 +24,28 @@ High school academic planning is often a confusing maze of PDFs, prerequisites, 
 - **Responsive & Accessible UI:** Designed with modern aesthetics, subtle micro-animations, and a mobile-friendly layout.
 - **MVP Session Handling:** Lightweight JWT-based sessions for demo use, with student-ID login and counselor access-code login.
 
+## Screenshots
+### Student Login
+![Student login page](docs/images/student-login.png)
+
+### Guided Intake
+![Student intake flow](docs/images/intake-flow.png)
+
+### Grade 12 Recommendation Dashboard
+![Grade 12 recommendation dashboard](docs/images/grade-12-dashboard.png)
+
+### Grade 10 Readiness Mode
+![Grade 10 readiness dashboard](docs/images/grade-10-readiness-dashboard.png)
+
+### Counselor Dashboard
+![Counselor dashboard and student lookup](docs/images/counselor-dashboard.png)
+
+### Counselor Student Summary
+![Counselor student summary](docs/images/counselor-student-summary.png)
+
+### Printable Counselor Report
+![Printable counselor report](docs/images/counselor-printable-report.png)
+
 ## Tech Stack
 - **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
 - **Language:** TypeScript
@@ -39,24 +64,25 @@ The application follows a standard Next.js App Router architecture with a clear 
 ### MVP Note on Data Persistence
 Currently, the app relies on a local JSON file-based store to quickly iterate and validate the user experience without the overhead of a full database. Production deployments will require migrating this to a real database (e.g., PostgreSQL).
 
-## Student Flow
+## Demo Flow
+### Student Experience
 1. **Login:** Students enter an 8-digit Student ID for MVP/demo access.
 2. **Intake Journey:** A multi-step form captures their current academic standing, career interests, preferred destinations, and workload tolerance.
-3. **Dashboard:** The engine processes the intake data and presents a customized academic plan.
+3. **Dashboard:** The deterministic rule-based engine processes the intake data and presents a customized academic plan.
 4. **Iterate:** Students can refine their preferences and immediately see updated recommendations.
 
-## Counselor Flow
+### Counselor Experience
 1. **Login:** Faculty/demo reviewers log in via a hidden route (`/counselor/login`) using a shared access code.
 2. **Dashboard:** Counselors view a roster of active student plans.
 3. **Review & Annotate:** Counselors can review the exact inputs a student provided, append internal notes, and flag plans for discussion.
-4. **Export:** Generate clean, printable summaries for advising conversations or portfolio demos.
+4. **Export:** Generate clean, printable summaries for advising conversations and demos.
 
 ## Recommendation Engine Overview
 The recommendation logic is **deterministic and rule-based**, not a trained Machine Learning model. It evaluates a student's responses against an array of hard constraints (graduation requirements, prerequisites) and soft constraints (interests, workload tolerance). The engine scores potential course combinations and selects the path that maximizes the student's personal optimization target (e.g., "University competitiveness" vs. "Lighter workload").
 
 ## Recommended Demo IDs
-- Student demo ID: `20120164`
-- Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local`.
+- Student demo IDs: `20120164`, `20120167`, `20120168`, `20120169`
+- Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local` or the Render environment.
 
 ## Local Setup Instructions
 
@@ -104,9 +130,10 @@ When deploying this MVP to a service like [Render](https://render.com), you must
 - **Domain Data:** Hardcoded to specific SAIS academic rules and course catalogs.
 
 ## Future Improvements
-- **Database Migration:** Transition to PostgreSQL (e.g., via Prisma or Supabase) for robust data integrity and querying.
-- **SSO Integration:** Integrate with school-wide SSO (e.g., Google Workspace, Microsoft Entra) for secure, passwordless authentication.
+- **Database-Backed Storage:** Transition to PostgreSQL or another managed database for durable persistence, querying, and auditability.
+- **Stronger School Authentication:** Add school-approved SSO, invite codes, or student PINs tied to verified student records.
 - **Dynamic Rules Engine:** Move course catalog and graduation requirements to the database, allowing administrators to modify rules via a CMS rather than code updates.
+- **Counselor-Supervised AI Explanation Assistant:** Add a carefully scoped assistant that answers follow-up questions about a generated plan using the deterministic recommendation facts, with counselor oversight and clear guardrails.
 - **Optional Analytics:** Consider future analytics only after school-approved data governance and privacy review.
 
 ---

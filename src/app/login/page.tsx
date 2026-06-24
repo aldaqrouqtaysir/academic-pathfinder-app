@@ -44,7 +44,7 @@ const highlights = [
 
 const assuranceCards = [
   { icon: IconLayers, text: "Uses saved SAIS course structure" },
-  { icon: IconShieldCheck, text: "MVP login for demo use" },
+  { icon: IconShieldCheck, text: "Student ID access" },
 ] as const;
 
 export default function LoginPage() {
@@ -116,7 +116,7 @@ export default function LoginPage() {
             </span>
             <span>
               <span className="block text-xs font-bold uppercase tracking-[0.18em] text-teal-800">SAIS Academic Navigator</span>
-              <span className="block text-xs font-semibold text-slate-500">Portfolio-ready planning MVP</span>
+              <span className="block text-xs font-semibold text-slate-500">School-specific planning workspace</span>
             </span>
           </div>
 
@@ -150,7 +150,7 @@ export default function LoginPage() {
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-800">Planning brief</p>
                   <p className="mt-1 text-lg font-bold text-slate-950">From answers to an advising conversation</p>
                 </div>
-                <span className="rounded-full bg-teal-700 px-3 py-1 text-xs font-bold text-white">Demo MVP</span>
+                <span className="rounded-full bg-teal-700 px-3 py-1 text-xs font-bold text-white">Advising-ready</span>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {highlights.map(({ icon: Icon, title, body }) => (
@@ -174,7 +174,7 @@ export default function LoginPage() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-800">Student entry</p>
                   <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Open your plan</h2>
-                  <p className="mt-2 text-sm font-medium leading-6 text-slate-600">Enter an 8-digit demo Student ID to continue.</p>
+                  <p className="mt-2 text-sm font-medium leading-6 text-slate-600">Enter your 8-digit Student ID to continue.</p>
                 </div>
                 <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.9)] sm:flex">
                   <IconBookOpen className="h-5 w-5" />
