@@ -93,6 +93,8 @@ When deploying this MVP to a service like [Render](https://render.com), you must
 2. **Mount Path:** Mount the disk to a directory (e.g., `/var/data`).
 3. **Environment Variable:** Set `DATA_DIR=/var/data` in the Render dashboard so the app writes its JSON files to the persistent volume.
 4. **Node Version:** Ensure Render is configured to use Node `20.x`.
+5. **Build Command:** Use `npm ci --include=dev && npm run build`. Tailwind CSS and PostCSS are build-time packages, so Render must install dev dependencies during the build step.
+6. **Start Command:** Use `npm start`.
 
 ## MVP Limitations
 - **Authentication:** Auth is currently MVP/demo-grade. Students log in via an ID with no secondary password, and counselors use a shared access code. A real school launch should use school SSO/login, invite codes, student PINs, or database-backed auth tied to verified student records.
