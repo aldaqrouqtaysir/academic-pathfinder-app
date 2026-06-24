@@ -185,6 +185,26 @@ function getApiMissingLabels(payload: unknown) {
   );
 }
 
+function getApiString(payload: unknown, key: "code" | "requestId") {
+  if (!payload || typeof payload !== "object" || !(key in payload)) return undefined;
+  const value = (payload as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function formatSubmitFailureMessage(code?: string, requestId?: string) {
+  const reference = requestId ? ` Reference: ${requestId.slice(0, 8)}.` : "";
+  if (code === "AUTH_REQUIRED") {
+    return `Your session expired. Please sign in again.${reference}`;
+  }
+  if (code === "PERSISTENCE_ERROR") {
+    return `Your plan was generated, but the server could not save it. Please ask the site owner to check data storage settings.${reference}`;
+  }
+  if (code === "RECOMMENDATION_ERROR") {
+    return `Could not build recommendations right now. Please try again in a moment.${reference}`;
+  }
+  return `Could not run recommendations. Please check the required choices and try again.${reference}`;
+}
+
 function IntakePageInner() {
   const router = useRouter();
   const search = useSearchParams();
@@ -336,11 +356,13 @@ function IntakePageInner() {
     if (!res.ok) {
       const body = await res.json().catch(() => null);
       const apiMissingLabels = getApiMissingLabels(body?.error);
+      const apiCode = getApiString(body, "code");
+      const requestId = getApiString(body, "requestId");
       setValidationAttempted(false);
       setError(
         apiMissingLabels.length > 0
           ? formatMissingLabels(apiMissingLabels)
-          : "Could not run recommendations. Please check the required choices and try again.",
+          : formatSubmitFailureMessage(apiCode, requestId),
       );
       setSubmitting(false);
       return;

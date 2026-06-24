@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { StoredSession } from "@/lib/domain/models/session";
@@ -13,29 +14,84 @@ interface DbShape {
   students: Record<string, StudentRecord>;
 }
 
-function resolveDataDir(): string {
+function configuredDataDir(): string | null {
   const configured = process.env.DATA_DIR?.trim();
+  return configured || null;
+}
+
+function resolveDataDir(configured: string | null): string {
   if (!configured) return path.join(process.cwd(), ".data");
   return path.isAbsolute(configured) ? configured : path.resolve(process.cwd(), configured);
 }
 
-const DATA_DIR = resolveDataDir();
-const DATA_FILE = path.join(DATA_DIR, "student-plans.json");
+function resolveFallbackDataDir(): string {
+  return path.join(os.tmpdir(), "sais-academic-navigator");
+}
 
-async function ensureDb(): Promise<DbShape> {
-  await mkdir(DATA_DIR, { recursive: true });
+function summarizeFsError(error: unknown) {
+  if (error && typeof error === "object") {
+    const maybe = error as { code?: unknown; message?: unknown; name?: unknown };
+    return {
+      name: typeof maybe.name === "string" ? maybe.name : "Error",
+      code: typeof maybe.code === "string" ? maybe.code : undefined,
+      message: typeof maybe.message === "string" ? maybe.message : String(error),
+    };
+  }
+  return { name: "Error", message: String(error) };
+}
+
+let activeDataFile: string | null = null;
+
+async function loadDbFrom(dataDir: string): Promise<DbShape> {
+  const dataFile = path.join(dataDir, "student-plans.json");
+  await mkdir(dataDir, { recursive: true });
   try {
-    const raw = await readFile(DATA_FILE, "utf-8");
+    const raw = await readFile(dataFile, "utf-8");
+    activeDataFile = dataFile;
     return JSON.parse(raw) as DbShape;
   } catch {
     const init: DbShape = { students: {} };
-    await writeFile(DATA_FILE, JSON.stringify(init, null, 2), "utf-8");
+    await writeFile(dataFile, JSON.stringify(init, null, 2), "utf-8");
+    activeDataFile = dataFile;
     return init;
   }
 }
 
+async function ensureDb(): Promise<DbShape> {
+  const configured = configuredDataDir();
+  const primaryDataDir = resolveDataDir(configured);
+  try {
+    return await loadDbFrom(primaryDataDir);
+  } catch (error) {
+    if (configured) throw error;
+    const fallbackDataDir = resolveFallbackDataDir();
+    console.warn("[studentPlanStore] Default data directory is not writable; using temporary storage.", {
+      primaryDataDir,
+      fallbackDataDir,
+      error: summarizeFsError(error),
+    });
+    return loadDbFrom(fallbackDataDir);
+  }
+}
+
 async function saveDb(db: DbShape) {
-  await writeFile(DATA_FILE, JSON.stringify(db, null, 2), "utf-8");
+  const configured = configuredDataDir();
+  const dataFile = activeDataFile ?? path.join(resolveDataDir(configured), "student-plans.json");
+  try {
+    await writeFile(dataFile, JSON.stringify(db, null, 2), "utf-8");
+  } catch (error) {
+    if (configured) throw error;
+    const fallbackDataDir = resolveFallbackDataDir();
+    const fallbackDataFile = path.join(fallbackDataDir, "student-plans.json");
+    console.warn("[studentPlanStore] Could not write default data file; using temporary storage.", {
+      dataFile,
+      fallbackDataFile,
+      error: summarizeFsError(error),
+    });
+    await mkdir(fallbackDataDir, { recursive: true });
+    await writeFile(fallbackDataFile, JSON.stringify(db, null, 2), "utf-8");
+    activeDataFile = fallbackDataFile;
+  }
 }
 
 export async function getStudentRecord(studentId: string): Promise<StudentRecord> {
@@ -94,4 +150,3 @@ export async function getStudentRecordForCounselor(studentId: string): Promise<S
   if (!record || record.sessions.length === 0) return null;
   return record;
 }
-

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requireStudentId } from "@/lib/auth/requireStudentSession";
 import { computeRecommendations } from "@/lib/domain/engine";
@@ -71,26 +72,66 @@ const IntakeSchema = z.object({
   scholarshipImportance: z.union([z.literal("Low"), z.literal("Medium"), z.literal("High")]),
 });
 
-export async function POST(req: Request) {
-  try {
-    const studentId = await requireStudentId();
-    const json = await req.json().catch(() => null);
-    const parsed = IntakeSchema.safeParse(json);
-    if (!parsed.success) {
-      return NextResponse.json({ ok: false, error: parsed.error.flatten() }, { status: 400 });
-    }
+function summarizeError(error: unknown) {
+  if (error && typeof error === "object") {
+    const maybe = error as { code?: unknown; message?: unknown; name?: unknown };
+    return {
+      name: typeof maybe.name === "string" ? maybe.name : "Error",
+      code: typeof maybe.code === "string" ? maybe.code : undefined,
+      message: typeof maybe.message === "string" ? maybe.message : String(error),
+    };
+  }
+  return { name: "Error", message: String(error) };
+}
 
-    const intake = parsed.data;
-    const profile = mapIntakeToProfile(studentId, intake);
-    const scenario = mapIntakeToScenario(intake);
-    const result = computeRecommendations({
+function logSaveAndRunFailure(requestId: string, phase: "auth" | "recommendation" | "persistence" | "unexpected", error: unknown) {
+  console.error("[save-and-run] Request failed.", {
+    requestId,
+    phase,
+    error: summarizeError(error),
+  });
+}
+
+export async function POST(req: Request) {
+  const requestId = randomUUID();
+  let studentId: string;
+
+  try {
+    studentId = await requireStudentId();
+  } catch (error) {
+    logSaveAndRunFailure(requestId, "auth", error);
+    return NextResponse.json({ ok: false, code: "AUTH_REQUIRED", requestId }, { status: 401 });
+  }
+
+  const json = await req.json().catch(() => null);
+  const parsed = IntakeSchema.safeParse(json);
+  if (!parsed.success) {
+    console.warn("[save-and-run] Validation failed.", {
+      requestId,
+      fields: Object.keys(parsed.error.flatten().fieldErrors),
+    });
+    return NextResponse.json({ ok: false, code: "VALIDATION_ERROR", error: parsed.error.flatten(), requestId }, { status: 400 });
+  }
+
+  const intake = parsed.data;
+  const profile = mapIntakeToProfile(studentId, intake);
+  const scenario = mapIntakeToScenario(intake);
+  let result: ReturnType<typeof computeRecommendations>;
+
+  try {
+    result = computeRecommendations({
       profile,
       semester: intake.semester,
       scenario,
       catalog: { courses: categoryBasedCourseCatalogSeed },
       rules: { rules: rulesCatalogSeed },
     });
+  } catch (error) {
+    logSaveAndRunFailure(requestId, "recommendation", error);
+    return NextResponse.json({ ok: false, code: "RECOMMENDATION_ERROR", requestId }, { status: 500 });
+  }
 
+  try {
     const session = await saveStudentSession(studentId, {
       studentId,
       answers: intake,
@@ -100,9 +141,9 @@ export async function POST(req: Request) {
         generatedAt: new Date().toISOString(),
       },
     });
-
     return NextResponse.json({ ok: true, session });
-  } catch {
-    return NextResponse.json({ ok: false }, { status: 401 });
+  } catch (error) {
+    logSaveAndRunFailure(requestId, "persistence", error);
+    return NextResponse.json({ ok: false, code: "PERSISTENCE_ERROR", requestId }, { status: 503 });
   }
 }
