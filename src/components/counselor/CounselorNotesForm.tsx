@@ -35,27 +35,28 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
   }
 
   return (
-    <section className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200 print:hidden">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Counselor notes</h2>
-      <p className="mt-1 text-sm text-slate-600">Visible only in the counselor workspace. Stored with this student ID.</p>
+    <section className="apf-section-card p-5 print:hidden sm:p-6">
+      <p className="apf-kicker">Counselor notes</p>
+      <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">Internal advising notes</h2>
+      <p className="mt-2 text-sm font-medium leading-6 text-slate-600">Visible only in the counselor workspace. Stored with this student ID.</p>
 
       {initialNotes.length > 0 ? (
-        <ul className="mt-4 max-h-48 space-y-3 overflow-y-auto border-y border-slate-100 py-3">
+        <ul className="mt-4 max-h-56 space-y-3 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/70 p-3 ring-1 ring-white/80">
           {initialNotes.map((n) => (
-            <li key={n.id} className="text-sm">
+            <li key={n.id} className="rounded-xl bg-slate-50/80 p-3 text-sm ring-1 ring-slate-100">
               <span className="text-xs text-slate-500">{new Date(n.createdAt).toLocaleString()}</span>
               <p className="mt-0.5 whitespace-pre-wrap text-slate-800">{n.body}</p>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-3 text-sm text-slate-500">No notes yet.</p>
+        <p className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/60 p-4 text-sm text-slate-500">No notes yet.</p>
       )}
 
       <label className="mt-4 block">
         <span className="sr-only">New note</span>
         <textarea
-          className="mt-1 min-h-[100px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+          className="mt-1 min-h-[112px] w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-white/80 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
           placeholder="Add a brief note for the file (placement discussion, follow-ups, etc.)"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -65,7 +66,7 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
       {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
       <div className="mt-3">
         <Button type="button" onClick={submit} disabled={pending}>
-          {pending ? "Saving…" : "Save note"}
+          {pending ? "Saving" : "Save note"}
         </Button>
       </div>
     </section>

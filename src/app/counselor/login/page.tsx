@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { IconBookOpen, IconShieldCheck } from "@/components/icons/StudentIcons";
 
 export default function CounselorLoginPage() {
   const [code, setCode] = useState("");
@@ -38,14 +39,37 @@ export default function CounselorLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-50 px-4 py-16">
-      <div className="mx-auto w-full max-w-md">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Staff access</p>
-        <h1 className="mt-2 text-center text-2xl font-bold tracking-tight text-slate-900">Counselor sign-in</h1>
-        <p className="mt-2 text-center text-sm text-slate-600">
-          Discreet entry for faculty. Student login and links are unchanged.
-        </p>
-        <Card className="mt-8">
+    <div className="min-h-[100dvh] px-4 py-12 sm:py-16">
+      <div className="mx-auto grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[1fr_0.85fr]">
+        <section className="apf-fade-up">
+          <p className="apf-kicker">Staff access</p>
+          <h1 className="mt-3 max-w-xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+            Counselor workspace for saved student plans.
+          </h1>
+          <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-slate-600 sm:text-base">
+            Review the latest intake output, add internal notes, and open a printable advising summary from one focused dashboard.
+          </p>
+          <div className="mt-6 grid max-w-xl gap-3 sm:grid-cols-2">
+            {[
+              { icon: IconBookOpen, title: "Student lookup", body: "Open an active saved plan by Student ID." },
+              { icon: IconShieldCheck, title: "Demo access", body: "Passcode-protected for this MVP build." },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="rounded-2xl border border-white/80 bg-white/75 p-4 ring-1 ring-slate-200/80">
+                <Icon className="h-5 w-5 text-teal-700" />
+                <p className="mt-3 text-sm font-bold text-slate-950">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-600">{body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+        <Card className="apf-fade-up apf-delay-1 apf-premium-surface p-3">
+          <div className="rounded-[1.45rem] bg-gradient-to-br from-white via-white to-cyan-50/60 p-6 sm:p-8">
+            <p className="apf-kicker">Counselor sign-in</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Enter access code</h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
+              MVP demo staff access. Student login and links are unchanged.
+            </p>
+            <div className="mt-7">
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label htmlFor="code" className="text-sm font-medium text-slate-700">
@@ -63,13 +87,15 @@ export default function CounselorLoginPage() {
             </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
             <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Signing in…" : "Continue"}
+              {pending ? "Signing in" : "Continue"}
             </Button>
           </form>
+            </div>
+            <p className="mt-6 text-xs leading-5 text-slate-500">
+              Counselor access depends on <code className="rounded bg-slate-200/80 px-1">COUNSELOR_ACCESS_CODE</code> in the local environment.
+            </p>
+          </div>
         </Card>
-        <p className="mt-6 text-center text-xs text-slate-500">
-          Configure <code className="rounded bg-slate-200/80 px-1">COUNSELOR_ACCESS_CODE</code> in the server environment.
-        </p>
       </div>
     </div>
   );

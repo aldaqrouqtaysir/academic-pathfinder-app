@@ -16,22 +16,26 @@ export function StudentHeader() {
             <div className="text-xs font-medium text-teal-800">Your pathway journey</div>
           </div>
         </Link>
-        <nav className="flex items-center gap-2 text-sm sm:gap-4">
+        <nav className="flex shrink-0 items-center gap-1 text-sm sm:gap-4">
           <Link
-            className="rounded-lg px-2 py-1.5 font-semibold text-teal-900 transition hover:bg-teal-50 hover:text-teal-950"
+            className="whitespace-nowrap rounded-lg px-2 py-1.5 font-semibold text-teal-900 transition hover:bg-teal-50 hover:text-teal-950"
             href="/intake?mode=edit"
+            aria-label="Update answers"
           >
-            ✏️ Update answers
+            <span className="hidden sm:inline">Update answers</span>
+            <span className="sm:hidden">Edit</span>
           </Link>
           <button
-            className="rounded-lg px-2 py-1.5 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            className="whitespace-nowrap rounded-lg px-2 py-1.5 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             onClick={async () => {
               await fetch("/api/auth/logout", { method: "POST" });
               router.push("/login");
             }}
+            aria-label="Sign out"
             type="button"
           >
-            Sign out
+            <span className="hidden sm:inline">Sign out</span>
+            <span className="sm:hidden">Exit</span>
           </button>
         </nav>
       </div>

@@ -3,7 +3,7 @@ import type { StoredSession } from "@/lib/domain/models/session";
 import type { PathRecommendation } from "@/lib/domain/models/recommendations";
 import type { CounselorNote } from "@/lib/persistence/counselorNotesStore";
 import { Card } from "@/components/ui/Card";
-import { courseName } from "@/lib/student/display";
+import { courseName, formatDisplayValue } from "@/lib/student/display";
 import { pathMetricBars, pathSummaryTopRow } from "@/lib/student/pathMetrics";
 import {
   buildFinalRecommendationSummary,
@@ -17,9 +17,15 @@ function pick<T>(v: unknown): T | undefined {
 }
 
 function formatList(v: unknown): string {
-  if (Array.isArray(v)) return v.map(String).join(", ");
-  if (v == null) return "—";
-  return String(v);
+  return formatDisplayValue(v);
+}
+
+function cleanText(v: unknown): string {
+  return String(v ?? "")
+    .replace(/three-path course recommendation/gi, "course-selection pathway")
+    .replace(/\.{2,}/g, ".")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function confidenceBand(value: number) {
@@ -35,15 +41,29 @@ function pathTitle(kind: PathRecommendation["kind"]) {
 }
 
 function selectionLine(rec: PathRecommendation) {
-  const core = rec.selections.core.map(courseName).join(" · ");
-  const s1 = rec.selections.set1.map(courseName).join(" · ");
-  const s2 = rec.selections.set2.map(courseName).join(" · ");
+  const core = rec.selections.core.map(courseName).join(" | ");
+  const s1 = rec.selections.set1.map(courseName).join(" | ");
+  const s2 = rec.selections.set2.map(courseName).join(" | ");
   const parts = [core && `Core: ${core}`, s1 && `Set 1: ${s1}`, s2 && `Set 2: ${s2}`].filter(Boolean);
-  return parts.length ? parts.join(" | ") : "—";
+  return parts.length ? parts.join(" | ") : "Readiness guidance only";
 }
 
 function isGuidanceRecommendation(rec: PathRecommendation) {
   return Object.keys(rec.selections.categorySelections ?? {}).length === 0;
+}
+
+function recommendationSignature(rec: PathRecommendation) {
+  return JSON.stringify(rec.selections.categorySelections ?? {});
+}
+
+function uniqueAlternativePaths(bundle: { bestFit: PathRecommendation; balanced: PathRecommendation; stretch: PathRecommendation }) {
+  const seen = new Set([recommendationSignature(bundle.bestFit)]);
+  return [bundle.balanced, bundle.stretch].filter((rec) => {
+    const signature = recommendationSignature(rec);
+    if (seen.has(signature)) return false;
+    seen.add(signature);
+    return true;
+  });
 }
 
 function PathBlock({ rec, answers }: { rec: PathRecommendation; answers: Record<string, unknown> }) {
@@ -51,18 +71,17 @@ function PathBlock({ rec, answers }: { rec: PathRecommendation; answers: Record<
   const bars = pathMetricBars(rec);
   const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+    <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-4 ring-1 ring-white/80">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900">{pathTitle(rec.kind)}</h3>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200">
             {riskLevelLabel(risk)}
           </span>
-          <span className="text-xs text-slate-500">{rec.label}</span>
+          <span className="text-xs text-slate-500">{rec.label === "Optimal" ? "Recommended" : rec.label}</span>
         </div>
       </div>
-      <p className="mt-2 text-sm text-slate-700">{selectionLine(rec)}</p>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">{rec.explanation}</p>
+      <p className="mt-3 rounded-xl bg-white/85 px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200/80">{selectionLine(rec)}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {summary.map((s) => (
           <span
@@ -112,19 +131,32 @@ export function CounselorSummaryDocument(props: {
   const finalSummaryLine =
     bundle?.bestFit != null ? buildFinalRecommendationSummary(answers, bundle.bestFit as PathRecommendation) : null;
   const guidanceMode = bundle?.bestFit != null ? isGuidanceRecommendation(bundle.bestFit as PathRecommendation) : false;
+  const alternativePaths = bundle ? uniqueAlternativePaths(bundle) : [];
+  const sectionCardClass = isReport
+    ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-none ring-0"
+    : "apf-section-card";
 
   return (
     <div className={isReport ? "counselor-report space-y-8 text-slate-900" : "space-y-6"}>
       {showNav && !isReport && (
         <div className="print:hidden">
-          <Link href="/counselor" className="text-sm font-medium text-teal-700 hover:text-teal-900">
-            ← Dashboard
+          <Link href="/counselor" className="text-sm font-semibold text-teal-700 hover:text-teal-900">
+            Back to dashboard
           </Link>
         </div>
       )}
 
-      <div className={isReport ? "border-b border-slate-300 pb-6" : ""}>
-        <h1 className={isReport ? "text-2xl font-bold tracking-tight" : "text-xl font-bold tracking-tight text-slate-900"}>
+      <div
+        className={
+          isReport
+            ? "border-b border-slate-300 pb-6"
+            : "rounded-3xl border border-white/80 bg-white/75 p-5 shadow-[0_18px_54px_-40px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/45"
+        }
+      >
+        <p className={isReport ? "text-xs font-semibold uppercase tracking-wide text-slate-500" : "apf-kicker"}>
+          Counselor summary
+        </p>
+        <h1 className={isReport ? "mt-2 text-2xl font-bold tracking-tight" : "mt-2 text-2xl font-black tracking-tight text-slate-950"}>
           {isReport ? "Academic pathway summary" : "Student summary"}
         </h1>
         <p className={`mt-1 ${isReport ? "text-sm text-slate-600" : "text-sm text-slate-600"}`}>
@@ -132,7 +164,7 @@ export function CounselorSummaryDocument(props: {
           {generatedAt ? (
             <>
               {" "}
-              · Generated {new Date(generatedAt).toLocaleString()}
+              / Generated {new Date(generatedAt).toLocaleString()}
             </>
           ) : null}
         </p>
@@ -147,37 +179,37 @@ export function CounselorSummaryDocument(props: {
         ) : null}
       </div>
 
-      <Card className={isReport ? "rounded-lg border border-slate-200 shadow-none ring-0" : ""}>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Academic context</h2>
+      <Card className={sectionCardClass}>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Student snapshot</h2>
         <dl className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
             <dt className="text-xs font-medium text-slate-500">Grade</dt>
-            <dd className="text-sm text-slate-900">{grade ?? "—"}</dd>
+            <dd className="text-sm text-slate-900">{grade ? `Grade ${grade}` : "Not provided"}</dd>
           </div>
           <div>
             <dt className="text-xs font-medium text-slate-500">Semester</dt>
-            <dd className="text-sm text-slate-900">{semester ?? "—"}</dd>
+            <dd className="text-sm text-slate-900">{formatDisplayValue(semester)}</dd>
           </div>
           <div>
             <dt className="text-xs font-medium text-slate-500">Confidence (self-report)</dt>
-            <dd className="text-sm text-slate-900">{selfReportedAcademicConfidence ?? "—"}</dd>
+            <dd className="text-sm text-slate-900">{formatDisplayValue(selfReportedAcademicConfidence)}</dd>
           </div>
           <div>
             <dt className="text-xs font-medium text-slate-500">Workload tolerance</dt>
-            <dd className="text-sm text-slate-900">{workloadTolerance ?? "—"}</dd>
+            <dd className="text-sm text-slate-900">{formatDisplayValue(workloadTolerance)}</dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs font-medium text-slate-500">Main destination focus</dt>
-            <dd className="text-sm text-slate-900">{mainCountry ?? "—"}</dd>
+            <dd className="text-sm text-slate-900">{formatDisplayValue(mainCountry)}</dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs font-medium text-slate-500">Goal clarity</dt>
-            <dd className="text-sm text-slate-900">{goalClarity ?? "—"}</dd>
+            <dd className="text-sm text-slate-900">{formatDisplayValue(goalClarity)}</dd>
           </div>
         </dl>
       </Card>
 
-      <Card className={isReport ? "rounded-lg border border-slate-200 shadow-none ring-0" : ""}>
+      <Card className={sectionCardClass}>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Goals & interests</h2>
         <dl className="mt-3 space-y-2">
           <div>
@@ -191,7 +223,8 @@ export function CounselorSummaryDocument(props: {
           <div>
             <dt className="text-xs font-medium text-slate-500">Decision style</dt>
             <dd className="text-sm text-slate-900">
-              {[priorityStyle, optimizationTarget, riskPreference].filter(Boolean).join(" · ") || "—"}
+              {[priorityStyle, optimizationTarget, riskPreference].filter(Boolean).map(formatDisplayValue).join(" | ") ||
+                "Not provided"}
             </dd>
           </div>
         </dl>
@@ -203,8 +236,8 @@ export function CounselorSummaryDocument(props: {
         </Card>
       ) : (
         <>
-          <Card className={isReport ? "rounded-lg border border-slate-200 shadow-none ring-0" : ""}>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Recommendation overview</h2>
+          <Card className={sectionCardClass}>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Best recommendation</h2>
             <div className="mt-4 space-y-4">
               <div>
                 <h3 className="text-xs font-semibold text-slate-500">{guidanceMode ? "Readiness plan" : "Best fit"}</h3>
@@ -221,60 +254,62 @@ export function CounselorSummaryDocument(props: {
                     {buildWhatYouGain(bundle.bestFit as PathRecommendation, answers)
                       .slice(0, 4)
                       .map((line) => (
-                        <li key={line}>{line}</li>
+                        <li key={line}>{cleanText(line)}</li>
                       ))}
                   </ul>
                 </div>
               </div>
               {!guidanceMode ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h3 className="text-xs font-semibold text-slate-500">Balanced alternative</h3>
-                    <div className="mt-2">
-                      <PathBlock rec={bundle.balanced} answers={answers} />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-semibold text-slate-500">Stretch alternative</h3>
-                    <div className="mt-2">
-                      <PathBlock rec={bundle.stretch} answers={answers} />
-                    </div>
-                  </div>
+                  {alternativePaths.length ? (
+                    alternativePaths.map((rec) => (
+                      <div key={rec.kind}>
+                        <h3 className="text-xs font-semibold text-slate-500">{pathTitle(rec.kind)} alternative</h3>
+                        <div className="mt-2">
+                          <PathBlock rec={rec} answers={answers} />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 md:col-span-2">
+                      The system found one clear path for this profile, so alternatives are limited.
+                    </p>
+                  )}
                 </div>
               ) : null}
             </div>
           </Card>
 
-          <Card className={isReport ? "rounded-lg border border-slate-200 shadow-none ring-0" : ""}>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Why this path can work</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{bundle.bestFit.explanation}</p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">{bundle.bestFit.futureImpactSummary}</p>
+          <Card className={sectionCardClass}>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Key reasoning</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-700">{cleanText(bundle.bestFit.explanation)}</p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-600">{cleanText(bundle.bestFit.futureImpactSummary)}</p>
           </Card>
 
-          <Card className={isReport ? "rounded-lg border border-slate-200 shadow-none ring-0" : ""}>
+          <Card className={sectionCardClass}>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Cautions & trade-offs</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
               {bundle.bestFit.softWarnings?.length
-                ? bundle.bestFit.softWarnings.map((w, i) => <li key={i}>{w}</li>)
-                : bundle.bestFit.tradeOffs.slice(0, 4).map((w, i) => <li key={i}>{w}</li>)}
+                ? bundle.bestFit.softWarnings.map((w, i) => <li key={i}>{cleanText(w)}</li>)
+                : bundle.bestFit.tradeOffs.slice(0, 4).map((w, i) => <li key={i}>{cleanText(w)}</li>)}
             </ul>
             {bundle.bestFit.whyMayFeelHard?.length ? (
               <div className="mt-3">
                 <p className="text-xs font-semibold text-amber-800">Workload / pace</p>
                 <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
                   {bundle.bestFit.whyMayFeelHard.map((w, i) => (
-                    <li key={i}>{w}</li>
+                    <li key={i}>{cleanText(w)}</li>
                   ))}
                 </ul>
               </div>
             ) : null}
           </Card>
 
-          <Card className={isReport ? "rounded-lg border border-slate-200 shadow-none ring-0" : ""}>
+          <Card className={sectionCardClass}>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Suggested next steps</h2>
             <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-700">
               {bundle.bestFit.actionSteps.slice(0, 8).map((s, i) => (
-                <li key={i}>{s}</li>
+                <li key={i}>{cleanText(s)}</li>
               ))}
             </ol>
             {bundle.bestFit.alternatives?.length ? (
@@ -282,7 +317,7 @@ export function CounselorSummaryDocument(props: {
                 <p className="text-xs font-semibold text-slate-500">Other mixes considered</p>
                 <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-600">
                   {bundle.bestFit.alternatives.map((a, i) => (
-                    <li key={i}>{a}</li>
+                    <li key={i}>{cleanText(a)}</li>
                   ))}
                 </ul>
               </div>
@@ -293,7 +328,7 @@ export function CounselorSummaryDocument(props: {
 
       {isReport ? (
         notes.length > 0 ? (
-          <Card className="rounded-lg border border-slate-200 shadow-none ring-0">
+          <Card className="rounded-2xl border border-slate-200 bg-white p-5 shadow-none ring-0">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Counselor notes</h2>
             <ul className="mt-3 space-y-3">
               {notes.map((n) => (
@@ -305,7 +340,7 @@ export function CounselorSummaryDocument(props: {
             </ul>
           </Card>
         ) : (
-          <Card className="rounded-lg border border-dashed border-slate-200 shadow-none ring-0">
+          <Card className="rounded-2xl border border-dashed border-slate-200 bg-white p-5 shadow-none ring-0">
             <p className="text-sm text-slate-500">No counselor notes on file.</p>
           </Card>
         )
@@ -313,7 +348,7 @@ export function CounselorSummaryDocument(props: {
 
       {isReport ? (
         <p className="text-center text-xs text-slate-500">
-          SAIS Academic Navigator · Confidential counselor summary · Not an official transcript
+          SAIS Academic Navigator / Confidential counselor summary / Not an official transcript
         </p>
       ) : null}
     </div>

@@ -9,7 +9,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { IconGraduationCap, IconRoute, IconShieldCheck } from "@/components/icons/StudentIcons";
+import {
+  IconArrowRight,
+  IconBookOpen,
+  IconGraduationCap,
+  IconLayers,
+  IconRoute,
+  IconShieldCheck,
+} from "@/components/icons/StudentIcons";
 
 const LoginSchema = z.object({
   studentId: z.string().regex(/^[0-9]{8}$/, "Student ID must be exactly 8 digits."),
@@ -20,22 +27,24 @@ type LoginValues = z.infer<typeof LoginSchema>;
 const highlights = [
   {
     icon: IconGraduationCap,
-    emoji: "🎯",
-    title: "A path that feels like you",
-    body: "Goals + strengths + SAIS rules — woven into one guided flow.",
+    title: "Student goals",
+    body: "Interests, confidence, workload, and future direction in one calm intake.",
   },
   {
     icon: IconRoute,
-    emoji: "🚀",
-    title: "Clear next steps",
-    body: "Less wall of text — more “here’s what to do next.”",
+    title: "Course reasoning",
+    body: "Rule-based recommendations explained in language students can discuss.",
   },
   {
     icon: IconShieldCheck,
-    emoji: "🛡️",
-    title: "Built on real structure",
-    body: "Sequences and pathways checked against how SAIS is set up.",
+    title: "Counselor-ready",
+    body: "Saved plans turn into concise summaries for advising conversations.",
   },
+] as const;
+
+const assuranceCards = [
+  { icon: IconLayers, text: "Uses saved SAIS course structure" },
+  { icon: IconShieldCheck, text: "MVP login for demo use" },
 ] as const;
 
 export default function LoginPage() {
@@ -76,10 +85,10 @@ export default function LoginPage() {
           return;
         }
         if (res.status === 400 && json?.error) {
-          setError("Hmm — check your Student ID (exactly 8 digits).");
+          setError("Check your Student ID. It should be exactly 8 digits.");
           return;
         }
-        setError(json?.message ?? "Something went wrong. Try again?");
+        setError(json?.message ?? "Something went wrong. Try again.");
         return;
       }
 
@@ -91,103 +100,143 @@ export default function LoginPage() {
         router.push("/intake");
       }
     } catch {
-      setError("Network hiccup — try again in a moment.");
+      setError("Network hiccup. Try again in a moment.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_130%_85%_at_50%_-22%,rgba(34,211,238,0.22),transparent)]">
-      <div className="apf-journey-shell flex flex-col gap-12 lg:flex-row lg:items-stretch lg:justify-between lg:gap-16">
-        <div className="apf-fade-up flex max-w-2xl flex-1 flex-col justify-center lg:max-w-none lg:pr-4 xl:pr-10">
-          <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white shadow-md ring-2 ring-teal-100/80">
-              <Image src="/sais-logo.png" alt="SAIS" width={48} height={48} priority />
-            </div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-800">SAIS Academic Navigator</p>
+    <main className="min-h-[100dvh] overflow-hidden">
+      <div className="apf-journey-shell grid min-h-[100dvh] items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 xl:gap-16">
+        <section className="apf-fade-up">
+          <div className="inline-flex items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2 pr-4 shadow-[0_18px_42px_-30px_rgba(15,118,110,0.7)] ring-1 ring-teal-200/60">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-teal-100">
+              <Image src="/sais-logo.png" alt="SAIS" width={42} height={42} priority />
+            </span>
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-[0.18em] text-teal-800">SAIS Academic Navigator</span>
+              <span className="block text-xs font-semibold text-slate-500">Portfolio-ready planning MVP</span>
+            </span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl sm:leading-[1.08]">
-            Plan your year with confidence
+          <h1 className="mt-8 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.02]">
+            Academic planning that feels personal.
           </h1>
-          <p className="mt-4 max-w-xl text-base font-medium leading-snug text-slate-600 sm:text-lg line-clamp-3">
-            A friendly, guided workspace — not a boring form. Tap through a few steps and see a path that fits.
+          <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-slate-600 sm:text-lg">
+            A school-specific workspace that helps SAIS students understand course choices, tradeoffs, and next steps.
           </p>
 
-          <ul className="mt-10 grid gap-4 sm:grid-cols-1 lg:max-w-xl">
-            {highlights.map(({ icon: Icon, emoji, title, body }) => (
-              <li
-                key={title}
-                className="apf-soft-bounce flex gap-4 rounded-2xl border border-teal-100/80 bg-white/80 p-4 shadow-sm ring-1 ring-cyan-100/40"
+          <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
+            {[
+              ["Rule-based", "Deterministic guidance"],
+              ["Grade-aware", "Readiness or course paths"],
+              ["Counselor view", "Printable advising summary"],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_16px_34px_-30px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/70"
               >
-                <span className="mt-0.5 flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-teal-50 to-cyan-50 text-lg ring-1 ring-teal-100">
-                  <Icon className="h-5 w-5 text-teal-700" />
-                </span>
-                <div>
-                  <p className="font-bold text-slate-900">
-                    <span className="mr-1.5" aria-hidden>
-                      {emoji}
-                    </span>
-                    {title}
-                  </p>
-                  <p className="mt-1 text-sm font-medium leading-snug text-slate-600 line-clamp-2">{body}</p>
-                </div>
-              </li>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-800">{label}</p>
+                <p className="mt-2 text-sm font-semibold leading-snug text-slate-800">{value}</p>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
 
-        <div className="apf-fade-up apf-delay-2 flex w-full flex-1 flex-col justify-center lg:max-w-md xl:max-w-lg">
-          <Card className="apf-journey-card border-teal-200/60 p-7 sm:p-8">
-            <div className="space-y-1">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900">
-                <span aria-hidden>👋</span>
-                Sign in
-              </h2>
-              <p className="text-sm font-medium text-slate-600">Your 8-digit SAIS student ID is your key.</p>
+          <div className="mt-8 max-w-3xl rounded-[2rem] border border-white/90 bg-white/55 p-2 shadow-[0_26px_70px_-42px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/60">
+            <div className="rounded-[1.5rem] bg-gradient-to-br from-white via-cyan-50/70 to-indigo-50/55 p-5 sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-800">Planning brief</p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">From answers to an advising conversation</p>
+                </div>
+                <span className="rounded-full bg-teal-700 px-3 py-1 text-xs font-bold text-white">Demo MVP</span>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {highlights.map(({ icon: Icon, title, body }) => (
+                  <div key={title} className="rounded-2xl border border-white/80 bg-white/85 p-4 ring-1 ring-slate-200/70">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-800 ring-1 ring-teal-100">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <p className="mt-3 text-sm font-bold text-slate-950">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">{body}</p>
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
+        </section>
 
-            <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-800" htmlFor="studentId">
-                  Student ID
-                </label>
-                <Input
-                  id="studentId"
-                  inputMode="numeric"
-                  placeholder="e.g. 12345678"
-                  autoComplete="off"
-                  maxLength={8}
-                  className="text-base"
-                  {...studentIdReg}
-                  onChange={(e) => {
-                    e.target.value = e.target.value.replace(/\D/g, "");
-                    studentIdReg.onChange(e);
-                  }}
-                />
-                {errors.studentId ? (
-                  <p className="text-sm font-medium text-red-600">{errors.studentId.message}</p>
+        <aside className="apf-fade-up apf-delay-2 w-full">
+          <Card className="apf-premium-surface p-3">
+            <div className="rounded-[1.45rem] bg-gradient-to-br from-white via-white to-cyan-50/65 p-6 sm:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-800">Student entry</p>
+                  <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Open your plan</h2>
+                  <p className="mt-2 text-sm font-medium leading-6 text-slate-600">Enter an 8-digit demo Student ID to continue.</p>
+                </div>
+                <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.9)] sm:flex">
+                  <IconBookOpen className="h-5 w-5" />
+                </span>
+              </div>
+
+              <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-800" htmlFor="studentId">
+                    Student ID
+                  </label>
+                  <Input
+                    id="studentId"
+                    inputMode="numeric"
+                    placeholder="e.g. 12345678"
+                    autoComplete="off"
+                    maxLength={8}
+                    className="text-base"
+                    {...studentIdReg}
+                    onChange={(e) => {
+                      e.target.value = e.target.value.replace(/\D/g, "");
+                      studentIdReg.onChange(e);
+                    }}
+                  />
+                  {errors.studentId ? (
+                    <p className="text-sm font-medium text-red-600">{errors.studentId.message}</p>
+                  ) : null}
+                  <p className="text-xs font-medium text-slate-500">Digits only. No spaces.</p>
+                </div>
+
+                {error ? (
+                  <div className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-800 ring-1 ring-red-100">{error}</div>
                 ) : null}
-                <p className="text-xs font-medium text-slate-500">Digits only — no spaces.</p>
-              </div>
 
-              {error ? (
-                <div className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-800 ring-1 ring-red-100">{error}</div>
-              ) : null}
-
-              <Button type="submit" disabled={submitting} className="w-full py-3 text-base font-bold shadow-lg shadow-teal-900/15">
-                {submitting ? "Opening…" : "Continue your journey →"}
-              </Button>
-              <div className="pt-1 text-center text-xs font-medium text-slate-500">
-                <a className="underline decoration-teal-300 underline-offset-4 hover:text-teal-900" href="/counselor">
-                  Counselor access
-                </a>
-              </div>
-            </form>
+                <Button type="submit" disabled={submitting} className="group w-full justify-between py-3 pl-5 pr-3 text-base font-bold">
+                  <span>{submitting ? "Opening" : "Continue"}</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 transition-transform duration-300 group-hover:translate-x-0.5">
+                    <IconArrowRight className="h-4 w-4" />
+                  </span>
+                </Button>
+                <div className="pt-1 text-center text-xs font-medium text-slate-500">
+                  <a className="underline decoration-teal-300 underline-offset-4 hover:text-teal-900" href="/counselor">
+                    Counselor access
+                  </a>
+                </div>
+              </form>
+            </div>
           </Card>
-        </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {assuranceCards.map(({ icon: Icon, text }) => (
+              <div
+                key={text}
+                className="rounded-2xl border border-white/80 bg-white/70 p-4 text-xs font-semibold leading-5 text-slate-600 ring-1 ring-slate-200/80"
+              >
+                <Icon className="mb-2 h-4 w-4 text-teal-700" />
+                {text}
+              </div>
+            ))}
+          </div>
+        </aside>
       </div>
-    </div>
+    </main>
   );
 }

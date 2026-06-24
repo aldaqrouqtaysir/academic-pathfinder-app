@@ -13,7 +13,6 @@ function firstInterestPhrase(interests: string[]): string | null {
   const x = interests[0];
   if (!x) return null;
   const t = x.trim();
-  if (t.length > 48) return `${t.slice(0, 45)}…`;
   return t.toLowerCase();
 }
 
@@ -21,7 +20,6 @@ function firstCareerPhrase(careers: string[]): string | null {
   const x = careers[0];
   if (!x) return null;
   const t = x.trim();
-  if (t.length > 52) return `${t.slice(0, 49)}…`;
   return t.toLowerCase();
 }
 

@@ -19,7 +19,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ studentId: str
 
   const record = await getStudentRecordForCounselor(studentId);
   if (!record) {
-    return NextResponse.json({ ok: false, error: "No saved plan data for this student ID." }, { status: 404 });
+    return NextResponse.json({ ok: false, code: "NO_SAVED_PLAN", error: "No saved plan data for this student ID." });
   }
 
   const activeSession = record.sessions.find((s) => s.id === record.activeSessionId) ?? null;

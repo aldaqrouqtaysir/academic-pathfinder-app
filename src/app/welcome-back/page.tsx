@@ -59,7 +59,7 @@ export default function WelcomeBackPage() {
                   onClick={startNew}
                   disabled={loading}
                 >
-                  {loading ? "Starting…" : "✨ Start a new journey"}
+                  {loading ? "Starting" : "✨ Start a new journey"}
                 </Button>
                 <p className="text-center text-[11px] font-medium leading-snug text-slate-500 sm:text-left">
                   Starting new keeps older plans in history but switches what you see as active.

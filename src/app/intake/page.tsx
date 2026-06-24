@@ -59,9 +59,9 @@ const initial: IntakeFormDraft = {
 };
 
 const JOURNEY_STEPS = [
-  { label: "Academic context", emoji: "📘", blurb: "Start with where you are — grade, semester, and how school feels." },
-  { label: "Interests & future", emoji: "🚀", blurb: "Light up what excites you and where you might be headed." },
-  { label: "Decision style", emoji: "🎯", blurb: "Last stop: how you like to plan — then we unlock your path." },
+  { label: "Academic context", marker: "01", blurb: "Start with grade, semester, confidence, and workload." },
+  { label: "Interests & future", marker: "02", blurb: "Share what sparks curiosity and where you might be headed." },
+  { label: "Decision style", marker: "03", blurb: "Choose how you want the plan to balance rigor, workload, and options." },
 ] as const;
 
 const STRENGTH_OPTIONS = ["Math", "English", "Science", "Coding", "Arts", "Humanities"] as const;
@@ -162,6 +162,10 @@ function IntakePageInner() {
     })();
   }, [isEdit]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
   const progress = useMemo(() => ((step + 1) / JOURNEY_STEPS.length) * 100, [step]);
   const semester2Panels = useMemo(
     () =>
@@ -172,6 +176,7 @@ function IntakePageInner() {
         : [],
     [form.semester, form.currentGrade],
   );
+  const earlyGrade = form.currentGrade === 9 || form.currentGrade === 10;
 
   function semester2SelectionsComplete(f: IntakeFormDraft) {
     if (f.semester !== "Semester2") return true;
@@ -270,11 +275,13 @@ function IntakePageInner() {
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-teal-800">
                 Step {step + 1} of {JOURNEY_STEPS.length}
               </p>
-              <h1 className="mt-2 flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                <span aria-hidden>{JOURNEY_STEPS[step].emoji}</span>
+              <h1 className="mt-3 flex flex-wrap items-center gap-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-700 text-xs font-black text-white shadow-lg shadow-teal-900/20">
+                  {JOURNEY_STEPS[step].marker}
+                </span>
                 <span>{JOURNEY_STEPS[step].label}</span>
               </h1>
-              <p className="mt-3 text-sm font-medium leading-snug text-slate-600 line-clamp-4">{JOURNEY_STEPS[step].blurb}</p>
+              <p className="mt-3 text-sm font-medium leading-snug text-slate-600">{JOURNEY_STEPS[step].blurb}</p>
             </div>
             <ol className="mt-5 hidden flex-col gap-2 sm:flex">
               {JOURNEY_STEPS.map((s, i) => (
@@ -297,12 +304,7 @@ function IntakePageInner() {
                   >
                     {i < step ? "✓" : i + 1}
                   </span>
-                  <span>
-                    <span className="mr-1.5" aria-hidden>
-                      {s.emoji}
-                    </span>
-                    {s.label}
-                  </span>
+                  <span>{s.label}</span>
                 </li>
               ))}
             </ol>
@@ -323,8 +325,8 @@ function IntakePageInner() {
                 <p className="text-xs font-bold uppercase tracking-wide text-teal-900">You’re on the path</p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
                   {step === JOURNEY_STEPS.length - 1
-                    ? "🎉 Final stretch — lock in how you like to decide."
-                    : `Nice — step ${step + 1} builds the next layer of your story.`}
+                    ? "Final stretch: lock in how you like to decide."
+                    : `Nice. Step ${step + 1} builds the next layer of your story.`}
                 </p>
               </div>
               <div className="mb-6 sm:hidden">
@@ -340,7 +342,7 @@ function IntakePageInner() {
               <div key={step} className="apf-step-in space-y-8 sm:space-y-10 lg:space-y-12">
             {step === 0 ? (
               <>
-                <IntakePanel emoji="🏫" title="Where are you in school?" hint="Pick grade + semester — both required.">
+                <IntakePanel emoji="🏫" title="Where are you in school?" hint="Required: grade, semester, academic confidence, and workload tolerance.">
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {([9, 10, 11, 12] as const).map((g) => (
                       <ChoiceTile
@@ -509,7 +511,11 @@ function IntakePageInner() {
                   </div>
                 </IntakePanel>
 
-                <IntakePanel emoji="🧭" title="Career direction" hint="Rough ideas count — you’re not signing a contract.">
+                <IntakePanel
+                  emoji="🧭"
+                  title={earlyGrade ? "Future interests" : "Career direction"}
+                  hint={earlyGrade ? "Pick broad areas that sound interesting. This can change later." : "Rough ideas count — you’re not signing a contract."}
+                >
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {CAREER_OPTIONS.map((opt) => {
                       const selected = form.careerGoals.includes(opt);
@@ -545,8 +551,12 @@ function IntakePageInner() {
 
                 <IntakePanel
                   emoji="🌍"
-                  title="Future destination"
-                  hint="Pick your main country first. If you add more countries below, we’ll ask how you want to balance them."
+                  title={earlyGrade ? "Future options" : "Future destination"}
+                  hint={
+                    earlyGrade
+                      ? "Share what is on your radar. This helps the plan stay flexible."
+                      : "Pick your main country first. If you add more countries below, we’ll ask how you want to balance them."
+                  }
                 >
                   <div className="space-y-4">
                     <div>
@@ -616,7 +626,11 @@ function IntakePageInner() {
 
             {step === 2 ? (
               <>
-                <IntakePanel emoji="🎚️" title="Priority style" hint="Required — how you want to steer this year.">
+                <IntakePanel
+                  emoji="🎚️"
+                  title="Priority style"
+                  hint={earlyGrade ? "Required: how you want this year to feel." : "Required — how you want to steer this year."}
+                >
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <ChoiceTile
                       title="Strongest path"
@@ -645,7 +659,11 @@ function IntakePageInner() {
                   </div>
                 </IntakePanel>
 
-                <IntakePanel emoji="🚀" title="Optimize for" hint="Required — what matters most right now.">
+                <IntakePanel
+                  emoji="🚀"
+                  title="Optimize for"
+                  hint={earlyGrade ? "Required: what matters most while you build readiness." : "Required — what matters most right now."}
+                >
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {(
                       [
@@ -755,7 +773,7 @@ function IntakePageInner() {
 
                 <div className="rounded-2xl border-2 border-dashed border-cyan-200/70 bg-gradient-to-br from-cyan-50/50 to-white p-4 ring-1 ring-cyan-100/40">
                   <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                    <span aria-hidden>💬</span>
+                    <span className="h-2 w-2 rounded-full bg-cyan-500" aria-hidden />
                     Anything else? (optional)
                   </label>
                   <Input
@@ -781,7 +799,7 @@ function IntakePageInner() {
               </Button>
             ) : (
               <Button className="sm:min-w-[240px]" disabled={submitting || !canSubmitFull()} onClick={submit}>
-                {submitting ? "Building your plan…" : "Unlock my plan 🎯"}
+                {submitting ? "Building your plan" : "Unlock my plan"}
               </Button>
             )}
           </div>
@@ -799,7 +817,7 @@ export default function IntakePage() {
       fallback={
         <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(34,211,238,0.18),transparent)] text-sm font-semibold text-slate-600">
           <span className="h-10 w-10 animate-pulse rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 shadow-md" />
-          <span>Setting up your journey…</span>
+          <span>Setting up your journey.</span>
         </div>
       }
     >

@@ -7,9 +7,9 @@ export default async function CounselorDashboardLayout({ children }: { children:
     redirect("/counselor/login");
   }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100/90 to-slate-50">
+    <div className="min-h-screen bg-[linear-gradient(135deg,#f8fbff_0%,#eefdfa_44%,#f7f5ff_100%)]">
       <CounselorHeader />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">{children}</main>
     </div>
   );
 }

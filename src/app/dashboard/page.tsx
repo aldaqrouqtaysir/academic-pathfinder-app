@@ -33,6 +33,12 @@ import {
   IconZap,
 } from "@/components/icons/StudentIcons";
 
+type DashboardBundle = {
+  bestFit: PathRecommendation;
+  balanced: PathRecommendation;
+  stretch: PathRecommendation;
+};
+
 function confidenceBand(value: number) {
   if (value >= 0.75) return "High";
   if (value >= 0.5) return "Medium";
@@ -88,10 +94,15 @@ function splitFutureImpact(summary: string): { body: string; who: string | null 
   return { body, who };
 }
 
+function cleanDisplayText(s: string) {
+  return s
+    .replace(/three-path course recommendation/gi, "course-selection pathway")
+    .trim();
+}
+
 function truncateBullet(s: string, max = 96) {
   const t = s.trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, max - 1).trim()}…`;
+  return cleanDisplayText(t);
 }
 
 function sentencesTwoMax(text: string, maxLen = 128): string[] {
@@ -105,23 +116,32 @@ function sentencesTwoMax(text: string, maxLen = 128): string[] {
 function quickOverviewTriples(rec: PathRecommendation) {
   const fb = rec.rationale.factorBreakdown;
   const maxPoints = Math.max(1, ...fb.map((f) => f.points));
-  const row = (key: ScoringFactorKey, title: string, emoji: string, Icon: ComponentType<{ className?: string }>) => {
+  const row = (key: ScoringFactorKey, title: string, Icon: ComponentType<{ className?: string }>) => {
     const pts = fb.find((f) => f.key === key)?.points ?? 0;
     const pct = Math.round((pts / maxPoints) * 100);
-    return { key, title, emoji, Icon, pct, band: strengthCaption(pct) };
+    return { key, title, Icon, pct, band: strengthCaption(pct) };
   };
   return [
-    row("pathway_alignment", "Goal match", "🎯", IconTarget),
-    row("workload_fit", "Workload", "⚖️", IconLayers),
-    row("country_alignment", "Flexibility", "🌍", IconGlobe),
+    row("pathway_alignment", "Goal match", IconTarget),
+    row("workload_fit", "Workload", IconLayers),
+    row("country_alignment", "Flexibility", IconGlobe),
   ];
 }
 
-function SectionHeading({ emoji, title, kicker }: { emoji: string; title: string; kicker?: string }) {
+function SectionHeading({
+  icon: Icon = IconSparkles,
+  title,
+  kicker,
+}: {
+  emoji?: string;
+  icon?: ComponentType<{ className?: string }>;
+  title: string;
+  kicker?: string;
+}) {
   return (
     <div className="mb-3 flex items-start gap-2.5">
-      <span className="text-xl leading-none" aria-hidden>
-        {emoji}
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-teal-800 shadow-sm ring-1 ring-teal-100" aria-hidden>
+        <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
         <h3 className="text-lg font-bold tracking-tight text-slate-900">{title}</h3>
@@ -133,6 +153,32 @@ function SectionHeading({ emoji, title, kicker }: { emoji: string; title: string
 
 function isGuidanceMode(rec: PathRecommendation) {
   return Object.keys(rec.selections.categorySelections ?? {}).length === 0;
+}
+
+function pathSignature(rec: PathRecommendation) {
+  return JSON.stringify(rec.selections.categorySelections ?? {});
+}
+
+function uniqueAlternativePaths(bundle: DashboardBundle) {
+  const seen = new Set([pathSignature(bundle.bestFit)]);
+  return [bundle.balanced, bundle.stretch].filter((rec) => {
+    const signature = pathSignature(rec);
+    if (seen.has(signature)) return false;
+    seen.add(signature);
+    return true;
+  });
+}
+
+function readinessFactorLabel(f: { key: ScoringFactorKey; label: string }) {
+  if (f.key === "interest_alignment") return "What to focus on now";
+  if (f.key === "pathway_alignment") return "How to prepare for Grade 11 choices";
+  if (f.key === "strength_match") return "Skills to build";
+  if (f.key === "future_relevance") return "Interests to explore";
+  return f.label;
+}
+
+function displayRecommendationLabel(label: PathRecommendation["label"]) {
+  return label === "Optimal" ? "Recommended" : label;
 }
 
 const guidanceCardIcons = [IconTarget, IconGlobe, IconZap, IconBookOpen] as const;
@@ -153,26 +199,23 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
   return (
     <div
       id="hero-best-fit"
-      className="apf-fade-up relative overflow-hidden rounded-3xl border-2 border-indigo-400/55 bg-gradient-to-br from-indigo-50/90 via-white to-teal-50/50 p-6 shadow-[0_28px_64px_-14px_rgba(79,70,229,0.18)] ring-1 ring-indigo-200/50 transition-shadow duration-300 hover:shadow-[0_32px_72px_-12px_rgba(79,70,229,0.22)] sm:p-9"
+      className="apf-fade-up relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br from-indigo-50/85 via-white to-teal-50/55 p-6 shadow-[0_28px_70px_-36px_rgba(79,70,229,0.32)] ring-1 ring-indigo-200/50 transition-shadow duration-300 hover:shadow-[0_32px_78px_-38px_rgba(79,70,229,0.36)] sm:p-9"
     >
-      <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-gradient-to-br from-indigo-300/35 to-teal-300/25 blur-3xl" />
-
       <section className="relative border-b border-indigo-100/90 pb-8 text-center sm:text-left">
-        <SectionHeading emoji="🧭" title="Recommended path summary" kicker="SAIS · Grades 9–10 · guidance mode" />
-        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Your foundation roadmap</h2>
+        <SectionHeading icon={IconRoute} title="Your readiness plan" kicker="SAIS Grades 9-10 guidance mode" />
+        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">What to focus on now</h2>
             <div className="mx-auto mt-4 max-w-2xl space-y-2 sm:mx-0">
               {wowLines.map((line, i) => (
-                <p key={`g-wow-${i}`} className="text-sm font-semibold leading-snug text-indigo-950 line-clamp-2">
+                <p key={`g-wow-${i}`} className="text-sm font-semibold leading-snug text-indigo-950">
                   {line}
                 </p>
               ))}
         </div>
-        <p className="mx-auto mt-3 max-w-2xl text-xs leading-snug text-slate-600 line-clamp-2 sm:mx-0">
+        <p className="mx-auto mt-3 max-w-2xl text-xs leading-snug text-slate-600 sm:mx-0">
           {truncateBullet(rec.confidenceExplanation, 140)}
         </p>
         <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
           <Badge tone="primary">Guidance</Badge>
-          <Badge tone="neutral">{rec.label}</Badge>
           <RiskPill level={risk} />
         </div>
         <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-indigo-200/80 bg-white/95 p-4 text-sm font-semibold leading-snug text-slate-800 shadow-sm ring-1 ring-indigo-100/60 sm:mx-0">
@@ -181,7 +224,7 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
       </section>
 
       <section className="relative mt-8">
-        <SectionHeading emoji="⚡" title="Quick overview" kicker="What to focus on now — and what comes next" />
+        <SectionHeading icon={IconZap} title="Skills to build" kicker="Interests, habits, and Grade 11 preparation" />
         <div className="grid gap-3 sm:grid-cols-2">
           {factors.slice(0, 4).map((f, i) => {
             const Icon = guidanceCardIcons[i] ?? IconSparkles;
@@ -199,9 +242,9 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-teal-800 shadow-sm ring-1 ring-slate-100">
                     <Icon className="h-4 w-4" />
                   </span>
-                  <span className="text-xs font-bold uppercase tracking-wide text-slate-700">{f.label}</span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-slate-700">{readinessFactorLabel(f)}</span>
                 </div>
-                <p className="mt-2 text-xs leading-snug text-slate-700 line-clamp-2">{truncateBullet(f.evidence[0] ?? "", 120)}</p>
+                <p className="mt-2 text-xs leading-snug text-slate-700">{truncateBullet(f.evidence[0] ?? "", 120)}</p>
               </div>
             );
           })}
@@ -209,13 +252,13 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
       </section>
 
       <section className="relative mt-8 rounded-2xl border border-slate-200/80 bg-white/85 p-5 ring-1 ring-violet-100/80">
-        <SectionHeading emoji="📚" title="Your plan" kicker="Foundations & next steps (no locked course grid yet)" />
+        <SectionHeading icon={IconBookOpen} title="How to prepare for Grade 11 choices" kicker="Foundations and next steps" />
         <CategoryGrid rec={rec} />
       </section>
 
       <details className="relative mt-6 group rounded-2xl border border-amber-200/70 bg-amber-50/40 shadow-sm open:bg-amber-50/60">
         <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-amber-950 marker:content-none [&::-webkit-details-marker]:hidden">
-          <span aria-hidden>💡</span>
+          <IconSparkles className="h-4 w-4 text-amber-700" />
           <span className="flex-1">Things to know</span>
           <span className="text-xs font-medium text-amber-800/80 group-open:hidden">Show</span>
           <span className="hidden text-xs font-medium text-amber-800/80 group-open:inline">Hide</span>
@@ -224,14 +267,14 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
           {thingsToKnow.slice(0, 5).map((t, i) => (
             <li key={`g-tk-${i}`} className="flex gap-2">
               <span className="text-amber-600">▸</span>
-              <span className="leading-snug line-clamp-2">{t}</span>
+              <span className="leading-snug">{t}</span>
             </li>
           ))}
         </ul>
       </details>
 
       <section className="relative mt-8">
-        <SectionHeading emoji="✨" title="What you gain" kicker="Skills, doors, and momentum" />
+        <SectionHeading icon={IconSparkles} title="What you gain" kicker="Skills, doors, and momentum" />
         <ul className="grid gap-2 sm:grid-cols-2">
           {gains.slice(0, 4).map((line) => (
             <li
@@ -239,7 +282,7 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
               className="flex gap-2 rounded-xl border border-teal-200/80 bg-gradient-to-r from-teal-50/90 to-white px-3 py-2.5 text-xs font-medium text-slate-800 shadow-sm ring-1 ring-teal-100/60"
             >
               <span className="text-teal-600">▸</span>
-              <span className="leading-snug line-clamp-2">{truncateBullet(line, 110)}</span>
+              <span className="leading-snug">{truncateBullet(line, 110)}</span>
             </li>
           ))}
         </ul>
@@ -247,7 +290,7 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
 
       <details className="relative mt-6 rounded-2xl border border-slate-200/90 bg-slate-50/50 shadow-sm open:bg-white/90">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-800 marker:content-none [&::-webkit-details-marker]:hidden">
-          📂 More — next steps, future doors, ideas
+          Next steps, future doors, and ideas
         </summary>
         <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3 text-xs text-slate-700">
           <div>
@@ -256,7 +299,7 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
               {rec.actionSteps.map((step, i) => (
                 <li key={`${i}-${step.slice(0, 16)}`} className="flex gap-2 leading-snug">
                   <span className="font-bold text-teal-700">{i + 1}.</span>
-                  <span className="line-clamp-2">{truncateBullet(step, 120)}</span>
+                  <span className="">{truncateBullet(step, 120)}</span>
                 </li>
               ))}
             </ul>
@@ -265,20 +308,20 @@ function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Reco
             <p className="font-bold text-slate-800">Future doors</p>
             <ul className="mt-2 space-y-1">
               {futureBits.slice(0, 3).map((line) => (
-                <li key={line} className="flex gap-2 leading-snug line-clamp-2">
+                <li key={line} className="flex gap-2 leading-snug">
                   <span className="text-violet-600">▸</span>
                   <span>{line}</span>
                 </li>
               ))}
             </ul>
             {who ? (
-              <p className="mt-2 border-t border-slate-100 pt-2 text-xs text-slate-600 line-clamp-2">
+              <p className="mt-2 border-t border-slate-100 pt-2 text-xs text-slate-600">
                 <span className="font-semibold text-slate-800">Best for: </span>
                 {truncateBullet(who, 100)}
               </p>
             ) : null}
           </div>
-          <p className="leading-snug line-clamp-2">{truncateBullet(rec.explanation, 160)}</p>
+          <p className="leading-snug">{truncateBullet(rec.explanation, 160)}</p>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Ideas</p>
             <ul className="mt-1 flex flex-wrap gap-1.5">
@@ -299,7 +342,7 @@ function CategoryGrid({ rec, muted }: { rec: PathRecommendation; muted?: boolean
   const entries = Object.entries(rec.selections.categorySelections ?? {});
   if (!entries.length) {
     return (
-      <p className={`text-xs font-medium leading-snug ${muted ? "text-slate-500" : "text-slate-600"} line-clamp-2`}>
+      <p className={`text-xs font-medium leading-snug ${muted ? "text-slate-500" : "text-slate-600"}`}>
         Guidance mode — focus on foundations; your counselor helps lock courses next.
       </p>
     );
@@ -400,13 +443,10 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
   return (
     <div
       id="hero-best-fit"
-      className="apf-fade-up relative overflow-hidden rounded-3xl border-2 border-teal-500/55 bg-gradient-to-br from-white via-teal-50/50 to-violet-100/35 p-6 shadow-[0_28px_64px_-14px_rgba(15,118,110,0.22)] ring-1 ring-teal-300/40 transition-shadow duration-300 hover:shadow-[0_32px_72px_-12px_rgba(15,118,110,0.26)] sm:p-9"
+      className="apf-fade-up relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br from-white via-teal-50/55 to-violet-100/35 p-6 shadow-[0_28px_70px_-36px_rgba(15,118,110,0.45)] ring-1 ring-teal-300/40 transition-shadow duration-300 hover:shadow-[0_32px_78px_-38px_rgba(15,118,110,0.48)] sm:p-9"
     >
-      <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-teal-400/25 to-violet-400/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl" />
-
       <section className="relative border-b border-teal-100/80 pb-8 text-center sm:text-left">
-        <SectionHeading emoji="🎯" title="Recommended path summary" kicker="Your best fit — built from your answers" />
+        <SectionHeading icon={IconTarget} title="Recommended path summary" kicker="Your best fit - built from your answers" />
         <div className="mt-2 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-violet-600 text-white shadow-lg ring-4 ring-white/90 transition duration-300 hover:scale-[1.03]">
             <IconSparkles className="h-7 w-7" />
@@ -415,17 +455,17 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">This is your recommended SAIS path</h2>
             <div className="mx-auto mt-4 max-w-2xl space-y-2 sm:mx-0">
               {wowLines.map((line, i) => (
-                <p key={`wow-${i}`} className="text-sm font-semibold leading-snug text-teal-950 line-clamp-2">
+                <p key={`wow-${i}`} className="text-sm font-semibold leading-snug text-teal-950">
                   {line}
                 </p>
               ))}
             </div>
-            <p className="mx-auto mt-3 max-w-2xl text-xs leading-snug text-slate-600 line-clamp-2 sm:mx-0">
+            <p className="mx-auto mt-3 max-w-2xl text-xs leading-snug text-slate-600 sm:mx-0">
               {truncateBullet(rec.confidenceExplanation, 140)}
             </p>
             <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
               <Badge tone="primary">Primary pick</Badge>
-              <Badge tone="neutral">{rec.label}</Badge>
+              <Badge tone="neutral">{displayRecommendationLabel(rec.label)}</Badge>
               <RiskPill level={risk} />
               <Badge tone={confidenceTone(band)}>
                 {band === "High" ? "Strong fit" : band === "Medium" ? "Solid fit" : "Room to grow"}
@@ -436,7 +476,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
       </section>
 
       <section className="relative mt-8">
-        <SectionHeading emoji="⚡" title="Quick overview" kicker="Goal match · workload · flexibility" />
+        <SectionHeading icon={IconGauge} title="Quick overview" kicker="Goal match / workload / flexibility" />
         <div className="grid gap-3 sm:grid-cols-3">
           {overview.map((row, idx) => (
             <div
@@ -445,9 +485,6 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
               className={`apf-fade-up rounded-2xl border p-4 shadow-md ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lg ${overviewCardTone[idx % overviewCardTone.length]}`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-lg" aria-hidden>
-                  {row.emoji}
-                </span>
                 <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-900 ring-1 ring-teal-200/60">
                   {row.band}
                 </span>
@@ -468,15 +505,15 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
       </section>
 
       <section className="relative mt-8 rounded-2xl border border-teal-200/70 bg-gradient-to-br from-white/95 to-teal-50/30 p-5 ring-1 ring-teal-100/80">
-        <SectionHeading emoji="📚" title="Your plan" kicker="Courses by category" />
+        <SectionHeading icon={IconBookOpen} title="Your plan" kicker="Courses by category" />
         <CategoryGrid rec={rec} />
       </section>
 
       {rec.selectionBecause && rec.selectionBecause.length > 0 ? (
         <details className="relative mt-6 group rounded-2xl border-2 border-cyan-200/70 bg-gradient-to-br from-cyan-50/40 to-white shadow-md open:shadow-lg" open>
           <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-slate-900 marker:content-none [&::-webkit-details-marker]:hidden">
-            <span aria-hidden>💬</span>
-            <span className="flex-1">Why these picks — for you</span>
+            <IconRoute className="h-4 w-4 text-cyan-700" />
+            <span className="flex-1">Why these picks - for you</span>
             <span className="text-xs font-medium text-cyan-800/80 group-open:hidden">Show</span>
             <span className="hidden text-xs font-medium text-cyan-800/80 group-open:inline">Hide</span>
           </summary>
@@ -493,7 +530,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
 
       <details className="relative mt-6 group rounded-2xl border border-amber-200/75 bg-amber-50/45 shadow-sm open:bg-amber-50/65">
         <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-amber-950 marker:content-none [&::-webkit-details-marker]:hidden">
-          <span aria-hidden>💡</span>
+          <IconSparkles className="h-4 w-4 text-amber-700" />
           <span className="flex-1">Things to know</span>
           <span className="text-xs font-medium text-amber-900/70 group-open:hidden">Show</span>
           <span className="hidden text-xs font-medium text-amber-900/70 group-open:inline">Hide</span>
@@ -502,14 +539,14 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
           {thingsToKnow.slice(0, 6).map((t, i) => (
             <li key={`tk-${i}`} className="flex gap-2">
               <span className="text-amber-600">▸</span>
-              <span className="leading-snug line-clamp-2">{t}</span>
+              <span className="leading-snug">{t}</span>
             </li>
           ))}
         </ul>
       </details>
 
       <section className="relative mt-8">
-        <SectionHeading emoji="✨" title="What you gain" kicker="Outcomes that match your goals" />
+        <SectionHeading icon={IconSparkles} title="What you gain" kicker="Outcomes that match your goals" />
         <ul className="grid gap-2 sm:grid-cols-2">
           {gains.map((line) => (
             <li
@@ -517,7 +554,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
               className="flex gap-2 rounded-xl border border-violet-200/80 bg-gradient-to-r from-violet-50/90 to-white px-3 py-2.5 text-xs font-medium text-slate-800 shadow-sm ring-1 ring-violet-100/70 transition duration-200 hover:shadow-md"
             >
               <span className="text-violet-600">▸</span>
-              <span className="leading-snug line-clamp-2">{truncateBullet(line, 120)}</span>
+              <span className="leading-snug">{truncateBullet(line, 120)}</span>
             </li>
           ))}
         </ul>
@@ -526,7 +563,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
       <details className="relative mt-6 rounded-2xl border border-slate-200/90 bg-slate-50/60 shadow-sm open:bg-white/95">
         <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-slate-800 marker:content-none [&::-webkit-details-marker]:hidden">
           <IconBookOpen className="h-4 w-4 text-teal-700" />
-          <span className="flex-1">More — why it fits, next steps, fit bars & ideas</span>
+          <span className="flex-1">More: why it fits, next steps, fit bars, and ideas</span>
           <span className="text-xs font-medium text-slate-500">Optional</span>
         </summary>
         <div className="space-y-5 border-t border-slate-100 px-4 pb-5 pt-4 text-xs text-slate-700">
@@ -539,7 +576,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
               {topFactors.map((f) => (
                 <li key={f.key} className="flex gap-2 leading-snug">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
-                  <span className="line-clamp-2">{truncateBullet(f.evidence[0] ?? f.label, 130)}</span>
+                  <span className="">{truncateBullet(f.evidence[0] ?? f.label, 130)}</span>
                 </li>
               ))}
             </ul>
@@ -553,7 +590,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
               {rec.actionSteps.slice(0, 4).map((step, i) => (
                 <li key={`${i}-${step.slice(0, 16)}`} className="flex gap-2 rounded-lg bg-teal-50/60 px-2 py-1.5 ring-1 ring-teal-100/60">
                   <span className="font-bold text-teal-700">{i + 1}.</span>
-                  <span className="line-clamp-2">{truncateBullet(step, 110)}</span>
+                  <span className="">{truncateBullet(step, 110)}</span>
                 </li>
               ))}
             </ul>
@@ -565,14 +602,14 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
             </p>
             <ul className="mt-2 space-y-1">
               {impactLines.map((line) => (
-                <li key={line} className="flex gap-2 leading-snug line-clamp-2">
+                <li key={line} className="flex gap-2 leading-snug">
                   <span className="text-violet-600">▸</span>
                   <span>{truncateBullet(line, 120)}</span>
                 </li>
               ))}
             </ul>
             {whoLine ? (
-              <p className="mt-2 border-t border-violet-100 pt-2 text-xs text-slate-600 line-clamp-2">
+              <p className="mt-2 border-t border-violet-100 pt-2 text-xs text-slate-600">
                 <span className="font-semibold text-slate-800">Best for: </span>
                 {truncateBullet(whoLine, 100)}
               </p>
@@ -597,7 +634,7 @@ function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers
               ))}
             </div>
           </div>
-          <p className="leading-snug line-clamp-3">{truncateBullet(rec.explanation, 220)}</p>
+          <p className="leading-snug">{truncateBullet(rec.explanation, 220)}</p>
           {rec.continuationSuggestions.length ? (
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Next-semester ideas</p>
@@ -631,18 +668,23 @@ function SecondaryPathCard({
   const summaryRow = pathSummaryTopRow(rec);
   const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
   const gains = buildWhatYouGain(rec, answers);
+  const tone =
+    rec.kind === "balanced"
+      ? "border-teal-200/90 bg-gradient-to-br from-teal-50/60 via-white to-cyan-50/45"
+      : "border-violet-200/90 bg-gradient-to-br from-violet-50/65 via-white to-indigo-50/50";
+  const accent = rec.kind === "balanced" ? "text-teal-700 ring-teal-100" : "text-violet-700 ring-violet-100";
 
   return (
     <div id={anchorId} className="scroll-mt-28">
-      <Card className="rounded-2xl border-2 border-indigo-100/90 bg-gradient-to-b from-indigo-50/40 via-white to-slate-50/50 p-5 shadow-md transition duration-300 hover:border-violet-200/80 hover:shadow-lg">
+      <Card className={`rounded-2xl border p-5 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.42)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_62px_-36px_rgba(15,23,42,0.5)] ${tone}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-base" aria-hidden>
-                {rec.kind === "balanced" ? "⚖️" : "🚀"}
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ${accent}`} aria-hidden>
+                {rec.kind === "balanced" ? <IconLayers className="h-4 w-4" /> : <IconZap className="h-4 w-4" />}
               </span>
               <h3 className="text-base font-bold text-slate-900">{prettyKind(rec.kind)}</h3>
-              <Badge tone="neutral">{rec.label}</Badge>
+              <Badge tone="neutral">{displayRecommendationLabel(rec.label)}</Badge>
               <RiskPill level={risk} />
               <Badge tone={confidenceTone(band)}>
                 {band === "High" ? "Strong fit" : band === "Medium" ? "Solid fit" : "Room to grow"}
@@ -650,7 +692,7 @@ function SecondaryPathCard({
             </div>
             <ul className="mt-3 space-y-1 text-xs text-slate-600">
               {rec.rationale.topContributingFactors.slice(0, 2).map((f) => (
-                <li key={f.key} className="flex gap-2 leading-snug line-clamp-2">
+                <li key={f.key} className="flex gap-2 leading-snug">
                   <span className="text-teal-500">▸</span>
                   <span>{truncateBullet(f.evidence[0] ?? f.label, 110)}</span>
                 </li>
@@ -681,7 +723,7 @@ function SecondaryPathCard({
               <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">What you gain</p>
               <ul className="mt-2 space-y-1">
                 {gains.slice(0, 4).map((g, i) => (
-                  <li key={`${i}-${g.slice(0, 12)}`} className="flex gap-2 leading-snug line-clamp-2">
+                  <li key={`${i}-${g.slice(0, 12)}`} className="flex gap-2 leading-snug">
                     <span className="text-indigo-500">▸</span>
                     <span>{truncateBullet(g, 100)}</span>
                   </li>
@@ -721,14 +763,14 @@ function SecondaryPathCard({
                   {rec.selectionBecause.slice(0, 5).map((line, i) => (
                     <li key={`alt-sb-${i}`} className="flex gap-2 leading-snug text-slate-800">
                       <span className="text-cyan-600">▸</span>
-                      <span className="line-clamp-3">{truncateBullet(line, 140)}</span>
+                      <span className="">{truncateBullet(line, 140)}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             ) : null}
-            <p className="leading-snug line-clamp-3 text-slate-600">{truncateBullet(rec.explanation, 200)}</p>
-            <p className="leading-snug line-clamp-2 text-slate-500">{truncateBullet(rec.futureImpactSummary, 160)}</p>
+            <p className="leading-snug text-slate-600">{truncateBullet(rec.explanation, 200)}</p>
+            <p className="leading-snug text-slate-500">{truncateBullet(rec.futureImpactSummary, 160)}</p>
           </div>
         ) : null}
       </Card>
@@ -751,13 +793,13 @@ function QuickExploreBar(props: {
   return (
     <div className="apf-fade-up mt-10 rounded-2xl border-2 border-violet-300/50 bg-gradient-to-r from-violet-50/95 via-white to-teal-50/80 p-5 shadow-lg shadow-violet-200/25 ring-1 ring-violet-200/40 backdrop-blur-sm transition duration-300 hover:shadow-xl">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-lg" aria-hidden>
-          🔭
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-violet-700 shadow-sm ring-1 ring-violet-100" aria-hidden>
+          <IconTarget className="h-4 w-4" />
         </span>
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-900">Quick explore</p>
       </div>
-      <p className="mt-2 max-w-xl text-xs font-medium leading-snug text-slate-600 line-clamp-2">
-        Jump to a path we already computed — no redo needed.
+      <p className="mt-2 max-w-xl text-xs font-medium leading-snug text-slate-600">
+        Jump to a path we already computed. No redo needed.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button
@@ -787,7 +829,7 @@ function QuickExploreBar(props: {
       </div>
       {props.banner ? (
         <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-teal-200/80 bg-teal-50/95 px-4 py-3 text-xs text-teal-950 ring-1 ring-teal-200/70">
-          <p className="leading-snug line-clamp-3">{props.banner}</p>
+          <p className="leading-snug">{props.banner}</p>
           <button
             type="button"
             className="shrink-0 text-xs font-semibold text-teal-800 underline decoration-teal-400 hover:text-teal-950"
@@ -837,19 +879,17 @@ export default function DashboardPage() {
     })();
   }, [router]);
 
-  const bundle = session?.outputs?.bundle as
-    | { bestFit: PathRecommendation; balanced: PathRecommendation; stretch: PathRecommendation }
-    | undefined;
+  const bundle = session?.outputs?.bundle as DashboardBundle | undefined;
+  const visibleAlternatives = useMemo(() => (bundle ? uniqueAlternativePaths(bundle) : []), [bundle]);
   const compareTarget = useMemo(() => {
-    if (!bundle) return null;
-    return compareWith === "balanced" ? bundle.balanced : bundle.stretch;
-  }, [bundle, compareWith]);
+    return visibleAlternatives.find((rec) => rec.kind === compareWith) ?? visibleAlternatives[0] ?? null;
+  }, [compareWith, visibleAlternatives]);
 
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-50 via-cyan-50/50 to-teal-100/40 text-sm font-semibold text-slate-700">
         <span className="h-12 w-12 animate-pulse rounded-2xl bg-gradient-to-br from-teal-500 via-sky-500 to-violet-500 opacity-90 shadow-lg shadow-teal-900/20" />
-        <span>Hang tight — your pathway is loading…</span>
+        <span>Loading your pathway.</span>
       </div>
     );
   }
@@ -878,9 +918,9 @@ export default function DashboardPage() {
             role="status"
           >
             <div>
-              <p className="text-base font-bold text-teal-950">Your plan is ready 🎉</p>
+              <p className="text-base font-bold text-teal-950">Your plan is ready</p>
               <p className="mt-1 max-w-2xl text-sm font-medium leading-snug text-slate-700">
-                Here&apos;s your personalized pathway — scroll to explore Best Fit first.
+                Here&apos;s your personalized pathway. Scroll to explore Best Fit first.
               </p>
             </div>
             <Button
@@ -896,15 +936,15 @@ export default function DashboardPage() {
 
         <header className="apf-fade-up mb-8 lg:mb-10">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-2xl leading-none" aria-hidden>
-              🎯
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-teal-800 shadow-sm ring-1 ring-teal-100" aria-hidden>
+              <IconTarget className="h-5 w-5" />
             </span>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-800">SAIS · Your pathway</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-800">SAIS / Your pathway</p>
           </div>
           <h1 className="mt-2 bg-gradient-to-r from-slate-900 via-teal-800 to-cyan-800 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-            Your recommended path
+            {guidanceMode ? "Your readiness plan" : "Your recommended path"}
           </h1>
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-snug text-slate-600 line-clamp-2">
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-snug text-slate-600">
             {guidanceMode
               ? "You made it - this readiness plan keeps the focus on what to build before Grade 11 choices open up."
               : "You made it - Best Fit is your home base. Peek at Balanced & Stretch when you want to compare."}
@@ -923,30 +963,37 @@ export default function DashboardPage() {
         {!guidanceMode ? (
           <details className="apf-fade-up group mt-10 rounded-2xl border-2 border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 shadow-md open:shadow-lg">
           <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 text-sm font-bold text-indigo-950 marker:content-none [&::-webkit-details-marker]:hidden sm:px-5">
-            <span aria-hidden>🔁</span>
-            <span className="flex-1">Other paths — Balanced & Stretch</span>
+            <IconRoute className="h-4 w-4 text-indigo-700" />
+            <span className="flex-1">Other paths</span>
             <span className="text-xs font-medium text-indigo-800/70 group-open:hidden">Show</span>
             <span className="hidden text-xs font-medium text-indigo-800/70 group-open:inline">Hide</span>
           </summary>
           <div className="border-t border-indigo-100/80 p-4 pt-3 sm:p-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <SecondaryPathCard rec={bundle.balanced} answers={answers} anchorId="path-balanced" />
-              <SecondaryPathCard rec={bundle.stretch} answers={answers} anchorId="path-stretch" />
-            </div>
+            {visibleAlternatives.length ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {visibleAlternatives.map((rec) => (
+                  <SecondaryPathCard key={rec.kind} rec={rec} answers={answers} anchorId={`path-${rec.kind}`} />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-indigo-100 bg-white/80 p-4 text-sm font-medium leading-6 text-slate-700">
+                The system found one clear path for this profile, so alternatives are limited.
+              </p>
+            )}
           </div>
           </details>
         ) : null}
 
-        {!guidanceMode ? (
+        {!guidanceMode && visibleAlternatives.length ? (
           <details className="apf-fade-up group mt-8 rounded-3xl border-2 border-slate-200/85 bg-white/95 shadow-lg shadow-slate-200/30 open:border-teal-200/55 sm:mt-10">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 marker:content-none [&::-webkit-details-marker]:hidden sm:px-8 sm:py-5">
             <span className="text-xl" aria-hidden>
-              ⚖️
+              <IconLayers className="h-4 w-4 text-teal-700" />
             </span>
             <div className="min-w-0 flex-1 text-left">
               <h2 className="text-base font-bold text-slate-900">Side-by-side compare</h2>
-              <p className="mt-0.5 text-xs font-medium leading-snug text-slate-600 line-clamp-2">
-                Best Fit vs one alternative — open when you want the grid next to each other.
+              <p className="mt-0.5 text-xs font-medium leading-snug text-slate-600">
+                Best Fit vs one alternative. Open when you want the grid next to each other.
               </p>
             </div>
             <span className="shrink-0 text-xs font-bold text-teal-700 group-open:hidden">Open</span>
@@ -957,11 +1004,14 @@ export default function DashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Compare with</span>
               <select
                 className="rounded-xl border-2 border-teal-200/70 bg-teal-50/50 px-3 py-2 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300"
-                value={compareWith}
+                value={(compareTarget?.kind as "balanced" | "stretch" | undefined) ?? compareWith}
                 onChange={(e) => setCompareWith(e.target.value as "balanced" | "stretch")}
               >
-                <option value="balanced">Balanced</option>
-                <option value="stretch">Stretch</option>
+                {visibleAlternatives.map((rec) => (
+                  <option key={rec.kind} value={rec.kind}>
+                    {prettyKind(rec.kind)}
+                  </option>
+                ))}
               </select>
             </div>
             {compareTarget ? (
@@ -986,7 +1036,7 @@ export default function DashboardPage() {
                           {futureImpactBullets(splitFutureImpact(bundle.bestFit.futureImpactSummary).body)
                             .slice(0, 3)
                             .map((line, i) => (
-                              <li key={`bf-${i}`} className="flex gap-2 leading-snug line-clamp-2">
+                              <li key={`bf-${i}`} className="flex gap-2 leading-snug">
                                 <span className="text-teal-600">▸</span>
                                 <span>{truncateBullet(line, 100)}</span>
                               </li>
@@ -998,7 +1048,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="rounded-2xl border-2 border-violet-200/50 bg-gradient-to-b from-violet-50/40 to-slate-50/80 p-5">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-800">{compareWith === "balanced" ? "Balanced" : "Stretch"}</span>
+                    <span className="font-bold text-slate-800">{prettyKind(compareTarget.kind)}</span>
                     <Badge tone="neutral">Alt</Badge>
                   </div>
                   <div className="mt-3">
@@ -1016,7 +1066,7 @@ export default function DashboardPage() {
                           {futureImpactBullets(splitFutureImpact(compareTarget.futureImpactSummary).body)
                             .slice(0, 3)
                             .map((line, i) => (
-                              <li key={`alt-${i}`} className="flex gap-2 leading-snug line-clamp-2">
+                              <li key={`alt-${i}`} className="flex gap-2 leading-snug">
                                 <span className="text-violet-600">▸</span>
                                 <span>{truncateBullet(line, 100)}</span>
                               </li>

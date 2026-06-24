@@ -5,6 +5,9 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "SAIS Academic Navigator",
   description: "Personalized academic pathway guidance for SAIS students.",
+  icons: {
+    icon: "/sais-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -16,4 +19,3 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
-

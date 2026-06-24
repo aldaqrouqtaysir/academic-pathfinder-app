@@ -9,14 +9,14 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button({ variant = "primary", className, ...props }: Props) {
   const classes =
     variant === "primary"
-      ? "bg-gradient-to-r from-teal-600 via-cyan-500 to-violet-600 text-white shadow-md shadow-teal-900/20 hover:brightness-110 active:scale-[0.98]"
-      : "bg-white text-slate-900 ring-1 ring-slate-200/90 hover:bg-indigo-50/80 hover:ring-indigo-200 active:scale-[0.98]";
+      ? "bg-gradient-to-r from-teal-700 via-cyan-600 to-indigo-600 text-white shadow-[0_18px_34px_-22px_rgba(15,118,110,0.9)] hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-24px_rgba(79,70,229,0.75)] active:translate-y-0 active:scale-[0.98]"
+      : "border border-white/80 bg-white/90 text-slate-900 shadow-[0_14px_30px_-24px_rgba(15,23,42,0.5)] ring-1 ring-slate-200/90 hover:-translate-y-0.5 hover:bg-teal-50/70 hover:ring-teal-200 active:translate-y-0 active:scale-[0.98]";
 
   return (
     <button
       className={twMerge(
         clsx(
-          "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100",
+          "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:active:scale-100",
           classes,
           className,
         ),
@@ -25,4 +25,3 @@ export function Button({ variant = "primary", className, ...props }: Props) {
     />
   );
 }
-

@@ -493,7 +493,7 @@ function buildLowerGradeGuidanceRecommendation(params: {
   const guidanceStory: ScoringFactorContribution[] = [
     {
       key: "interest_alignment",
-      label: "Focus for this year",
+      label: "What to focus on now",
       points: 10,
       evidence: [
         `${yr}: keep core grades healthy and pay attention to what you actually enjoy. ${interestHint}`,
@@ -501,7 +501,7 @@ function buildLowerGradeGuidanceRecommendation(params: {
     },
     {
       key: "pathway_alignment",
-      label: "What changes in Grade 11",
+      label: "How to prepare for Grade 11 choices",
       points: 9,
       evidence: [
         "At SAIS, the big forks — English, Science, and Math categories plus Set 1 and Set 2 electives — start in Grade 11. You’re not choosing those yet; you’re building the skills and self-knowledge that make those choices sane.",
@@ -509,13 +509,13 @@ function buildLowerGradeGuidanceRecommendation(params: {
     },
     {
       key: "strength_match",
-      label: "Strengths & habits",
+      label: "Skills to build",
       points: 8,
       evidence: [strengthHint],
     },
     {
       key: "future_relevance",
-      label: "Future you (without pressure)",
+      label: "Interests to explore",
       points: 7,
       evidence: [careerHint],
     },
@@ -532,7 +532,7 @@ function buildLowerGradeGuidanceRecommendation(params: {
       topContributingFactors: [...guidanceStory],
       factorBreakdown: [],
     },
-    explanation: `You’re in ${yr}: SAIS still runs a shared core for everyone, so this is a readiness plan instead of a three-path course recommendation. Focus on habits, honest interests, and the skills that will make Grade 11 choices feel clear.`,
+    explanation: `You’re in ${yr}: SAIS still runs a shared core for everyone, so this is your readiness plan instead of a course-selection pathway. Focus on habits, honest interests, and the skills that will make Grade 11 choices feel clear.`,
     selectionBecause: [],
     continuationSuggestions: [],
     whyMayNotFit: [],
@@ -685,7 +685,7 @@ export function generateRecommendationBundle(params: {
     });
 
   return {
-    bestFit: buildPathRecommendation({ kind: "bestFit", label: "Optimal", plan: best, profile, catalog, scenario, alternatives }),
+    bestFit: buildPathRecommendation({ kind: "bestFit", label: "Recommended", plan: best, profile, catalog, scenario, alternatives }),
     balanced: buildPathRecommendation({ kind: "balanced", label: "Recommended", plan: balanced, profile, catalog, scenario, alternatives }),
     stretch: buildPathRecommendation({ kind: "stretch", label: "Recommended", plan: stretch, profile, catalog, scenario, alternatives }),
   };
