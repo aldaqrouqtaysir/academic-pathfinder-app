@@ -2,19 +2,25 @@ import type { ReactNode } from "react";
 import clsx from "clsx";
 
 type Props = {
+  id?: string;
   title: string;
   /** Optional emoji shown before the title (journey personality). */
   emoji?: string;
   hint?: string;
+  hasError?: boolean;
+  missingHint?: string;
   children: ReactNode;
   className?: string;
 };
 
-export function IntakePanel({ title, hint, children, className }: Props) {
+export function IntakePanel({ id, title, hint, hasError = false, missingHint, children, className }: Props) {
   return (
     <section
+      id={id}
       className={clsx(
         "apf-section-card overflow-hidden border-l-[6px] border-l-teal-600 p-5 transition duration-300 hover:border-teal-200/90 hover:shadow-[0_22px_64px_-36px_rgba(15,118,110,0.5)] sm:p-6 lg:p-7",
+        hasError &&
+          "border-l-red-500 bg-red-50/30 ring-2 ring-red-200/90 hover:border-red-200 hover:shadow-[0_22px_64px_-36px_rgba(220,38,38,0.4)]",
         className,
       )}
     >
@@ -27,6 +33,11 @@ export function IntakePanel({ title, hint, children, className }: Props) {
             <span>{title}</span>
           </h2>
           {hint ? <p className="mt-3 text-xs font-medium leading-5 text-slate-600 sm:text-sm">{hint}</p> : null}
+          {hasError && missingHint ? (
+            <p className="mt-3 rounded-xl bg-white/85 px-3 py-2 text-xs font-semibold leading-5 text-red-700 ring-1 ring-red-200">
+              {missingHint}
+            </p>
+          ) : null}
         </div>
         <div className="min-w-0">{children}</div>
       </div>

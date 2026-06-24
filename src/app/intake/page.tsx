@@ -103,6 +103,88 @@ const CAREER_OPTIONS = [
 const AVOID_OPTIONS = ["Heavy lab load", "Too many APs", "Very math-heavy", "Very writing-heavy"];
 const PREF_OPTIONS = ["Project-based", "Real-world applications", "Collaboration", "Independent work"];
 
+type MissingField = {
+  key: string;
+  label: string;
+  step: number;
+  sectionId: string;
+};
+
+const API_FIELD_LABELS: Record<string, string> = {
+  currentGrade: "Grade level",
+  semester: "semester",
+  selfReportedAcademicConfidence: "academic confidence",
+  workloadTolerance: "workload preference",
+  goalClarity: "goal clarity",
+  mainCountry: "main focus country",
+  countryIntent: "how to balance countries",
+  priorityStyle: "priority style",
+  optimizationTarget: "optimization target",
+  riskPreference: "risk preference",
+  scholarshipImportance: "scholarship importance",
+};
+
+function getMissingSemester2Selections(f: IntakeFormDraft) {
+  if (f.semester !== "Semester2") return [];
+  if (f.currentGrade !== 11 && f.currentGrade !== 12) return [];
+  return getSemester2CurrentCoursePanels(f.currentGrade).filter((panel) => !f.currentSelections[panel.id]);
+}
+
+function getMissingFields(f: IntakeFormDraft): MissingField[] {
+  const missing: MissingField[] = [];
+  const add = (key: string, label: string, step: number, sectionId: string) => {
+    missing.push({ key, label, step, sectionId });
+  };
+
+  if (!f.currentGrade) add("currentGrade", "Grade level", 0, "school-context");
+  if (!f.semester) add("semester", "semester", 0, "school-context");
+  for (const panel of getMissingSemester2Selections(f)) {
+    add(`currentSelections.${panel.id}`, panel.label, 0, "current-courses");
+  }
+  if (!f.selfReportedAcademicConfidence) {
+    add("selfReportedAcademicConfidence", "academic confidence", 0, "confidence-workload");
+  }
+  if (!f.workloadTolerance) add("workloadTolerance", "workload preference", 0, "confidence-workload");
+  if (!f.goalClarity) add("goalClarity", "goal clarity", 1, "plans-clarity");
+  if (!f.mainCountry) add("mainCountry", "main focus country", 1, "future-destination");
+  if (f.additionalCountries.length > 0 && !f.countryIntent) {
+    add("countryIntent", "how to balance countries", 1, "future-destination");
+  }
+  if (!f.priorityStyle) add("priorityStyle", "priority style", 2, "priority-style");
+  if (!f.optimizationTarget) add("optimizationTarget", "optimization target", 2, "optimization-target");
+  if (!f.riskPreference) add("riskPreference", "risk preference", 2, "risk-scholarship");
+  if (!f.scholarshipImportance) add("scholarshipImportance", "scholarship importance", 2, "risk-scholarship");
+
+  return missing;
+}
+
+function uniqueLabels(labels: string[]) {
+  return [...new Set(labels)];
+}
+
+function formatMissingLabels(labels: string[]) {
+  const unique = uniqueLabels(labels);
+  if (unique.length === 0) return "Please complete the required choices before unlocking your plan.";
+  const visible = unique.slice(0, 6).join(", ");
+  const extra = unique.length > 6 ? `, and ${unique.length - 6} more` : "";
+  return `Please complete: ${visible}${extra}.`;
+}
+
+function formatMissingMessage(fields: MissingField[]) {
+  return formatMissingLabels(fields.map((field) => field.label));
+}
+
+function getApiMissingLabels(payload: unknown) {
+  if (!payload || typeof payload !== "object" || !("fieldErrors" in payload)) return [];
+  const fieldErrors = (payload as { fieldErrors?: Record<string, unknown> }).fieldErrors;
+  if (!fieldErrors) return [];
+  return uniqueLabels(
+    Object.entries(fieldErrors)
+      .filter(([, messages]) => Array.isArray(messages) && messages.length > 0)
+      .map(([field]) => API_FIELD_LABELS[field] ?? field),
+  );
+}
+
 function IntakePageInner() {
   const router = useRouter();
   const search = useSearchParams();
@@ -111,6 +193,7 @@ function IntakePageInner() {
   const [form, setForm] = useState<IntakeFormDraft>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationAttempted, setValidationAttempted] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -177,61 +260,54 @@ function IntakePageInner() {
     [form.semester, form.currentGrade],
   );
   const earlyGrade = form.currentGrade === 9 || form.currentGrade === 10;
+  const missingFields = useMemo(() => getMissingFields(form), [form]);
+  const missingSectionIds = useMemo(() => new Set(missingFields.map((field) => field.sectionId)), [missingFields]);
+  const missingLabelsBySection = useMemo(() => {
+    const labels = new Map<string, string[]>();
+    for (const field of missingFields) {
+      labels.set(field.sectionId, uniqueLabels([...(labels.get(field.sectionId) ?? []), field.label]));
+    }
+    return labels;
+  }, [missingFields]);
 
-  function semester2SelectionsComplete(f: IntakeFormDraft) {
-    if (f.semester !== "Semester2") return true;
-    if (!f.currentGrade || f.currentGrade === 9 || f.currentGrade === 10) return true;
-    const panels = getSemester2CurrentCoursePanels(f.currentGrade);
-    if (!panels.length) return true;
-    return panels.every((p) => Boolean(f.currentSelections[p.id]));
+  useEffect(() => {
+    if (!validationAttempted || !error?.startsWith("Please complete:")) return;
+    const nextError = missingFields.length > 0 ? formatMissingMessage(missingFields) : null;
+    if (nextError !== error) setError(nextError);
+  }, [error, missingFields, validationAttempted]);
+
+  function sectionHasMissing(sectionId: string) {
+    return validationAttempted && missingSectionIds.has(sectionId);
+  }
+
+  function sectionMissingHint(sectionId: string) {
+    if (!validationAttempted) return undefined;
+    const labels = missingLabelsBySection.get(sectionId);
+    return labels?.length ? formatMissingLabels(labels) : undefined;
+  }
+
+  function scrollToMissingSection(sectionId: string) {
+    window.setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
   }
 
   function canProceedCurrentStep() {
-    if (step === 0) {
-      return Boolean(
-        form.currentGrade &&
-          form.semester &&
-          form.selfReportedAcademicConfidence &&
-          form.workloadTolerance &&
-          semester2SelectionsComplete(form),
-      );
-    }
-    if (step === 1) {
-      return Boolean(
-        form.mainCountry &&
-          form.goalClarity &&
-          (form.additionalCountries.length === 0 || Boolean(form.countryIntent)),
-      );
-    }
-    return Boolean(
-      form.priorityStyle && form.optimizationTarget && form.riskPreference && form.scholarshipImportance,
-    );
-  }
-
-  function canSubmitFull() {
-    return (
-      Boolean(
-        form.currentGrade &&
-          form.semester &&
-          form.selfReportedAcademicConfidence &&
-          form.workloadTolerance &&
-          form.mainCountry &&
-          form.goalClarity &&
-          (form.additionalCountries.length === 0 || Boolean(form.countryIntent)) &&
-          form.priorityStyle &&
-          form.optimizationTarget &&
-          form.riskPreference &&
-          form.scholarshipImportance,
-      ) && semester2SelectionsComplete(form)
-    );
+    return !missingFields.some((field) => field.step === step);
   }
 
   async function submit() {
-    setError(null);
-    if (!canSubmitFull()) {
-      setError("Please complete all required choices in each step.");
+    const currentMissingFields = getMissingFields(form);
+    if (currentMissingFields.length > 0) {
+      setValidationAttempted(true);
+      setError(formatMissingMessage(currentMissingFields));
+      const firstMissing = currentMissingFields[0];
+      if (firstMissing.step !== step) setStep(firstMissing.step);
+      scrollToMissingSection(firstMissing.sectionId);
       return;
     }
+    setError(null);
+    setValidationAttempted(false);
     setSubmitting(true);
     const { currentCourses, currentAPs } =
       form.semester === "Semester2" ? splitCurrentCoursesForApi(form.currentSelections) : { currentCourses: [], currentAPs: [] };
@@ -258,7 +334,14 @@ function IntakePageInner() {
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      setError("Could not run recommendations. Please review required fields.");
+      const body = await res.json().catch(() => null);
+      const apiMissingLabels = getApiMissingLabels(body?.error);
+      setValidationAttempted(false);
+      setError(
+        apiMissingLabels.length > 0
+          ? formatMissingLabels(apiMissingLabels)
+          : "Could not run recommendations. Please check the required choices and try again.",
+      );
       setSubmitting(false);
       return;
     }
@@ -342,7 +425,14 @@ function IntakePageInner() {
               <div key={step} className="apf-step-in space-y-8 sm:space-y-10 lg:space-y-12">
             {step === 0 ? (
               <>
-                <IntakePanel emoji="🏫" title="Where are you in school?" hint="Required: grade, semester, academic confidence, and workload tolerance.">
+                <IntakePanel
+                  id="school-context"
+                  emoji="🏫"
+                  title="Where are you in school?"
+                  hint="Required: grade, semester, academic confidence, and workload tolerance."
+                  hasError={sectionHasMissing("school-context")}
+                  missingHint={sectionMissingHint("school-context")}
+                >
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {([9, 10, 11, 12] as const).map((g) => (
                       <ChoiceTile
@@ -378,9 +468,12 @@ function IntakePageInner() {
 
                 {form.semester === "Semester2" && semester2Panels.length > 0 ? (
                   <IntakePanel
+                    id="current-courses"
                     emoji="📚"
                     title="Your courses this semester"
                     hint="One pick per row. APs live in the same row as their subject."
+                    hasError={sectionHasMissing("current-courses")}
+                    missingHint={sectionMissingHint("current-courses")}
                   >
                     <div className="space-y-6">
                       {semester2Panels.map((panel) => (
@@ -455,7 +548,14 @@ function IntakePageInner() {
                   </div>
                 </IntakePanel>
 
-                <IntakePanel emoji="⚡" title="Confidence & workload" hint="Required — helps us tune the feel of your plan.">
+                <IntakePanel
+                  id="confidence-workload"
+                  emoji="⚡"
+                  title="Confidence & workload"
+                  hint="Required — helps us tune the feel of your plan."
+                  hasError={sectionHasMissing("confidence-workload")}
+                  missingHint={sectionMissingHint("confidence-workload")}
+                >
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
                       <p className="mb-2 text-sm font-medium text-slate-800">Academic confidence</p>
@@ -536,7 +636,14 @@ function IntakePageInner() {
                   </div>
                 </IntakePanel>
 
-                <IntakePanel emoji="🗺️" title="How clear are your plans?" hint="Required — honest beats perfect.">
+                <IntakePanel
+                  id="plans-clarity"
+                  emoji="🗺️"
+                  title="How clear are your plans?"
+                  hint="Required — honest beats perfect."
+                  hasError={sectionHasMissing("plans-clarity")}
+                  missingHint={sectionMissingHint("plans-clarity")}
+                >
                   <div className="flex flex-wrap gap-2">
                     {(["Low", "Medium", "High"] as const).map((lvl) => (
                       <Chip
@@ -550,6 +657,7 @@ function IntakePageInner() {
                 </IntakePanel>
 
                 <IntakePanel
+                  id="future-destination"
                   emoji="🌍"
                   title={earlyGrade ? "Future options" : "Future destination"}
                   hint={
@@ -557,6 +665,8 @@ function IntakePageInner() {
                       ? "Share what is on your radar. This helps the plan stay flexible."
                       : "Pick your main country first. If you add more countries below, we’ll ask how you want to balance them."
                   }
+                  hasError={sectionHasMissing("future-destination")}
+                  missingHint={sectionMissingHint("future-destination")}
                 >
                   <div className="space-y-4">
                     <div>
@@ -627,9 +737,12 @@ function IntakePageInner() {
             {step === 2 ? (
               <>
                 <IntakePanel
+                  id="priority-style"
                   emoji="🎚️"
                   title="Priority style"
                   hint={earlyGrade ? "Required: how you want this year to feel." : "Required — how you want to steer this year."}
+                  hasError={sectionHasMissing("priority-style")}
+                  missingHint={sectionMissingHint("priority-style")}
                 >
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <ChoiceTile
@@ -660,9 +773,12 @@ function IntakePageInner() {
                 </IntakePanel>
 
                 <IntakePanel
+                  id="optimization-target"
                   emoji="🚀"
                   title="Optimize for"
                   hint={earlyGrade ? "Required: what matters most while you build readiness." : "Required — what matters most right now."}
+                  hasError={sectionHasMissing("optimization-target")}
+                  missingHint={sectionMissingHint("optimization-target")}
                 >
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {(
@@ -684,7 +800,14 @@ function IntakePageInner() {
                   </div>
                 </IntakePanel>
 
-                <IntakePanel emoji="🛡️" title="Risk & scholarships" hint="Required — both chips.">
+                <IntakePanel
+                  id="risk-scholarship"
+                  emoji="🛡️"
+                  title="Risk & scholarships"
+                  hint="Required — both chips."
+                  hasError={sectionHasMissing("risk-scholarship")}
+                  missingHint={sectionMissingHint("risk-scholarship")}
+                >
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
                       <p className="mb-2 text-sm font-medium text-slate-800">Risk preference</p>
@@ -787,7 +910,11 @@ function IntakePageInner() {
             ) : null}
           </div>
 
-          {error ? <div className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-800 ring-1 ring-red-100">{error}</div> : null}
+          {error ? (
+            <div role="alert" className="mt-6 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800 ring-1 ring-red-100">
+              {error}
+            </div>
+          ) : null}
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <Button variant="secondary" disabled={step === 0 || submitting} onClick={() => setStep(step - 1)}>
@@ -798,7 +925,7 @@ function IntakePageInner() {
                 Next step →
               </Button>
             ) : (
-              <Button className="sm:min-w-[240px]" disabled={submitting || !canSubmitFull()} onClick={submit}>
+              <Button className="sm:min-w-[240px]" disabled={submitting} onClick={submit}>
                 {submitting ? "Building your plan" : "Unlock my plan"}
               </Button>
             )}
