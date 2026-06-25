@@ -13,7 +13,7 @@ export default function CounselorDashboardPage() {
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {[
-            ["Saved plans", "Local MVP persistence"],
+            ["Saved plans", "File-based storage"],
             ["Deterministic", "Rule-based recommendations"],
             ["Printable", "Counselor report view"],
           ].map(([label, value]) => (
@@ -28,7 +28,7 @@ export default function CounselorDashboardPage() {
       <Card className="apf-section-card">
         <h2 className="text-sm font-semibold text-slate-900">How it works</h2>
         <ul className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-          <li>Data reflects the student&apos;s last run through intake, stored locally for this MVP.</li>
+          <li>Data reflects the student&apos;s last run through intake, stored in the configured file-based data store.</li>
           <li>Best fit, balanced, and stretch paths are deterministic. Use them to frame conversations.</li>
           <li>Notes are counselor-only and stored separately from student-facing screens.</li>
         </ul>

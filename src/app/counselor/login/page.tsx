@@ -52,7 +52,7 @@ export default function CounselorLoginPage() {
           <div className="mt-6 grid max-w-xl gap-3 sm:grid-cols-2">
             {[
               { icon: IconBookOpen, title: "Student lookup", body: "Open an active saved plan by Student ID." },
-              { icon: IconShieldCheck, title: "Demo access", body: "Passcode-protected for this MVP build." },
+              { icon: IconShieldCheck, title: "Staff access", body: "Passcode-protected for faculty review." },
             ].map(({ icon: Icon, title, body }) => (
               <div key={title} className="rounded-2xl border border-white/80 bg-white/75 p-4 ring-1 ring-slate-200/80">
                 <Icon className="h-5 w-5 text-teal-700" />
@@ -67,7 +67,7 @@ export default function CounselorLoginPage() {
             <p className="apf-kicker">Counselor sign-in</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Enter access code</h2>
             <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
-              MVP demo staff access. Student login and links are unchanged.
+              Enter the staff access code to continue. Student login and links are unchanged.
             </p>
             <div className="mt-7">
           <form onSubmit={submit} className="space-y-4">
@@ -92,7 +92,7 @@ export default function CounselorLoginPage() {
           </form>
             </div>
             <p className="mt-6 text-xs leading-5 text-slate-500">
-              Counselor access depends on <code className="rounded bg-slate-200/80 px-1">COUNSELOR_ACCESS_CODE</code> in the local environment.
+              Use the staff access code provided by the project owner.
             </p>
           </div>
         </Card>

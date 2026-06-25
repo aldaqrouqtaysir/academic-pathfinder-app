@@ -108,26 +108,26 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-[100dvh] overflow-hidden">
-      <div className="apf-journey-shell grid min-h-[100dvh] items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 xl:gap-16">
+      <div className="apf-journey-shell grid min-h-[100dvh] items-start gap-5 !py-5 sm:gap-8 sm:!py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:!py-12 xl:gap-16">
         <section className="apf-fade-up">
-          <div className="inline-flex items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2 pr-4 shadow-[0_18px_42px_-30px_rgba(15,118,110,0.7)] ring-1 ring-teal-200/60">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-teal-100">
-              <Image src="/sais-logo.png" alt="SAIS" width={42} height={42} priority />
+          <div className="inline-flex max-w-full items-center gap-2 rounded-2xl border border-white/80 bg-white/80 p-2 pr-3 shadow-[0_18px_42px_-30px_rgba(15,118,110,0.7)] ring-1 ring-teal-200/60 sm:gap-3 sm:pr-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-teal-100 sm:h-12 sm:w-12">
+              <Image src="/sais-logo.png" alt="SAIS" width={36} height={36} priority className="sm:h-[42px] sm:w-[42px]" />
             </span>
             <span>
-              <span className="block text-xs font-bold uppercase tracking-[0.18em] text-teal-800">SAIS Academic Navigator</span>
-              <span className="block text-xs font-semibold text-slate-500">School-specific planning workspace</span>
+              <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-teal-800 sm:text-xs sm:tracking-[0.18em]">SAIS Academic Navigator</span>
+              <span className="block text-[11px] font-semibold leading-snug text-slate-500 sm:text-xs">School-specific planning workspace</span>
             </span>
           </div>
 
-          <h1 className="mt-8 max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.02]">
+          <h1 className="mt-5 max-w-3xl text-3xl font-black leading-[1.05] tracking-tight text-slate-950 sm:mt-8 sm:text-5xl lg:text-6xl lg:leading-[1.02]">
             Academic planning that feels personal.
           </h1>
-          <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-slate-600 sm:text-lg">
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-600 sm:mt-5 sm:text-lg sm:leading-7">
             A school-specific workspace that helps SAIS students understand course choices, tradeoffs, and next steps.
           </p>
 
-          <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
+          <div className="mt-8 hidden max-w-3xl gap-3 sm:grid sm:grid-cols-3">
             {[
               ["Rule-based", "Deterministic guidance"],
               ["Grade-aware", "Readiness or course paths"],
@@ -143,7 +143,7 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <div className="mt-8 max-w-3xl rounded-[2rem] border border-white/90 bg-white/55 p-2 shadow-[0_26px_70px_-42px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/60">
+          <div className="mt-8 hidden max-w-3xl rounded-[2rem] border border-white/90 bg-white/55 p-2 shadow-[0_26px_70px_-42px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/60 sm:block">
             <div className="rounded-[1.5rem] bg-gradient-to-br from-white via-cyan-50/70 to-indigo-50/55 p-5 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -168,8 +168,8 @@ export default function LoginPage() {
         </section>
 
         <aside className="apf-fade-up apf-delay-2 w-full">
-          <Card className="apf-premium-surface p-3">
-            <div className="rounded-[1.45rem] bg-gradient-to-br from-white via-white to-cyan-50/65 p-6 sm:p-8">
+          <Card className="apf-premium-surface p-2 sm:p-3">
+            <div className="rounded-[1.35rem] bg-gradient-to-br from-white via-white to-cyan-50/65 p-5 sm:rounded-[1.45rem] sm:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-800">Student entry</p>
@@ -181,7 +181,7 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
+              <form className="mt-6 space-y-4 sm:mt-8 sm:space-y-5" onSubmit={handleSubmit(onSubmit)}>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-800" htmlFor="studentId">
                     Student ID
