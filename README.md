@@ -82,7 +82,7 @@ The recommendation logic is **deterministic and rule-based**, not a trained Mach
 
 ## Recommended Demo IDs
 - Student demo IDs: `20120164`, `20120167`, `20120168`, `20120169`
-- Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local` or the Render environment.
+- Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local` or the deployment environment.
 
 ## Local Setup Instructions
 
@@ -108,7 +108,7 @@ See `.env.example` for details. You must configure the following in your `.env.l
 - `STUDENT_SESSION_SECRET`: A secure random string for signing student session cookies.
 - `COUNSELOR_ACCESS_CODE`: The passcode faculty/demo reviewers use to access the counselor portal.
 - `COUNSELOR_SESSION_SECRET` (Optional): For counselor JWTs. Falls back to `STUDENT_SESSION_SECRET` if missing.
-- `DATA_DIR` (Optional): The directory path where JSON storage will reside. Default is `.data/`.
+- `DATA_DIR` (Optional): The directory path where JSON storage will reside. Default is `.data/`. Serverless demo hosts can use a writable temporary path such as `/tmp/sais-academic-navigator`, but data will not be durable.
 
 ## Demo & Testing
 For a comprehensive guide on how to test the application, including suggested scripts and workflows, please refer to [DEMO.md](./DEMO.md).
@@ -123,6 +123,21 @@ When deploying this MVP to a service like [Render](https://render.com), you must
 6. **Build Command:** Use `npm ci --include=dev && npm run build`.
 7. **Start Command:** Use `npm start`.
 8. **Troubleshooting:** If `Unlock my plan` reports that the server could not save the plan, check Render logs for `PERSISTENCE_ERROR` or `[studentPlanStore]` and verify the disk mount plus `DATA_DIR`.
+
+## Deployment Notes (Vercel Demo Copy)
+Vercel can host a second demo deployment without replacing the working Render deployment. The app uses standard Next.js App Router pages and Route Handlers, so the build should work on Vercel, but file-based persistence must be treated as temporary demo storage.
+
+Recommended Vercel settings:
+1. **Framework Preset:** Next.js.
+2. **Root Directory:** Repository root.
+3. **Install Command:** `npm ci`.
+4. **Build Command:** `npm run build`.
+5. **Output Directory:** Leave as the Vercel default for Next.js.
+6. **Node.js Version:** Use Node `20.x`; this is also declared in `package.json`.
+7. **Required Environment Variables:** `STUDENT_SESSION_SECRET` and `COUNSELOR_ACCESS_CODE`.
+8. **Optional Environment Variables:** `COUNSELOR_SESSION_SECRET` for a separate counselor token secret, and `DATA_DIR=/tmp/sais-academic-navigator` for Vercel demo storage.
+
+Known Vercel limitation: Vercel Functions have a read-only filesystem except for writable `/tmp` scratch space. This app can use `/tmp` or its built-in temporary fallback for demo saves, but saved student plans and counselor notes may disappear across deployments, cold starts, or function instance changes. Keep Render with a Persistent Disk for more durable demo data, or move to a database before any real school pilot.
 
 ## MVP Limitations
 - **Authentication:** Auth is currently MVP/demo-grade. Students log in via an ID with no secondary password, and counselors use a shared access code. A real school launch should use school SSO/login, invite codes, student PINs, or database-backed auth tied to verified student records.
