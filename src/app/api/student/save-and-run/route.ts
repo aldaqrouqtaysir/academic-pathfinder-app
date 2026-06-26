@@ -1,11 +1,14 @@
-import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requireStudentId } from "@/lib/auth/requireStudentSession";
 import { computeRecommendations } from "@/lib/domain/engine";
 import { categoryBasedCourseCatalogSeed, rulesCatalogSeed } from "@/data/sais";
+import { jsonNoStore } from "@/lib/http/jsonNoStore";
 import { mapIntakeToProfile, mapIntakeToScenario } from "@/lib/student/intakeMapping";
 import { saveStudentSession } from "@/lib/persistence/studentPlanStore";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /** Accepts legacy API values and normalizes before validation. */
 const CountryIn = z.union([
@@ -100,7 +103,7 @@ export async function POST(req: Request) {
     studentId = await requireStudentId();
   } catch (error) {
     logSaveAndRunFailure(requestId, "auth", error);
-    return NextResponse.json({ ok: false, code: "AUTH_REQUIRED", requestId }, { status: 401 });
+    return jsonNoStore({ ok: false, code: "AUTH_REQUIRED", requestId }, { status: 401 });
   }
 
   const json = await req.json().catch(() => null);
@@ -110,7 +113,7 @@ export async function POST(req: Request) {
       requestId,
       fields: Object.keys(parsed.error.flatten().fieldErrors),
     });
-    return NextResponse.json({ ok: false, code: "VALIDATION_ERROR", error: parsed.error.flatten(), requestId }, { status: 400 });
+    return jsonNoStore({ ok: false, code: "VALIDATION_ERROR", error: parsed.error.flatten(), requestId }, { status: 400 });
   }
 
   const intake = parsed.data;
@@ -128,7 +131,7 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     logSaveAndRunFailure(requestId, "recommendation", error);
-    return NextResponse.json({ ok: false, code: "RECOMMENDATION_ERROR", requestId }, { status: 500 });
+    return jsonNoStore({ ok: false, code: "RECOMMENDATION_ERROR", requestId }, { status: 500 });
   }
 
   try {
@@ -141,9 +144,9 @@ export async function POST(req: Request) {
         generatedAt: new Date().toISOString(),
       },
     });
-    return NextResponse.json({ ok: true, session });
+    return jsonNoStore({ ok: true, session });
   } catch (error) {
     logSaveAndRunFailure(requestId, "persistence", error);
-    return NextResponse.json({ ok: false, code: "PERSISTENCE_ERROR", requestId }, { status: 503 });
+    return jsonNoStore({ ok: false, code: "PERSISTENCE_ERROR", requestId }, { status: 503 });
   }
 }

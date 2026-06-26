@@ -864,7 +864,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/student/active-plan");
+      const res = await fetch("/api/student/active-plan", { cache: "no-store" });
       if (res.status === 401) {
         router.push("/login");
         return;

@@ -130,6 +130,8 @@ Supabase setup:
 4. In Vercel or Render, add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as environment variables.
 5. Redeploy the app.
 
+If an older Supabase demo project ever shows a stale active plan after a student reruns intake, run [docs/supabase-active-plan-cleanup.sql](./docs/supabase-active-plan-cleanup.sql) once. It keeps the newest active plan for each student, deactivates older active rows, and recreates the active-plan indexes without deleting history.
+
 Security notes:
 - `SUPABASE_SERVICE_ROLE_KEY` is used only by server-side Route Handlers and server-rendered counselor pages.
 - Do not prefix the service role key with `NEXT_PUBLIC_`.

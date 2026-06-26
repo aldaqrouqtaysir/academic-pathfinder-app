@@ -12,7 +12,7 @@ export default function WelcomeBackPage() {
 
   async function startNew() {
     setLoading(true);
-    await fetch("/api/student/start-new", { method: "POST" });
+    await fetch("/api/student/start-new", { method: "POST", cache: "no-store" });
     router.push("/intake");
   }
 

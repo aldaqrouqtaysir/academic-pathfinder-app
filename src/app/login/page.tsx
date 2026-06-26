@@ -92,7 +92,7 @@ export default function LoginPage() {
         return;
       }
 
-      const statusRes = await fetch("/api/student/session-status");
+      const statusRes = await fetch("/api/student/session-status", { cache: "no-store" });
       const statusJson = await statusRes.json().catch(() => null);
       if (statusRes.ok && statusJson?.hasActiveSession) {
         router.push("/welcome-back");

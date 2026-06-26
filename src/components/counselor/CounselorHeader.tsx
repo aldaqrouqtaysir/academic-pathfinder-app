@@ -22,6 +22,10 @@ export function CounselorHeader() {
           <Link href="/counselor" className="whitespace-nowrap text-slate-600 hover:text-slate-900">
             Dashboard
           </Link>
+          <Link href="/login" className="whitespace-nowrap text-slate-500 hover:text-slate-800">
+            <span className="hidden sm:inline">Student login</span>
+            <span className="sm:hidden">Student</span>
+          </Link>
           <button
             type="button"
             className="whitespace-nowrap text-slate-500 hover:text-slate-800"

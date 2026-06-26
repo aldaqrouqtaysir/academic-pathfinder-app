@@ -22,7 +22,7 @@ export function CounselorLookup() {
     }
 
     setChecking(true);
-    const res = await fetch(`/api/counselor/student/${trimmed}`);
+    const res = await fetch(`/api/counselor/student/${trimmed}`, { cache: "no-store" });
     setChecking(false);
     const data = (await res.json().catch(() => null)) as { ok?: boolean; code?: string } | null;
 

@@ -82,6 +82,18 @@ function logAndThrowSupabaseError(operation: string, error: { code?: string; mes
   throw new Error(`Supabase student plan ${operation} failed: ${error.message}`);
 }
 
+function newestFirst(a: StudentPlanRow, b: StudentPlanRow) {
+  const updated = b.updated_at.localeCompare(a.updated_at);
+  if (updated !== 0) return updated;
+  const created = b.created_at.localeCompare(a.created_at);
+  if (created !== 0) return created;
+  return b.id.localeCompare(a.id);
+}
+
+function newestActiveRow(rows: StudentPlanRow[]) {
+  return rows.filter((row) => row.is_active).sort(newestFirst)[0] ?? null;
+}
+
 async function getSupabaseStudentRecord(studentId: string): Promise<StudentRecord> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return { studentId, activeSessionId: null, sessions: [] };
@@ -90,14 +102,15 @@ async function getSupabaseStudentRecord(studentId: string): Promise<StudentRecor
     .from("student_plans")
     .select("*")
     .eq("student_id", studentId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
 
   if (error) logAndThrowSupabaseError("record lookup", error);
 
   const rows = data ?? [];
   return {
     studentId,
-    activeSessionId: rows.find((row) => row.is_active)?.id ?? null,
+    activeSessionId: newestActiveRow(rows)?.id ?? null,
     sessions: rows.map(toStoredSession),
   };
 }
@@ -112,6 +125,8 @@ async function getSupabaseActiveSession(studentId: string): Promise<StoredSessio
     .eq("student_id", studentId)
     .eq("is_active", true)
     .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1);
 
   if (error) logAndThrowSupabaseError("active session lookup", error);
@@ -132,7 +147,7 @@ async function saveSupabaseStudentSession(
 
   const { error: deactivateError } = await supabase
     .from("student_plans")
-    .update({ is_active: false, updated_at: now })
+    .update({ is_active: false })
     .eq("student_id", studentId)
     .neq("id", full.id);
 

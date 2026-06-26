@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -69,6 +70,12 @@ export default function CounselorLoginPage() {
             <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
               Enter the staff access code to continue. Student login and links are unchanged.
             </p>
+            <Link
+              href="/login"
+              className="mt-4 inline-flex items-center rounded-full bg-white/80 px-3 py-1.5 text-xs font-bold text-teal-800 ring-1 ring-teal-200 transition hover:-translate-y-0.5 hover:bg-teal-50 hover:text-teal-950"
+            >
+              Back to student login
+            </Link>
             <div className="mt-7">
           <form onSubmit={submit} className="space-y-4">
             <div>

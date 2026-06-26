@@ -18,6 +18,10 @@ create table if not exists public.student_plans (
 create index if not exists student_plans_student_id_created_at_idx
   on public.student_plans (student_id, created_at desc);
 
+create index if not exists student_plans_active_latest_idx
+  on public.student_plans (student_id, updated_at desc, created_at desc)
+  where is_active;
+
 create unique index if not exists student_plans_one_active_per_student_idx
   on public.student_plans (student_id)
   where is_active;
@@ -41,4 +45,3 @@ revoke all on table public.student_plans from anon, authenticated;
 revoke all on table public.counselor_notes from anon, authenticated;
 grant all on table public.student_plans to service_role;
 grant all on table public.counselor_notes to service_role;
-

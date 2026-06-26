@@ -22,6 +22,7 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
     startTransition(async () => {
       const res = await fetch("/api/counselor/notes", {
         method: "POST",
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ studentId, body }),
       });

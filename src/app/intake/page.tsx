@@ -218,7 +218,7 @@ function IntakePageInner() {
   useEffect(() => {
     if (!isEdit) return;
     (async () => {
-      const res = await fetch("/api/student/active-plan");
+      const res = await fetch("/api/student/active-plan", { cache: "no-store" });
       if (!res.ok) return;
       const json = await res.json();
       const a = json?.activeSession?.answers;
@@ -350,6 +350,7 @@ function IntakePageInner() {
     };
     const res = await fetch("/api/student/save-and-run", {
       method: "POST",
+      cache: "no-store",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
