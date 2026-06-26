@@ -108,24 +108,48 @@ See `.env.example` for details. You must configure the following in your `.env.l
 - `STUDENT_SESSION_SECRET`: A secure random string for signing student session cookies.
 - `COUNSELOR_ACCESS_CODE`: The passcode faculty/demo reviewers use to access the counselor portal.
 - `COUNSELOR_SESSION_SECRET` (Optional): For counselor JWTs. Falls back to `STUDENT_SESSION_SECRET` if missing.
-- `DATA_DIR` (Optional): The directory path where JSON storage will reside. Default is `.data/`. Serverless demo hosts can use a writable temporary path such as `/tmp/sais-academic-navigator`, but data will not be durable.
+- `SUPABASE_URL` (Optional): Supabase project URL for durable hosted persistence.
+- `SUPABASE_SERVICE_ROLE_KEY` (Optional): Server-side Supabase service role key. Required with `SUPABASE_URL`; never expose this as a `NEXT_PUBLIC_*` variable.
+- `DATA_DIR` (Optional): The directory path where JSON storage will reside when Supabase is not configured. Default is `.data/`. Serverless demo hosts can use a writable temporary path such as `/tmp/sais-academic-navigator`, but data will not be durable.
 
 ## Demo & Testing
 For a comprehensive guide on how to test the application, including suggested scripts and workflows, please refer to [DEMO.md](./DEMO.md).
 
+## Optional Supabase Persistence
+The app supports optional Supabase-backed persistence for student plans and counselor notes. This is recommended for Vercel because serverless filesystem storage is temporary and not reliable across separate requests, cold starts, or deploys.
+
+How it works:
+1. If both `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are configured, the server-side persistence layer uses Supabase.
+2. If either Supabase variable is missing, the app falls back to the existing JSON/file store.
+3. The rest of the app uses the same persistence functions either way; recommendation logic and UI behavior are unchanged.
+
+Supabase setup:
+1. Create a Supabase project.
+2. Open the Supabase SQL editor.
+3. Run the schema in [docs/supabase-schema.sql](./docs/supabase-schema.sql).
+4. In Vercel or Render, add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as environment variables.
+5. Redeploy the app.
+
+Security notes:
+- `SUPABASE_SERVICE_ROLE_KEY` is used only by server-side Route Handlers and server-rendered counselor pages.
+- Do not prefix the service role key with `NEXT_PUBLIC_`.
+- The included schema enables Row Level Security and does not grant direct browser-role table access.
+- This remains MVP-grade persistence and session handling, not full production student data governance.
+
 ## Deployment Notes (Render)
-When deploying this MVP to a service like [Render](https://render.com), you must account for the file-based persistence:
+When deploying this MVP to a service like [Render](https://render.com), choose one persistence option:
 1. **Required Environment Variables:** Set `STUDENT_SESSION_SECRET` and `COUNSELOR_ACCESS_CODE` in the Render dashboard. `COUNSELOR_SESSION_SECRET` is optional and falls back to `STUDENT_SESSION_SECRET`.
-2. **Persistent Disk:** Attach a Render Persistent Disk to your Web Service to ensure JSON data survives deploys and restarts.
-3. **Mount Path:** Mount the disk to a directory (e.g., `/var/data`).
-4. **Data Directory:** Set `DATA_DIR=/var/data` in the Render dashboard so the app writes its JSON files to the persistent volume. If `DATA_DIR` is omitted and the default `.data/` path is not writable, the app falls back to temporary storage so demos can still run, but saved plans may disappear after restarts or deploys.
-5. **Node Version:** Ensure Render is configured to use Node `20.x`.
-6. **Build Command:** Use `npm ci --include=dev && npm run build`.
-7. **Start Command:** Use `npm start`.
-8. **Troubleshooting:** If `Unlock my plan` reports that the server could not save the plan, check Render logs for `PERSISTENCE_ERROR` or `[studentPlanStore]` and verify the disk mount plus `DATA_DIR`.
+2. **Persistence Option A - Supabase:** Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to use hosted Supabase persistence.
+3. **Persistence Option B - Render Disk:** If Supabase is not configured, attach a Render Persistent Disk to your Web Service to ensure JSON data survives deploys and restarts.
+4. **Mount Path:** Mount the disk to a directory (e.g., `/var/data`).
+5. **Data Directory:** Set `DATA_DIR=/var/data` in the Render dashboard so the app writes JSON files to the persistent volume when Supabase is not configured. If `DATA_DIR` is omitted and the default `.data/` path is not writable, the app falls back to temporary storage so demos can still run, but saved plans may disappear after restarts or deploys.
+6. **Node Version:** Ensure Render is configured to use Node `20.x`.
+7. **Build Command:** Use `npm ci --include=dev && npm run build`.
+8. **Start Command:** Use `npm start`.
+9. **Troubleshooting:** If `Unlock my plan` reports that the server could not save the plan, check Render logs for `PERSISTENCE_ERROR` or `[studentPlanStore]` and verify either Supabase env vars or the disk mount plus `DATA_DIR`.
 
 ## Deployment Notes (Vercel Demo Copy)
-Vercel can host a second demo deployment without replacing the working Render deployment. The app uses standard Next.js App Router pages and Route Handlers, so the build should work on Vercel, but file-based persistence must be treated as temporary demo storage.
+Vercel can host a second demo deployment without replacing the working Render deployment. The app uses standard Next.js App Router pages and Route Handlers. For reliable counselor lookup, notes, and printable reports on Vercel, configure Supabase persistence.
 
 Recommended Vercel settings:
 1. **Framework Preset:** Next.js.
@@ -135,17 +159,18 @@ Recommended Vercel settings:
 5. **Output Directory:** Leave as the Vercel default for Next.js.
 6. **Node.js Version:** Use Node `20.x`; this is also declared in `package.json`.
 7. **Required Environment Variables:** `STUDENT_SESSION_SECRET` and `COUNSELOR_ACCESS_CODE`.
-8. **Optional Environment Variables:** `COUNSELOR_SESSION_SECRET` for a separate counselor token secret, and `DATA_DIR=/tmp/sais-academic-navigator` for Vercel demo storage.
+8. **Recommended Persistence Environment Variables:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+9. **Optional Environment Variables:** `COUNSELOR_SESSION_SECRET` for a separate counselor token secret. `DATA_DIR=/tmp/sais-academic-navigator` can be used only as temporary fallback storage when Supabase is not configured.
 
-Known Vercel limitation: Vercel Functions have a read-only filesystem except for writable `/tmp` scratch space. This app can use `/tmp` or its built-in temporary fallback for demo saves, but saved student plans and counselor notes may disappear across deployments, cold starts, or function instance changes. Keep Render with a Persistent Disk for more durable demo data, or move to a database before any real school pilot.
+Known Vercel limitation: Vercel Functions have a read-only filesystem except for writable `/tmp` scratch space. If Supabase is not configured, saved student plans and counselor notes may disappear across deployments, cold starts, or function instance changes. Use Supabase for a reliable Vercel demo, keep Render with a Persistent Disk for file-backed demos, or move to a fuller database/auth model before any real school pilot.
 
 ## MVP Limitations
 - **Authentication:** Auth is currently MVP/demo-grade. Students log in via an ID with no secondary password, and counselors use a shared access code. A real school launch should use school SSO/login, invite codes, student PINs, or database-backed auth tied to verified student records.
-- **Database:** Uses local JSON files instead of a scalable relational database.
+- **Persistence:** Local development and Render can still use JSON/file storage. Supabase is available as an optional hosted persistence layer for demos, but a real school pilot still needs a fuller data governance, backup, retention, and access-control plan.
 - **Domain Data:** Hardcoded to specific SAIS academic rules and course catalogs.
 
 ## Future Improvements
-- **Database-Backed Storage:** Transition to PostgreSQL or another managed database for durable persistence, querying, and auditability.
+- **Production Data Model:** Move beyond MVP JSON payload storage toward a normalized, audited data model with retention rules and tested backups.
 - **Stronger School Authentication:** Add school-approved SSO, invite codes, or student PINs tied to verified student records.
 - **Dynamic Rules Engine:** Move course catalog and graduation requirements to the database, allowing administrators to modify rules via a CMS rather than code updates.
 - **Counselor-Supervised AI Explanation Assistant:** Add a carefully scoped assistant that answers follow-up questions about a generated plan using the deterministic recommendation facts, with counselor oversight and clear guardrails.

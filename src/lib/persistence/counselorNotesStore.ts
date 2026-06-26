@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { getSupabaseAdminClient, summarizeSupabaseError, type SupabaseDatabase } from "@/lib/persistence/supabaseServer";
 
 export interface CounselorNote {
   id: string;
@@ -12,6 +13,65 @@ export interface CounselorNote {
 
 interface NotesDb {
   notes: CounselorNote[];
+}
+
+type CounselorNoteRow = SupabaseDatabase["public"]["Tables"]["counselor_notes"]["Row"];
+type CounselorNoteInsert = SupabaseDatabase["public"]["Tables"]["counselor_notes"]["Insert"];
+
+function toCounselorNote(row: CounselorNoteRow): CounselorNote {
+  return {
+    id: row.id,
+    studentId: row.student_id,
+    body: row.body,
+    createdAt: row.created_at,
+  };
+}
+
+function logAndThrowSupabaseError(operation: string, error: { code?: string; message?: string; details?: string; hint?: string }): never {
+  console.error("[counselorNotesStore] Supabase operation failed.", {
+    operation,
+    error: summarizeSupabaseError(error),
+  });
+  throw new Error(`Supabase counselor notes ${operation} failed: ${error.message}`);
+}
+
+async function listSupabaseNotesForStudent(studentId: string): Promise<CounselorNote[]> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return listFileNotesForStudent(studentId);
+
+  const { data, error } = await supabase
+    .from("counselor_notes")
+    .select("*")
+    .eq("student_id", studentId)
+    .order("created_at", { ascending: false });
+
+  if (error) logAndThrowSupabaseError("list notes", error);
+
+  return (data ?? []).map(toCounselorNote);
+}
+
+async function addSupabaseCounselorNote(studentId: string, body: string): Promise<CounselorNote> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return addFileCounselorNote(studentId, body);
+
+  const note: CounselorNote = {
+    id: randomUUID(),
+    studentId,
+    body: body.trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  const payload: CounselorNoteInsert = {
+    id: note.id,
+    student_id: note.studentId,
+    body: note.body,
+    created_at: note.createdAt,
+  };
+
+  const { data, error } = await supabase.from("counselor_notes").insert(payload).select("*").single();
+  if (error) logAndThrowSupabaseError("add note", error);
+
+  return toCounselorNote(data);
 }
 
 function configuredDataDir(): string | null {
@@ -94,14 +154,14 @@ async function save(db: NotesDb) {
   }
 }
 
-export async function listNotesForStudent(studentId: string): Promise<CounselorNote[]> {
+async function listFileNotesForStudent(studentId: string): Promise<CounselorNote[]> {
   const db = await load();
   return db.notes
     .filter((n) => n.studentId === studentId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-export async function addCounselorNote(studentId: string, body: string): Promise<CounselorNote> {
+async function addFileCounselorNote(studentId: string, body: string): Promise<CounselorNote> {
   const db = await load();
   const note: CounselorNote = {
     id: randomUUID(),
@@ -112,4 +172,12 @@ export async function addCounselorNote(studentId: string, body: string): Promise
   db.notes.push(note);
   await save(db);
   return note;
+}
+
+export async function listNotesForStudent(studentId: string): Promise<CounselorNote[]> {
+  return getSupabaseAdminClient() ? listSupabaseNotesForStudent(studentId) : listFileNotesForStudent(studentId);
+}
+
+export async function addCounselorNote(studentId: string, body: string): Promise<CounselorNote> {
+  return getSupabaseAdminClient() ? addSupabaseCounselorNote(studentId, body) : addFileCounselorNote(studentId, body);
 }
