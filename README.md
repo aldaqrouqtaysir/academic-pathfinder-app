@@ -3,7 +3,7 @@
 > A guided academic planning and recommendation workspace for high school students.
 
 ## Live Demo
-[Open the live demo on Render](https://academic-pathfinder-app.vercel.app/login)
+[Open the live demo on Vercel](https://academic-pathfinder-app.vercel.app/login)
 
 ## Problem Statement
 High school academic planning is often a confusing maze of PDFs, prerequisites, and competing graduation requirements. Students struggle to build cohesive schedules that align with their career aspirations, workload tolerance, and university goals, while counselors are overwhelmed manually validating graduation paths.
