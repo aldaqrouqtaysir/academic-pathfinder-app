@@ -15,8 +15,9 @@ export function ChoiceTile({ title, subtitle, selected, onClick, size = "md" }: 
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={clsx(
-        "group relative w-full overflow-hidden rounded-2xl border text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 active:scale-[0.98]",
+        "group relative min-h-11 w-full overflow-hidden rounded-2xl border text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 active:scale-[0.98]",
         size === "lg" ? "px-5 py-4" : "px-4 py-3",
         selected
           ? "border-teal-500 bg-gradient-to-br from-teal-100/95 via-white to-cyan-50 shadow-[0_18px_38px_-26px_rgba(15,118,110,0.9)] ring-2 ring-teal-400/50 ring-offset-2 ring-offset-white"
@@ -29,7 +30,7 @@ export function ChoiceTile({ title, subtitle, selected, onClick, size = "md" }: 
           {subtitle ? <div className="mt-1 text-xs leading-snug text-slate-600">{subtitle}</div> : null}
         </div>
         {selected ? (
-          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-600 text-[11px] font-bold text-white">
+          <span aria-hidden="true" className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-600 text-[11px] font-bold text-white">
             ✓
           </span>
         ) : null}

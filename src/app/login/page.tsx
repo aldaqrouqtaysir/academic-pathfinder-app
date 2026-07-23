@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -51,6 +51,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const submitInFlight = useRef(false);
 
   const {
     register,
@@ -63,7 +65,13 @@ export default function LoginPage() {
   });
   const studentIdReg = register("studentId");
 
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
+
   async function onSubmit(values: LoginValues) {
+    if (submitInFlight.current) return;
+    submitInFlight.current = true;
     setError(null);
     setSubmitting(true);
     try {
@@ -102,12 +110,13 @@ export default function LoginPage() {
     } catch {
       setError("Network hiccup. Try again in a moment.");
     } finally {
+      submitInFlight.current = false;
       setSubmitting(false);
     }
   }
 
   return (
-    <main className="min-h-[100dvh] overflow-hidden">
+    <main id="main-content" tabIndex={-1} className="min-h-[100dvh] overflow-hidden">
       <div className="apf-journey-shell grid min-h-[100dvh] items-start gap-5 !py-5 sm:gap-8 sm:!py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:!py-12 xl:gap-16">
         <section className="apf-fade-up">
           <div className="inline-flex max-w-full items-center gap-2 rounded-2xl border border-white/80 bg-white/80 p-2 pr-3 shadow-[0_18px_42px_-30px_rgba(15,118,110,0.7)] ring-1 ring-teal-200/60 sm:gap-3 sm:pr-4">
@@ -192,6 +201,10 @@ export default function LoginPage() {
                     placeholder="e.g. 12345678"
                     autoComplete="off"
                     maxLength={8}
+                    aria-describedby={
+                      errors.studentId ? "student-id-error" : error ? "student-login-error" : "student-id-help"
+                    }
+                    aria-invalid={Boolean(errors.studentId || error)}
                     className="text-base"
                     {...studentIdReg}
                     onChange={(e) => {
@@ -200,16 +213,33 @@ export default function LoginPage() {
                     }}
                   />
                   {errors.studentId ? (
-                    <p className="text-sm font-medium text-red-600">{errors.studentId.message}</p>
+                    <p id="student-id-error" className="text-sm font-medium text-red-600">
+                      {errors.studentId.message}
+                    </p>
                   ) : null}
-                  <p className="text-xs font-medium text-slate-500">Digits only. No spaces.</p>
+                  <p id="student-id-help" className="text-xs font-medium text-slate-500">
+                    Digits only. No spaces.
+                  </p>
                 </div>
 
                 {error ? (
-                  <div className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-800 ring-1 ring-red-100">{error}</div>
+                  <div
+                    id="student-login-error"
+                    ref={errorRef}
+                    role="alert"
+                    tabIndex={-1}
+                    className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-800 ring-1 ring-red-100"
+                  >
+                    {error}
+                  </div>
                 ) : null}
 
-                <Button type="submit" disabled={submitting} className="group w-full justify-between py-3 pl-5 pr-3 text-base font-bold">
+                <Button
+                  type="submit"
+                  aria-busy={submitting}
+                  disabled={submitting}
+                  className="group w-full justify-between py-3 pl-5 pr-3 text-base font-bold"
+                >
                   <span>{submitting ? "Opening" : "Continue"}</span>
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 transition-transform duration-300 group-hover:translate-x-0.5">
                     <IconArrowRight className="h-4 w-4" />

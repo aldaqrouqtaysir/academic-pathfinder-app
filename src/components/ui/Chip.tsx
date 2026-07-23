@@ -18,8 +18,9 @@ export function Chip({ label, tone = "slate", selected, onClick, type }: Props) 
       <button
         type={type ?? "button"}
         onClick={onClick}
+        aria-pressed={Boolean(selected)}
         className={clsx(
-          "inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-teal-50/90 hover:text-teal-900 active:translate-y-0 active:scale-95",
+          "inline-flex min-h-11 items-center rounded-full px-3 py-2 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-teal-50/90 hover:text-teal-900 active:translate-y-0 active:scale-95",
           baseTone,
           active,
         )}

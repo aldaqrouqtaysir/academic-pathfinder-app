@@ -3,23 +3,43 @@
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { StudentHeader } from "@/components/student/StudentHeader";
 
 export default function WelcomeBackPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const startInFlight = useRef(false);
 
   async function startNew() {
+    if (startInFlight.current) return;
+    startInFlight.current = true;
+    setError(null);
     setLoading(true);
-    await fetch("/api/student/start-new", { method: "POST", cache: "no-store" });
-    router.push("/intake");
+    try {
+      const response = await fetch("/api/student/start-new", { method: "POST", cache: "no-store" });
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (!response.ok) {
+        setError("Could not start a new journey. Your saved plan is unchanged; please try again.");
+        return;
+      }
+      router.push("/intake");
+    } catch {
+      setError("Network error. Your saved plan is unchanged; please try again.");
+    } finally {
+      startInFlight.current = false;
+      setLoading(false);
+    }
   }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_120%_75%_at_50%_-18%,rgba(34,211,238,0.2),transparent)]">
       <StudentHeader />
-      <div className="apf-journey-shell">
+      <main id="main-content" tabIndex={-1} className="apf-journey-shell">
         <div className="mx-auto max-w-3xl">
           <div className="mb-6 text-center sm:text-left">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-800">SAIS Navigator</p>
@@ -57,10 +77,16 @@ export default function WelcomeBackPage() {
                   className="w-full py-3 font-bold"
                   variant="secondary"
                   onClick={startNew}
+                  aria-busy={loading}
                   disabled={loading}
                 >
                   {loading ? "Starting" : "✨ Start a new journey"}
                 </Button>
+                {error ? (
+                  <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 ring-1 ring-red-100">
+                    {error}
+                  </p>
+                ) : null}
                 <p className="text-center text-[11px] font-medium leading-snug text-slate-500 sm:text-left">
                   Starting new keeps older plans in history but switches what you see as active.
                 </p>
@@ -68,7 +94,7 @@ export default function WelcomeBackPage() {
             </div>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

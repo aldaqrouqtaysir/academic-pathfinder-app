@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function StudentNotFound() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Student lookup</p>
         <h1 className="mt-2 text-2xl font-semibold text-slate-950">No saved plan found</h1>
@@ -17,6 +17,6 @@ export default function StudentNotFound() {
           Back to student lookup
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

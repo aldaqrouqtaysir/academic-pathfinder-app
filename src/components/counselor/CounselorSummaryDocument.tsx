@@ -71,7 +71,7 @@ function PathBlock({ rec, answers }: { rec: PathRecommendation; answers: Record<
   const bars = pathMetricBars(rec);
   const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-4 ring-1 ring-white/80">
+    <div className="apf-print-block rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50/90 to-white p-4 ring-1 ring-white/80">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900">{pathTitle(rec.kind)}</h3>
         <div className="flex flex-wrap items-center gap-2">
@@ -128,12 +128,13 @@ export function CounselorSummaryDocument(props: {
   const selfReportedAcademicConfidence = pick<string>(answers.selfReportedAcademicConfidence);
 
   const isReport = variant === "report";
+  const SummaryHeading = isReport ? "h1" : "h2";
   const finalSummaryLine =
     bundle?.bestFit != null ? buildFinalRecommendationSummary(answers, bundle.bestFit as PathRecommendation) : null;
   const guidanceMode = bundle?.bestFit != null ? isGuidanceRecommendation(bundle.bestFit as PathRecommendation) : false;
   const alternativePaths = bundle ? uniqueAlternativePaths(bundle) : [];
   const sectionCardClass = isReport
-    ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-none ring-0"
+    ? "apf-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-none ring-0"
     : "apf-section-card";
 
   return (
@@ -156,9 +157,9 @@ export function CounselorSummaryDocument(props: {
         <p className={isReport ? "text-xs font-semibold uppercase tracking-wide text-slate-500" : "apf-kicker"}>
           Counselor summary
         </p>
-        <h1 className={isReport ? "mt-2 text-2xl font-bold tracking-tight" : "mt-2 text-2xl font-black tracking-tight text-slate-950"}>
+        <SummaryHeading className={isReport ? "mt-2 text-2xl font-bold tracking-tight" : "mt-2 text-2xl font-black tracking-tight text-slate-950"}>
           {isReport ? "Academic pathway summary" : "Student summary"}
-        </h1>
+        </SummaryHeading>
         <p className={`mt-1 ${isReport ? "text-sm text-slate-600" : "text-sm text-slate-600"}`}>
           Student ID: <span className="font-mono font-semibold">{studentId}</span>
           {generatedAt ? (
@@ -328,11 +329,11 @@ export function CounselorSummaryDocument(props: {
 
       {isReport ? (
         notes.length > 0 ? (
-          <Card className="rounded-2xl border border-slate-200 bg-white p-5 shadow-none ring-0">
+          <Card className="apf-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-none ring-0">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Counselor notes</h2>
             <ul className="mt-3 space-y-3">
               {notes.map((n) => (
-                <li key={n.id} className="border-l-2 border-teal-400 pl-3">
+                <li key={n.id} className="apf-print-note border-l-2 border-teal-400 pl-3">
                   <p className="text-xs text-slate-500">{new Date(n.createdAt).toLocaleString()}</p>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{n.body}</p>
                 </li>
@@ -340,7 +341,7 @@ export function CounselorSummaryDocument(props: {
             </ul>
           </Card>
         ) : (
-          <Card className="rounded-2xl border border-dashed border-slate-200 bg-white p-5 shadow-none ring-0">
+          <Card className="apf-print-section rounded-2xl border border-dashed border-slate-200 bg-white p-5 shadow-none ring-0">
             <p className="text-sm text-slate-500">No counselor notes on file.</p>
           </Card>
         )

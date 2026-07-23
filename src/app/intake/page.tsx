@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -213,57 +213,101 @@ function IntakePageInner() {
   const [form, setForm] = useState<IntakeFormDraft>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingExisting, setLoadingExisting] = useState(isEdit);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const submitInFlight = useRef(false);
 
   useEffect(() => {
-    if (!isEdit) return;
-    (async () => {
-      const res = await fetch("/api/student/active-plan", { cache: "no-store" });
-      if (!res.ok) return;
-      const json = await res.json();
-      const a = json?.activeSession?.answers;
-      if (!a) return;
-      const courses = Array.isArray(a.currentCourses) ? a.currentCourses : [];
-      const aps = Array.isArray(a.currentAPs) ? a.currentAPs : [];
-      const merged = [...courses, ...aps];
-      const { currentCourses: _c, currentAPs: _p, ...rest } = a as Record<string, unknown>;
-      const rawMain = a.mainCountry != null ? migrateCountryCode(String(a.mainCountry)) : undefined;
-      const validMain =
-        rawMain && (COUNTRY_OPTIONS as readonly string[]).includes(rawMain)
-          ? (rawMain as IntakeFormDraft["mainCountry"])
-          : undefined;
-      setForm((prev) => ({
-        ...prev,
-        ...(rest as Partial<IntakeFormDraft>),
-        mainCountry: validMain ?? prev.mainCountry,
-        strengths: Array.isArray(a.strengths) ? migrateStrengthWeaknessList(a.strengths as string[]) : prev.strengths,
-        weaknesses: Array.isArray(a.weaknesses) ? migrateStrengthWeaknessList(a.weaknesses as string[]) : prev.weaknesses,
-        additionalCountries: Array.isArray(a.additionalCountries)
-          ? [
-              ...new Set(
-                (a.additionalCountries as string[])
-                  .map((c) => migrateCountryCode(c))
-                  .filter(
-                    (c) =>
-                      (COUNTRY_OPTIONS as readonly string[]).includes(c) && c !== (validMain ?? prev.mainCountry),
-                  ),
-              ),
-            ]
-          : prev.additionalCountries,
-        interests: Array.isArray(a.interests) ? (a.interests as string[]) : prev.interests,
-        careerGoals: Array.isArray(a.careerGoals) ? (a.careerGoals as string[]) : prev.careerGoals,
-        preferencesToAvoid: Array.isArray(a.preferencesToAvoid) ? (a.preferencesToAvoid as string[]) : prev.preferencesToAvoid,
-        preferences: Array.isArray(a.preferences) ? (a.preferences as string[]) : prev.preferences,
-        currentSelections:
-          merged.length > 0 && a.currentGrade
-            ? hydrateCurrentSelectionsFromCodes(a.currentGrade as 9 | 10 | 11 | 12, merged)
-            : typeof (a as { currentSelections?: unknown }).currentSelections === "object" &&
-                (a as { currentSelections?: unknown }).currentSelections !== null
-              ? ((a as { currentSelections: Record<string, string> }).currentSelections)
-              : {},
-      }));
-    })();
-  }, [isEdit]);
+    if (!isEdit) {
+      setLoadingExisting(false);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadExistingPlan() {
+      setLoadingExisting(true);
+      setLoadError(null);
+      try {
+        const res = await fetch("/api/student/active-plan", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+        if (!res.ok) throw new Error("Active plan request failed.");
+        const json = await res.json();
+        const a = json?.activeSession?.answers;
+        if (!a) {
+          setLoadError("No saved answers were found. You can complete a new intake below.");
+          return;
+        }
+        const courses = Array.isArray(a.currentCourses) ? a.currentCourses : [];
+        const aps = Array.isArray(a.currentAPs) ? a.currentAPs : [];
+        const merged = [...courses, ...aps];
+        const { currentCourses: _c, currentAPs: _p, ...rest } = a as Record<string, unknown>;
+        const rawMain = a.mainCountry != null ? migrateCountryCode(String(a.mainCountry)) : undefined;
+        const validMain =
+          rawMain && (COUNTRY_OPTIONS as readonly string[]).includes(rawMain)
+            ? (rawMain as IntakeFormDraft["mainCountry"])
+            : undefined;
+        if (cancelled) return;
+        setForm((prev) => ({
+          ...prev,
+          ...(rest as Partial<IntakeFormDraft>),
+          mainCountry: validMain ?? prev.mainCountry,
+          strengths: Array.isArray(a.strengths) ? migrateStrengthWeaknessList(a.strengths as string[]) : prev.strengths,
+          weaknesses: Array.isArray(a.weaknesses) ? migrateStrengthWeaknessList(a.weaknesses as string[]) : prev.weaknesses,
+          additionalCountries: Array.isArray(a.additionalCountries)
+            ? [
+                ...new Set(
+                  (a.additionalCountries as string[])
+                    .map((c) => migrateCountryCode(c))
+                    .filter(
+                      (c) =>
+                        (COUNTRY_OPTIONS as readonly string[]).includes(c) && c !== (validMain ?? prev.mainCountry),
+                    ),
+                ),
+              ]
+            : prev.additionalCountries,
+          interests: Array.isArray(a.interests) ? (a.interests as string[]) : prev.interests,
+          careerGoals: Array.isArray(a.careerGoals) ? (a.careerGoals as string[]) : prev.careerGoals,
+          preferencesToAvoid: Array.isArray(a.preferencesToAvoid)
+            ? (a.preferencesToAvoid as string[])
+            : prev.preferencesToAvoid,
+          preferences: Array.isArray(a.preferences) ? (a.preferences as string[]) : prev.preferences,
+          currentSelections:
+            merged.length > 0 && a.currentGrade
+              ? hydrateCurrentSelectionsFromCodes(a.currentGrade as 9 | 10 | 11 | 12, merged)
+              : typeof (a as { currentSelections?: unknown }).currentSelections === "object" &&
+                  (a as { currentSelections?: unknown }).currentSelections !== null
+                ? (a as { currentSelections: Record<string, string> }).currentSelections
+                : {},
+        }));
+      } catch (loadFailure) {
+        if (!cancelled && !(loadFailure instanceof DOMException && loadFailure.name === "AbortError")) {
+          setLoadError("Could not load your saved answers. You can retry by refreshing, or complete a new intake.");
+        }
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
+    }
+
+    void loadExistingPlan();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [isEdit, router]);
+
+  useEffect(() => {
+    if (error) errorSummaryRef.current?.focus();
+  }, [error]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -308,7 +352,9 @@ function IntakePageInner() {
 
   function scrollToMissingSection(sectionId: string) {
     window.setTimeout(() => {
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const section = document.getElementById(sectionId);
+      section?.scrollIntoView({ behavior: "smooth", block: "center" });
+      section?.focus({ preventScroll: true });
     }, 80);
   }
 
@@ -317,6 +363,7 @@ function IntakePageInner() {
   }
 
   async function submit() {
+    if (submitInFlight.current) return;
     const currentMissingFields = getMissingFields(form);
     if (currentMissingFields.length > 0) {
       setValidationAttempted(true);
@@ -328,6 +375,7 @@ function IntakePageInner() {
     }
     setError(null);
     setValidationAttempted(false);
+    submitInFlight.current = true;
     setSubmitting(true);
     const { currentCourses, currentAPs } =
       form.semester === "Semester2" ? splitCurrentCoursesForApi(form.currentSelections) : { currentCourses: [], currentAPs: [] };
@@ -348,33 +396,40 @@ function IntakePageInner() {
       currentCourses,
       currentAPs,
     };
-    const res = await fetch("/api/student/save-and-run", {
-      method: "POST",
-      cache: "no-store",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      const apiMissingLabels = getApiMissingLabels(body?.error);
-      const apiCode = getApiString(body, "code");
-      const requestId = getApiString(body, "requestId");
+    try {
+      const res = await fetch("/api/student/save-and-run", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const apiMissingLabels = getApiMissingLabels(body?.error);
+        const apiCode = getApiString(body, "code");
+        const requestId = getApiString(body, "requestId");
+        setValidationAttempted(false);
+        setError(
+          apiMissingLabels.length > 0
+            ? formatMissingLabels(apiMissingLabels)
+            : formatSubmitFailureMessage(apiCode, requestId),
+        );
+        return;
+      }
+      router.push("/dashboard?fresh=1");
+    } catch {
       setValidationAttempted(false);
-      setError(
-        apiMissingLabels.length > 0
-          ? formatMissingLabels(apiMissingLabels)
-          : formatSubmitFailureMessage(apiCode, requestId),
-      );
+      setError("Network error. Your answers are still here; please try building your plan again.");
+    } finally {
+      submitInFlight.current = false;
       setSubmitting(false);
-      return;
     }
-    router.push("/dashboard?fresh=1");
   }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_130%_90%_at_50%_-25%,rgba(34,211,238,0.2),transparent)]">
       <StudentHeader />
-      <div className="apf-journey-shell">
+      <main id="main-content" tabIndex={-1} className="apf-journey-shell">
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-14">
           <aside className="lg:col-span-3 xl:col-span-3">
             <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-b from-teal-50/80 to-white/90 p-4 shadow-md ring-1 ring-teal-100/50 lg:p-5">
@@ -393,6 +448,7 @@ function IntakePageInner() {
               {JOURNEY_STEPS.map((s, i) => (
                 <li
                   key={s.label}
+                  aria-current={i === step ? "step" : undefined}
                   className={clsx(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition duration-300",
                     i === step && "bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-950 ring-2 ring-teal-400/60 shadow-md",
@@ -416,7 +472,7 @@ function IntakePageInner() {
             </ol>
             <div className="mt-6 hidden sm:block">
               <p className="mb-2 text-xs font-bold text-slate-700">Your progress</p>
-              <Progress value={progress} size="lg" />
+              <Progress value={progress} size="lg" label={`Intake progress: step ${step + 1} of ${JOURNEY_STEPS.length}`} />
               <div className="mt-2 flex justify-between text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 <span>Start</span>
                 <span>Almost there</span>
@@ -426,7 +482,17 @@ function IntakePageInner() {
           </aside>
 
           <div className="min-w-0 lg:col-span-9 xl:col-span-9">
-            <Card className="apf-journey-card p-6 sm:p-8 lg:p-10">
+            <Card className="apf-journey-card p-6 sm:p-8 lg:p-10" aria-busy={loadingExisting || submitting}>
+              {loadingExisting ? (
+                <p role="status" className="mb-5 rounded-xl bg-cyan-50 px-4 py-3 text-sm font-semibold text-cyan-900 ring-1 ring-cyan-100">
+                  Loading your saved answers.
+                </p>
+              ) : null}
+              {loadError ? (
+                <p role="alert" className="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 ring-1 ring-amber-200">
+                  {loadError}
+                </p>
+              ) : null}
               <div className="apf-journey-hero mb-6 sm:mb-8">
                 <p className="text-xs font-bold uppercase tracking-wide text-teal-900">You’re on the path</p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
@@ -442,7 +508,7 @@ function IntakePageInner() {
                   </span>
                   <span className="text-teal-800">{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} size="lg" />
+                <Progress value={progress} size="lg" label={`Intake progress: step ${step + 1} of ${JOURNEY_STEPS.length}`} />
               </div>
 
               <div key={step} className="apf-step-in space-y-8 sm:space-y-10 lg:space-y-12">
@@ -918,11 +984,12 @@ function IntakePageInner() {
                 </IntakePanel>
 
                 <div className="rounded-2xl border-2 border-dashed border-cyan-200/70 bg-gradient-to-br from-cyan-50/50 to-white p-4 ring-1 ring-cyan-100/40">
-                  <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                  <label htmlFor="future-plans" className="flex items-center gap-2 text-sm font-bold text-slate-800">
                     <span className="h-2 w-2 rounded-full bg-cyan-500" aria-hidden />
                     Anything else? (optional)
                   </label>
                   <Input
+                    id="future-plans"
                     className="mt-2"
                     value={form.futurePlans}
                     onChange={(e) => setForm({ ...form, futurePlans: e.target.value })}
@@ -934,21 +1001,31 @@ function IntakePageInner() {
           </div>
 
           {error ? (
-            <div role="alert" className="mt-6 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800 ring-1 ring-red-100">
+            <div
+              id="intake-error-summary"
+              ref={errorSummaryRef}
+              role="alert"
+              tabIndex={-1}
+              className="mt-6 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800 ring-1 ring-red-100"
+            >
               {error}
             </div>
           ) : null}
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <Button variant="secondary" disabled={step === 0 || submitting} onClick={() => setStep(step - 1)}>
+            <Button variant="secondary" disabled={step === 0 || submitting || loadingExisting} onClick={() => setStep(step - 1)}>
               Back
             </Button>
             {step < JOURNEY_STEPS.length - 1 ? (
-              <Button className="sm:min-w-[220px]" disabled={!canProceedCurrentStep() || submitting} onClick={() => setStep(step + 1)}>
+              <Button
+                className="sm:min-w-[220px]"
+                disabled={!canProceedCurrentStep() || submitting || loadingExisting}
+                onClick={() => setStep(step + 1)}
+              >
                 Next step →
               </Button>
             ) : (
-              <Button className="sm:min-w-[240px]" disabled={submitting} onClick={submit}>
+              <Button className="sm:min-w-[240px]" aria-busy={submitting} disabled={submitting || loadingExisting} onClick={submit}>
                 {submitting ? "Building your plan" : "Unlock my plan"}
               </Button>
             )}
@@ -956,7 +1033,7 @@ function IntakePageInner() {
             </Card>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

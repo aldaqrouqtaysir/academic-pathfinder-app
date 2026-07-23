@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CounselorNote } from "@/lib/persistence/counselorNotesStore";
 import { Button } from "@/components/ui/Button";
@@ -9,17 +9,23 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
   const { studentId, initialNotes } = props;
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const saveInFlight = useRef(false);
   const router = useRouter();
 
-  function submit() {
+  async function submit() {
+    if (saveInFlight.current) return;
     setError(null);
+    setSavedMessage(null);
     const body = text.trim();
     if (!body) {
       setError("Enter a note before saving.");
       return;
     }
-    startTransition(async () => {
+    saveInFlight.current = true;
+    setPending(true);
+    try {
       const res = await fetch("/api/counselor/notes", {
         method: "POST",
         cache: "no-store",
@@ -31,8 +37,14 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
         return;
       }
       setText("");
+      setSavedMessage("Note saved.");
       router.refresh();
-    });
+    } catch {
+      setError("Network error. The note was not saved; please try again.");
+    } finally {
+      saveInFlight.current = false;
+      setPending(false);
+    }
   }
 
   return (
@@ -54,19 +66,31 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
         <p className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/60 p-4 text-sm text-slate-500">No notes yet.</p>
       )}
 
-      <label className="mt-4 block">
-        <span className="sr-only">New note</span>
+      <label htmlFor="counselor-note" className="mt-4 block">
+        <span className="text-sm font-semibold text-slate-700">New note</span>
         <textarea
+          id="counselor-note"
           className="mt-1 min-h-[112px] w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-white/80 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
           placeholder="Add a brief note for the file (placement discussion, follow-ups, etc.)"
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={pending}
+          aria-describedby={error ? "counselor-note-error" : savedMessage ? "counselor-note-status" : undefined}
+          aria-invalid={Boolean(error)}
         />
       </label>
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p id="counselor-note-error" role="alert" className="mt-2 text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
+      {savedMessage ? (
+        <p id="counselor-note-status" role="status" className="mt-2 text-sm font-medium text-emerald-700">
+          {savedMessage}
+        </p>
+      ) : null}
       <div className="mt-3">
-        <Button type="button" onClick={submit} disabled={pending}>
+        <Button type="button" aria-busy={pending} onClick={() => void submit()} disabled={pending}>
           {pending ? "Saving" : "Save note"}
         </Button>
       </div>

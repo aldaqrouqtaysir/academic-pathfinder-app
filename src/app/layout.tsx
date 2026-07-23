@@ -14,6 +14,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <a className="apf-skip-link" href="#main-content">
+          Skip to main content
+        </a>
         {children}
       </body>
     </html>
