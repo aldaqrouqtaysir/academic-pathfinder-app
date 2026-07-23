@@ -61,7 +61,7 @@ export interface Course {
 
   yearLong: boolean; // per docs: AP + Environmental Science year-long (cannot drop mid-year)
 
-  // Deterministic prerequisites/sequencing
+  // Fields reserved for deterministic prerequisite/sequencing data; enforcement is incomplete.
   prerequisites: string[];
   sequenceNext?: string;
   sequencePrev?: string;

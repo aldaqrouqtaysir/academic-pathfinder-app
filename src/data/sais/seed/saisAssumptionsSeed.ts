@@ -1,7 +1,7 @@
 /**
- * SAIS MVP Starter Assumptions (explicit)
+ * SAIS portfolio MVP assumptions (explicit)
  *
- * Confirmed inputs come from:
+ * Current project inputs come from:
  * - PRD/Implementation/TechStack docs (MVP scope and rule shapes)
  * - The corrections you provided in this chat (grade-level structures + AP set placements)
  *
@@ -9,9 +9,12 @@
  * `setElectiveCoursesSeed.ts`, and `categoryTemplatesSeed.ts`.
  *
  * Everything labeled ASSUMPTION is:
- * - a reasonable default for a pilot-grade deterministic engine
+ * - a reasonable default for a prototype deterministic engine
  * - designed to be easy to edit later
  * - NOT enforced as a hard prerequisite block unless it is explicitly confirmed
+ *
+ * The `confirmed` label below means confirmed within the current project brief,
+ * not independently verified or approved school policy.
  */
 
 export const saisAssumptionsSeed = {

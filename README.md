@@ -1,120 +1,155 @@
 # SAIS Academic Navigator
 
-> A guided academic planning and recommendation workspace for high school students.
+> A deterministic, rule-based academic planning and decision-support platform for SAIS Dubai.
 
 ## Live Demo
-[Open the live demo on Vercel](https://academic-pathfinder-app.vercel.app/)
 
-## Problem Statement
-High school academic planning is often a confusing maze of PDFs, prerequisites, and competing graduation requirements. Students struggle to build cohesive schedules that align with their career aspirations, workload tolerance, and university goals, while counselors are overwhelmed manually validating graduation paths.
+[Open the primary Vercel deployment](https://academic-pathfinder-app.vercel.app/)
 
-## What the App Does
-**SAIS Academic Navigator** transforms course selection from a bureaucratic form into an engaging, interactive journey. It collects a student's interests, strengths, academic confidence, and destination goals to generate a personalized, rule-based course pathway. It also provides a passcode-protected counselor dashboard for faculty to review student submissions, leave notes, and print counselor-facing summaries.
+This public deployment is a portfolio/demo MVP. It is not production-approved for real student records or an official school deployment.
 
-## Project Status
-- **Stable MVP:** The core student intake, recommendation dashboard, and counselor review flows are implemented.
-- **Build Passing:** The app currently passes clean install and production build checks.
-- **Portfolio/Demo Ready:** Designed for portfolio review, resume screenshots, and stakeholder demos using sample student IDs.
-- **Not Production School Infrastructure:** A real school pilot would require database-backed persistence, stronger authentication, and school-approved privacy/security review.
+## Overview
+
+SAIS Academic Navigator turns a multi-step student intake into grade-aware academic planning suggestions. Students describe their interests, strengths, workload tolerance, and future goals; the application then evaluates generated course combinations with deterministic rules and weighted match factors.
+
+The project is designed for an estimated school audience of approximately 300 students. This is a design target, not a claim of active users, adoption, or academic validation.
+
+## Current Product Status
+
+- Student intake, saved-plan, recommendation dashboard, and counselor review workflows are implemented.
+- Grade 9–10 students receive one readiness plan; Grade 11–12 students may receive Best Fit, Balanced, and Stretch paths.
+- Counselors use a shared demo access code, look up one saved plan by student ID, add internal notes, and open a printable summary.
+- Authentication and persistence are MVP-grade and intended only for portfolio demonstrations.
+- Recommendations should be reviewed with a qualified school counselor.
 
 ## Key Features
-- **Interactive Intake Flow:** A modern, guided UI that captures nuanced student context (e.g., workload tolerance, risk preference, target universities).
-- **Rule-Based Recommendation Engine:** Deterministically maps student preferences against school-specific academic rules to output a tailored course schedule.
-- **Dedicated Counselor Portal:** A passcode-protected dashboard where counselors can review student plans, leave notes, and generate printable summaries.
-- **Responsive & Accessible UI:** Designed with modern aesthetics, subtle micro-animations, and a mobile-friendly layout.
-- **MVP Session Handling:** Lightweight JWT-based sessions for demo use, with student-ID login and counselor access-code login.
+
+- **Guided student intake:** Captures academic confidence, interests, career direction, target countries, workload tolerance, and planning priorities.
+- **Rule-based pathway recommendations:** Produces repeatable results from the same inputs without machine learning, an LLM, or probabilistic prediction.
+- **Grade-aware output:** Uses a readiness format for Grades 9–10 and pathway comparisons for Grades 11–12.
+- **Student dashboard:** Explains selections, trade-offs, warnings, and suggested next steps.
+- **Counselor lookup:** Opens the latest saved plan for a supplied eight-digit student ID; there is no full student roster.
+- **Counselor notes and print view:** Supports internal notes and a printable advising summary.
+- **Optional hosted persistence:** Uses Supabase when configured and a JSON/file store otherwise.
+- **Responsive interface:** Supports desktop and mobile layouts.
+
+## Recommendation Engine
+
+The engine is deterministic and rule-based. It is not a trained AI model, chatbot, statistical predictor, or academically validated recommendation system.
+
+Current implementation facts:
+
+- 57-course catalog
+- 1,440 or 1,728 generated candidate plans, depending on the grade/semester scenario
+- Nine weighted fit factors
+- Six current hard-validator functions
+- Stable, characterized recommendation ordering and warning behavior
+
+Scores are deterministic match scores used to compare candidate plans. They are not probabilities, confidence intervals, admission forecasts, or measures of academic success.
+
+Current prerequisite and sequence enforcement is incomplete. The repository includes prototype course and policy data that requires counselor review before any controlled school pilot. The engine supports advising conversations; it does not replace school policy or qualified counseling.
 
 ## Screenshots
+
+All repository screenshots use synthetic demo data.
+
 ### Student Login
+
 ![Student login page](docs/images/student-login.png)
 
 ### Guided Intake
+
 ![Student intake flow](docs/images/intake-flow.png)
 
 ### Grade 12 Recommendation Dashboard
+
 ![Grade 12 recommendation dashboard](docs/images/grade-12-dashboard.png)
 
 ### Grade 10 Readiness Mode
+
 ![Grade 10 readiness dashboard](docs/images/grade-10-readiness-dashboard.png)
 
-### Counselor Dashboard
+### Counselor Student Lookup
+
 ![Counselor dashboard and student lookup](docs/images/counselor-dashboard.png)
 
 ### Counselor Student Summary
+
 ![Counselor student summary](docs/images/counselor-student-summary.png)
 
 ### Printable Counselor Report
+
 ![Printable counselor report](docs/images/counselor-printable-report.png)
 
 ## Tech Stack
-- **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
+
+- **Framework:** Next.js 14 App Router
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS + Vanilla CSS (for custom micro-animations and gradients)
-- **Forms & Validation:** React Hook Form + Zod
-- **Authentication:** `jose` for lightweight MVP session cookies/JWTs
-- **Persistence:** JSON/File-based storage (MVP grade)
+- **UI:** React 18, Tailwind CSS, and project CSS
+- **Forms and validation:** React Hook Form and Zod
+- **MVP sessions:** `jose`-signed HTTP-only cookies
+- **Persistence:** Optional Supabase service-role access or a JSON/file fallback
+- **Testing:** Vitest
+- **CI:** GitHub Actions
 
-## Architecture Overview
-The application follows a standard Next.js App Router architecture with a clear separation of concerns:
-- `src/app/`: Contains the route definitions and page components (e.g., `/intake`, `/dashboard`, `/counselor`).
-- `src/components/`: Reusable UI components and domain-specific widgets.
-- `src/lib/`: Core business logic, including the recommendation engine, authentication helpers, and file-based data persistence.
-- `src/data/`: Static domain data such as course catalogs, prerequisites, and SAIS-specific rules.
+## Architecture
 
-### MVP Note on Data Persistence
-Currently, the app relies on a local JSON file-based store to quickly iterate and validate the user experience without the overhead of a full database. Production deployments will require migrating this to a real database (e.g., PostgreSQL).
-
-## Demo Flow
-### Student Experience
-1. **Login:** Students enter an 8-digit Student ID for MVP/demo access.
-2. **Intake Journey:** A multi-step form captures their current academic standing, career interests, preferred destinations, and workload tolerance.
-3. **Dashboard:** The deterministic rule-based engine processes the intake data and presents a customized academic plan.
-4. **Iterate:** Students can refine their preferences and immediately see updated recommendations.
-
-### Counselor Experience
-1. **Login:** Faculty/demo reviewers log in via a hidden route (`/counselor/login`) using a shared access code.
-2. **Dashboard:** Counselors view a roster of active student plans.
-3. **Review & Annotate:** Counselors can review the exact inputs a student provided, append internal notes, and flag plans for discussion.
-4. **Export:** Generate clean, printable summaries for advising conversations and demos.
-
-## Recommendation Engine Overview
-The recommendation logic is **deterministic and rule-based**, not a trained Machine Learning model. It evaluates a student's responses against the currently implemented hard constraints and soft constraints (interests, workload tolerance). Prerequisite matrices are not yet fully enforced. The engine scores potential course combinations and selects the path that maximizes the student's personal optimization target (e.g., "University competitiveness" vs. "Lighter workload").
+- `src/app/`: Pages, layouts, and Route Handlers
+- `src/components/`: Student, counselor, and shared UI components
+- `src/lib/domain/`: Deterministic recommendation, scoring, and validation logic
+- `src/lib/auth/`: MVP student and counselor session helpers
+- `src/lib/persistence/`: Supabase and JSON/file persistence adapters
+- `src/data/sais/`: Prototype course, template, and rule data
+- `tests/`: Synthetic fixtures and behavior-characterization tests
 
 ## Demo Access
-- Use only a clearly synthetic 8-digit ID for student demos. Never publish or reuse a real school identifier.
-- Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local` or the deployment environment.
 
-## Local Setup Instructions
+Use only clearly synthetic eight-digit IDs.
 
-### Prerequisites
+- Example synthetic ID: `90000001`
+- On a fresh deployment, a valid unused ID starts a new intake.
+- If the same synthetic ID already has a saved plan in the configured store, login opens the returning-student flow.
+- Counselor lookup works only after that exact synthetic ID has completed and saved an intake.
+- The repository does not seed an existing plan for this ID.
+- Counselor access uses the shared `COUNSELOR_ACCESS_CODE` configured by the deployment owner.
+
+See [DEMO.md](./DEMO.md) for the complete walkthrough.
+
+## Local Setup
+
+### Requirements
+
 - Node.js 20.x
-- npm 10.x+
+- npm 10.x or later
 
 ### Installation
-1. Clone the repository.
-2. Run `npm ci` to install dependencies cleanly.
-3. Copy `.env.example` to `.env.local`:
-   ```bash
-   cp .env.example .env.local
-   ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Required Environment Variables
-See `.env.example` for details. You must configure the following in your `.env.local` for the app to function:
-- `STUDENT_SESSION_SECRET`: A secure random string for signing student session cookies.
-- `COUNSELOR_ACCESS_CODE`: The passcode faculty/demo reviewers use to access the counselor portal.
-- `COUNSELOR_SESSION_SECRET` (Optional): For counselor JWTs. Falls back to `STUDENT_SESSION_SECRET` if missing.
-- `SUPABASE_URL` (Optional): Supabase project URL for durable hosted persistence.
-- `SUPABASE_SERVICE_ROLE_KEY` (Optional): Server-side Supabase service role key. Required with `SUPABASE_URL`; never expose this as a `NEXT_PUBLIC_*` variable.
-- `DATA_DIR` (Optional): The directory path where JSON storage will reside when Supabase is not configured. Default is `.data/`. Serverless demo hosts can use a writable temporary path such as `/tmp/sais-academic-navigator`, but data will not be durable.
+```bash
+npm ci
+```
+
+Copy `.env.example` to `.env.local`, set the required demo secrets, and start the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+### Environment Variables
+
+- `STUDENT_SESSION_SECRET`: Required signing secret for student demo sessions.
+- `COUNSELOR_ACCESS_CODE`: Required shared demo code for counselor access.
+- `COUNSELOR_SESSION_SECRET`: Optional separate counselor signing secret; falls back to `STUDENT_SESSION_SECRET`.
+- `SUPABASE_URL`: Optional Supabase project URL.
+- `SUPABASE_SERVICE_ROLE_KEY`: Optional server-only service role key; required with `SUPABASE_URL`.
+- `DATA_DIR`: Optional JSON/file data directory when Supabase is not configured.
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `NEXT_PUBLIC_*` variable.
 
 ## Testing and Quality
 
-Use Node.js 20.x and the committed npm lockfile:
+Run the project with Node.js 20.x and the committed lockfile:
 
 ```bash
 npm ci
@@ -125,75 +160,84 @@ npm run build
 npm run quality
 ```
 
-The Vitest suite preserves the current deterministic recommendation behavior through explicit catalog, validator, scoring, ordering, warning, and output assertions. Every test fixture is visibly synthetic and is loaded only by unit tests. Known limitations, including incomplete prerequisite enforcement and stable insertion-order ties, are intentionally characterized rather than changed in this milestone.
+The current suite contains 31 automated tests:
 
-Public repository data must always be synthetic. Local `.data` files are ignored, and real student data must never be committed. This project is a portfolio/demo application and is not approved for storing real student records.
+- recommendation-engine characterization tests preserve current scoring, ordering, warnings, explanations, and output behavior;
+- catalog and validator tests cover the 57-course catalog, candidate counts, nine weight factors, and six current hard-validator functions;
+- every test fixture is synthetic.
 
-For the manual demo flow, see [DEMO.md](./DEMO.md).
+GitHub Actions runs the same quality sequence on pushes and pull requests. The repository does not currently claim browser end-to-end tests, automated accessibility testing, or performance benchmarks.
 
-## Optional Supabase Persistence
-The app supports optional Supabase-backed persistence for student plans and counselor notes. This is recommended for Vercel because serverless filesystem storage is temporary and not reliable across separate requests, cold starts, or deploys.
+## Persistence and Deployment
 
-How it works:
-1. If both `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are configured, the server-side persistence layer uses Supabase.
-2. If either Supabase variable is missing, the app falls back to the existing JSON/file store.
-3. The rest of the app uses the same persistence functions either way; recommendation logic and UI behavior are unchanged.
+### Primary Vercel Deployment
 
-Supabase setup:
-1. Create a Supabase project.
-2. Open the Supabase SQL editor.
-3. Run the schema in [docs/supabase-schema.sql](./docs/supabase-schema.sql).
-4. In Vercel or Render, add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as environment variables.
-5. Redeploy the app.
-
-If an older Supabase demo project ever shows a stale active plan after a student reruns intake, run [docs/supabase-active-plan-cleanup.sql](./docs/supabase-active-plan-cleanup.sql) once. It keeps the newest active plan for each student, deactivates older active rows, and recreates the active-plan indexes without deleting history.
-
-Security notes:
-- `SUPABASE_SERVICE_ROLE_KEY` is used only by server-side Route Handlers and server-rendered counselor pages.
-- Do not prefix the service role key with `NEXT_PUBLIC_`.
-- The included schema enables Row Level Security and does not grant direct browser-role table access.
-- This remains MVP-grade persistence and session handling, not full production student data governance.
-
-## Deployment Notes (Render)
-When deploying this MVP to a service like [Render](https://render.com), choose one persistence option:
-1. **Required Environment Variables:** Set `STUDENT_SESSION_SECRET` and `COUNSELOR_ACCESS_CODE` in the Render dashboard. `COUNSELOR_SESSION_SECRET` is optional and falls back to `STUDENT_SESSION_SECRET`.
-2. **Persistence Option A - Supabase:** Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to use hosted Supabase persistence.
-3. **Persistence Option B - Render Disk:** If Supabase is not configured, attach a Render Persistent Disk to your Web Service to ensure JSON data survives deploys and restarts.
-4. **Mount Path:** Mount the disk to a directory (e.g., `/var/data`).
-5. **Data Directory:** Set `DATA_DIR=/var/data` in the Render dashboard so the app writes JSON files to the persistent volume when Supabase is not configured. If `DATA_DIR` is omitted and the default `.data/` path is not writable, the app falls back to temporary storage so demos can still run, but saved plans may disappear after restarts or deploys.
-6. **Node Version:** Ensure Render is configured to use Node `20.x`.
-7. **Build Command:** Use `npm ci --include=dev && npm run build`.
-8. **Start Command:** Use `npm start`.
-9. **Troubleshooting:** If `Unlock my plan` reports that the server could not save the plan, check Render logs for `PERSISTENCE_ERROR` or `[studentPlanStore]` and verify either Supabase env vars or the disk mount plus `DATA_DIR`.
-
-## Deployment Notes (Vercel Demo Copy)
-Vercel can host a second demo deployment without replacing the working Render deployment. The app uses standard Next.js App Router pages and Route Handlers. For reliable counselor lookup, notes, and printable reports on Vercel, configure Supabase persistence.
+The current live demo is hosted at [academic-pathfinder-app.vercel.app](https://academic-pathfinder-app.vercel.app/).
 
 Recommended Vercel settings:
-1. **Framework Preset:** Next.js.
-2. **Root Directory:** Repository root.
-3. **Install Command:** `npm ci`.
-4. **Build Command:** `npm run build`.
-5. **Output Directory:** Leave as the Vercel default for Next.js.
-6. **Node.js Version:** Use Node `20.x`; this is also declared in `package.json`.
-7. **Required Environment Variables:** `STUDENT_SESSION_SECRET` and `COUNSELOR_ACCESS_CODE`.
-8. **Recommended Persistence Environment Variables:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
-9. **Optional Environment Variables:** `COUNSELOR_SESSION_SECRET` for a separate counselor token secret. `DATA_DIR=/tmp/sais-academic-navigator` can be used only as temporary fallback storage when Supabase is not configured.
 
-Known Vercel limitation: Vercel Functions have a read-only filesystem except for writable `/tmp` scratch space. If Supabase is not configured, saved student plans and counselor notes may disappear across deployments, cold starts, or function instance changes. Use Supabase for a reliable Vercel demo, keep Render with a Persistent Disk for file-backed demos, or move to a fuller database/auth model before any real school pilot.
+1. Framework preset: Next.js
+2. Install command: `npm ci`
+3. Build command: `npm run build`
+4. Node.js version: `20.x`
+5. Required variables: `STUDENT_SESSION_SECRET`, `COUNSELOR_ACCESS_CODE`
+6. Recommended durable-demo variables: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 
-## MVP Limitations
-- **Authentication:** Auth is currently MVP/demo-grade. Students log in via an ID with no secondary password, and counselors use a shared access code. A real school launch should use school SSO/login, invite codes, student PINs, or database-backed auth tied to verified student records.
-- **Persistence:** Local development and Render can still use JSON/file storage. Supabase is available as an optional hosted persistence layer for demos, but a real school pilot still needs a fuller data governance, backup, retention, and access-control plan.
-- **Domain Data:** Hardcoded to specific SAIS academic rules and course catalogs.
+Vercel function filesystems are not durable application storage. Without Supabase, the JSON fallback may use temporary storage and saved plans or notes may disappear across instances, cold starts, or deployments.
 
-## Future Improvements
-- **Production Data Model:** Move beyond MVP JSON payload storage toward a normalized, audited data model with retention rules and tested backups.
-- **Stronger School Authentication:** Add school-approved SSO, invite codes, or student PINs tied to verified student records.
-- **Dynamic Rules Engine:** Move course catalog and graduation requirements to the database, allowing administrators to modify rules via a CMS rather than code updates.
-- **Counselor-Supervised AI Explanation Assistant:** Add a carefully scoped assistant that answers follow-up questions about a generated plan using the deterministic recommendation facts, with counselor oversight and clear guardrails.
-- **Optional Analytics:** Consider future analytics only after school-approved data governance and privacy review.
+### Optional Supabase Persistence
+
+When both Supabase variables are set, server-side persistence uses Supabase for student plans and counselor notes. Otherwise, the same application workflows use the JSON/file fallback.
+
+The schema is in [docs/supabase-schema.sql](./docs/supabase-schema.sql). The included configuration is still MVP-grade and is not a complete production identity, authorization, auditing, retention, or privacy system.
+
+Render was used in an earlier deployment workflow but is not the current public deployment. Historical Render-specific setup is intentionally omitted.
+
+## What Taysir Built
+
+Taysir created the product concept and problem definition, designed the user flows, and implemented the Next.js and TypeScript application. Verified contributions include:
+
+- student intake and returning-student workflows;
+- deterministic recommendation-engine integration;
+- student dashboard and pathway explanations;
+- counselor lookup, review, notes, and printable summaries;
+- saved-plan persistence and optional Supabase integration;
+- Vercel deployment;
+- project documentation;
+- automated recommendation characterization tests and GitHub Actions CI.
+
+## Privacy and Security
+
+- Repository fixtures and screenshots use synthetic demo data.
+- Real student information must never be committed.
+- The application is a portfolio/demo MVP, not production school infrastructure.
+- Eight-digit ID login and a shared counselor code are demo-oriented and unsuitable for real school records.
+- A production deployment would require stronger identity verification, role-based access control, audit logging, retention controls, privacy governance, incident procedures, and school approval.
+
+## Known Limitations
+
+- Prerequisite and sequence enforcement is incomplete.
+- Course, scoring, and policy data has not been independently validated by the school.
+- Match scores are heuristic and have not been academically or statistically validated.
+- Authentication is demo-oriented.
+- Supabase support does not by itself provide a production governance model.
+- Counselor access uses lookup rather than a roster, named accounts, roles, or plan flagging.
+- Five high-severity npm audit package paths remain because resolving them requires a major Next.js and matching ESLint-config migration. See [docs/dependency-audit.md](./docs/dependency-audit.md).
+
+## Roadmap
+
+Potential future milestones, subject to separate review:
+
+- verify prerequisite and sequence rules with qualified counselors;
+- replace prototype policy data with counselor-reviewed sources;
+- implement stronger identity, access control, auditing, and retention;
+- establish production database workflows;
+- add browser end-to-end tests;
+- improve accessibility and validation coverage;
+- strengthen error and loading states;
+- verify print stability;
+- conduct a controlled, school-approved pilot evaluation.
 
 ---
-**Project Impact Statement (Resume Ready)**
-*Architected and engineered a full-stack academic planning MVP using Next.js 14 and Tailwind CSS. Developed a custom, deterministic recommendation engine to map school-specific planning rules against student preferences. Delivered a demo-ready decision-support platform with MVP-grade session handling, an interactive multi-step intake flow, and a passcode-protected counselor portal for reviewing student plans and reducing manual planning friction.*
+
+**Portfolio summary:** Built a full-stack academic planning MVP with Next.js 14 and TypeScript, integrating a deterministic recommendation engine, student intake, saved plans, counselor review, printable summaries, automated characterization tests, and CI. The project is presented as decision-support software with explicit prototype, privacy, and validation limits.

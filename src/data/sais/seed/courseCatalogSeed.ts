@@ -3,15 +3,15 @@ import { set1Set2ElectiveCoursesSeed } from "./setElectiveCoursesSeed";
 import { setElectiveEnrichmentsSeed } from "./setElectiveEnrichmentsSeed";
 
 /**
- * SAIS starter seed course catalog (Phase 2) — SAIS-specific starter.
+ * SAIS-specific prototype course catalog.
  *
- * What is confirmed from docs (used as real rules in code):
+ * Current project inputs encoded by the prototype:
  * - Grades 9–10 do not choose electives (VPA is a core subject).
  * - Grades 11–12 choose exactly 1 elective from Set 1 + 1 from Set 2 each semester.
  * - Some APs replace core classes (examples: Physics / English / Math).
  * - AP and Environmental Science are year-long (cannot drop mid-year).
  *
- * Confirmed/required structure from project context (encoded here):
+ * Current structure from project context (encoded here):
  * - Grade 9: Integrated Math 1, no elective choice, Visual & Performing Arts core
  * - Grade 10: Integrated Math 2, no elective choice, Visual & Performing Arts core
  * - Progression awareness: Biology 9 -> Chemistry 10 (represented later as continuity/readiness, not hard blocks)
@@ -20,8 +20,8 @@ import { setElectiveEnrichmentsSeed } from "./setElectiveEnrichmentsSeed";
  *   - Science: Physics OR AP Physics C1 (core replacement, year-long)
  *   - English: English 11 OR AP Language & Composition (core replacement, year-long)
  * - Grade 12 core math options (open planning): AP Calculus AB, AP Statistics, Calculus, Calculus for Business
- * - Grade 12: science is mandatory and selected as a science elective (enforced via rules later)
- * - Grades 11–12 Set 1 / Set 2: full confirmed lists in `setElectiveCoursesSeed` + `confirmedSaisElectiveInventory`.
+ * - Grade 12: science is represented as a required science category in the current prototype.
+ * - Grades 11–12 Set 1 / Set 2: current project lists are in `setElectiveCoursesSeed` + `confirmedSaisElectiveInventory`.
  * - Grade 12 science path (Environmental Science, Thermodynamics, Organic Chemistry, Electromagnetism,
  *   Biochemistry) uses the `science_category` template row, not Set 1/2; catalog marks them `electiveSet: Core`
  *   so mid-year continuity ties to core selections.
@@ -34,12 +34,13 @@ import { setElectiveEnrichmentsSeed } from "./setElectiveEnrichmentsSeed";
  * - Egypt/Jordan logic is handled at rule/recommendation level only when selected.
  * - We do NOT attach broad per-course Egypt/Jordan warnings (avoid warning spam).
  *
- * This seed is intentionally structured so you can replace it later without touching engine code.
+ * These records and heuristic scoring fields require counselor review before
+ * any controlled school pilot. They are not a complete policy publication.
  */
 
 export const courseCatalogSeed: Course[] = [
   // -------------------------
-  // Grade 9 / 10 core structure (confirmed)
+  // Grade 9 / 10 core structure used by the current prototype
   // -------------------------
   {
     code: "VPA",
@@ -118,7 +119,7 @@ export const courseCatalogSeed: Course[] = [
   },
 
   // -------------------------
-  // Grade 11 core options (confirmed)
+  // Grade 11 core options used by the current prototype
   // -------------------------
   {
     code: "MATH_INT_3",
@@ -212,7 +213,7 @@ export const courseCatalogSeed: Course[] = [
   },
 
   // -------------------------
-  // Core-replacement APs (confirmed)
+  // Core-replacement APs represented by the current prototype
   // -------------------------
   {
     code: "AP_LANG_COMP",
@@ -261,7 +262,7 @@ export const courseCatalogSeed: Course[] = [
   },
 
   // -------------------------
-  // Grade 12 core math options (confirmed list)
+  // Grade 12 core math options in the current project list
   // -------------------------
   {
     code: "AP_STATS",
@@ -325,7 +326,7 @@ export const courseCatalogSeed: Course[] = [
   },
 
   // -------------------------
-  // Grades 11–12 Set 1 + Set 2 electives (confirmed lists — see setElectiveCoursesSeed)
+  // Grades 11–12 Set 1 + Set 2 electives (current project lists; see setElectiveCoursesSeed)
   // -------------------------
   ...set1Set2ElectiveCoursesSeed,
 

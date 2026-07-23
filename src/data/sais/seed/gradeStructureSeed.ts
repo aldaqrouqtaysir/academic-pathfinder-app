@@ -13,12 +13,14 @@ export interface GradeCoreStructure {
 }
 
 /**
- * Confirmed structures from project context + your corrections.
+ * Grade structures used by the current prototype.
  *
  * Notes:
  * - For G9/G10: electives disabled.
  * - For G11/G12: electives enabled; must pick 1 from Set1 and 1 from Set2.
  * - For Grade 12: science is mandatory and selected via “science elective path” (set choice).
+ *
+ * These structures are not a complete or school-approved policy source.
  */
 export const gradeStructureSeed: GradeCoreStructure[] = [
   {

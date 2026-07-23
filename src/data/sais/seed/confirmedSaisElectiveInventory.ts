@@ -1,5 +1,6 @@
 /**
- * Confirmed SAIS course groupings (prompt source of truth, 2026).
+ * Current project course groupings used by the prototype.
+ * They require counselor review before use as school policy.
  * Sustainability I/II omitted per stakeholder note (no Sustainability I; II ambiguous).
  */
 
