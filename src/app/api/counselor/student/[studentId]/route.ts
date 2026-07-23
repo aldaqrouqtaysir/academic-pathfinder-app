@@ -10,7 +10,8 @@ export const revalidate = 0;
 const ID_RE = /^[0-9]{8}$/;
 
 export async function GET(_req: Request, ctx: { params: Promise<{ studentId: string }> }) {
-  const cookie = cookies().get(COUNSELOR_COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get(COUNSELOR_COOKIE_NAME)?.value;
   if (!cookie || !(await verifyCounselorSessionToken(cookie))) {
     return jsonNoStore({ ok: false }, { status: 401 });
   }

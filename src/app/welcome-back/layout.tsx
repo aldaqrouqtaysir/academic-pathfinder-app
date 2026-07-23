@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { COOKIE_NAME, verifyStudentSessionToken } from "@/lib/auth/studentSession";
 
 export default async function WelcomeBackLayout({ children }: { children: React.ReactNode }) {
-  const cookie = cookies().get(COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get(COOKIE_NAME)?.value;
   if (!cookie) {
     redirect("/login");
   }

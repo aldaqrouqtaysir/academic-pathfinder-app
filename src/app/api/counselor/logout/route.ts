@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { COUNSELOR_COOKIE_NAME } from "@/lib/auth/counselorSession";
 
 export async function POST() {
-  cookies().set(COUNSELOR_COOKIE_NAME, "", {
+  const cookieStore = await cookies();
+  cookieStore.set(COUNSELOR_COOKIE_NAME, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

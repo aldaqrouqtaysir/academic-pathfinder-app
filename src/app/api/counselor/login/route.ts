@@ -25,7 +25,8 @@ export async function POST(req: Request) {
 
   try {
     const token = await createCounselorSessionToken();
-    cookies().set(COUNSELOR_COOKIE_NAME, token, {
+    const cookieStore = await cookies();
+    cookieStore.set(COUNSELOR_COOKIE_NAME, token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
