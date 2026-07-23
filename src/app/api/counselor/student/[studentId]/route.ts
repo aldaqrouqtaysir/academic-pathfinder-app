@@ -20,20 +20,33 @@ export async function GET(_req: Request, ctx: { params: Promise<{ studentId: str
     return jsonNoStore({ ok: false, error: "Invalid student ID format." }, { status: 400 });
   }
 
-  const record = await getStudentRecordForCounselor(studentId);
-  if (!record) {
-    return jsonNoStore({ ok: false, code: "NO_SAVED_PLAN", error: "No saved plan data for this student ID." });
+  try {
+    const record = await getStudentRecordForCounselor(studentId);
+    if (!record) {
+      return jsonNoStore(
+        { ok: false, code: "NO_SAVED_PLAN", error: "No saved plan data for this student ID." },
+        { status: 404 },
+      );
+    }
+
+    const activeSession = record.sessions.find((s) => s.id === record.activeSessionId) ?? null;
+    const notes = await listNotesForStudent(studentId);
+
+    return jsonNoStore({
+      ok: true,
+      studentId,
+      activeSessionId: record.activeSessionId,
+      sessionCount: record.sessions.length,
+      activeSession,
+      notes,
+    });
+  } catch (error) {
+    console.error("[counselor-student] Could not load student record.", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return jsonNoStore(
+      { ok: false, code: "RECORD_UNAVAILABLE", error: "Student record is temporarily unavailable." },
+      { status: 503 },
+    );
   }
-
-  const activeSession = record.sessions.find((s) => s.id === record.activeSessionId) ?? null;
-  const notes = await listNotesForStudent(studentId);
-
-  return jsonNoStore({
-    ok: true,
-    studentId,
-    activeSessionId: record.activeSessionId,
-    sessionCount: record.sessions.length,
-    activeSession,
-    notes,
-  });
 }

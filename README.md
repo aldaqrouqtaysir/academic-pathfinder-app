@@ -89,7 +89,7 @@ All repository screenshots use synthetic demo data.
 - **Forms and validation:** React Hook Form and Zod
 - **MVP sessions:** `jose`-signed HTTP-only cookies
 - **Persistence:** Optional Supabase service-role access or a JSON/file fallback
-- **Testing:** Vitest
+- **Testing:** Vitest, Playwright Test, and axe-core
 - **CI:** GitHub Actions
 
 ## Architecture
@@ -158,15 +158,21 @@ npm run typecheck
 npm run test:run
 npm run build
 npm run quality
+npx playwright install chromium
+npm run test:e2e
 ```
 
-The current suite contains 31 automated tests:
+The current unit suite contains 31 automated tests:
 
 - recommendation-engine characterization tests preserve current scoring, ordering, warnings, explanations, and output behavior;
 - catalog and validator tests cover the 57-course catalog, candidate counts, nine weight factors, and six current hard-validator functions;
 - every test fixture is synthetic.
 
-GitHub Actions runs the same quality sequence on pushes and pull requests. The repository does not currently claim browser end-to-end tests, automated accessibility testing, or performance benchmarks.
+The browser suite uses an isolated synthetic file store and covers protected routes, student login/intake/dashboard/returning-student flows, counselor login/lookup/notes/report flows, failure recovery, mobile layout, print media, and automated axe scans on critical pages. Browser output is written under `output/playwright/`; the normal `.data` directory is never used.
+
+`npm run quality` remains the fast lint/typecheck/unit/build gate. Run `npm run test:e2e` separately after installing Chromium. See [docs/TESTING.md](./docs/TESTING.md) for commands and isolation details, and [docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md) for the automated and manual accessibility scope.
+
+GitHub Actions runs `npm ci`, lint, typecheck, Vitest, the production build, Chromium installation, and Playwright E2E in that order. Failure-only Playwright reports, screenshots, videos, and traces are retained as workflow artifacts for seven days. The project does not claim full WCAG conformance or performance benchmarks.
 
 ## Persistence and Deployment
 
@@ -232,10 +238,9 @@ Potential future milestones, subject to separate review:
 - replace prototype policy data with counselor-reviewed sources;
 - implement stronger identity, access control, auditing, and retention;
 - establish production database workflows;
-- add browser end-to-end tests;
-- improve accessibility and validation coverage;
-- strengthen error and loading states;
-- verify print stability;
+- expand browser coverage when new student or counselor workflows are added;
+- conduct manual accessibility testing with assistive technology;
+- add measured performance budgets after a representative deployment baseline exists;
 - conduct a controlled, school-approved pilot evaluation.
 
 ---

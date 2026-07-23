@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -12,10 +12,18 @@ export default function CounselorLoginPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const errorRef = useRef<HTMLParagraphElement>(null);
+  const submitInFlight = useRef(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitInFlight.current) return;
+    submitInFlight.current = true;
     setError(null);
     setPending(true);
     try {
@@ -35,12 +43,13 @@ export default function CounselorLoginPage() {
     } catch {
       setError("Network error. Try again.");
     } finally {
+      submitInFlight.current = false;
       setPending(false);
     }
   }
 
   return (
-    <div className="min-h-[100dvh] px-4 py-12 sm:py-16">
+    <main id="main-content" tabIndex={-1} className="min-h-[100dvh] px-4 py-12 sm:py-16">
       <div className="mx-auto grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[1fr_0.85fr]">
         <section className="apf-fade-up">
           <p className="apf-kicker">Staff access</p>
@@ -90,10 +99,16 @@ export default function CounselorLoginPage() {
                 placeholder="Provided by your tech lead"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
+                aria-describedby={error ? "counselor-login-error" : undefined}
+                aria-invalid={Boolean(error)}
               />
             </div>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <Button type="submit" className="w-full" disabled={pending}>
+            {error ? (
+              <p id="counselor-login-error" ref={errorRef} role="alert" tabIndex={-1} className="text-sm text-red-600">
+                {error}
+              </p>
+            ) : null}
+            <Button type="submit" aria-busy={pending} className="w-full" disabled={pending}>
               {pending ? "Signing in" : "Continue"}
             </Button>
           </form>
@@ -104,6 +119,6 @@ export default function CounselorLoginPage() {
           </div>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

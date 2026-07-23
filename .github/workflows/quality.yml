@@ -10,7 +10,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       NEXT_TELEMETRY_DISABLED: "1"
 
@@ -38,3 +38,20 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser end-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-artifacts
+          path: |
+            output/playwright/report
+            output/playwright/test-results
+          if-no-files-found: ignore
+          retention-days: 7

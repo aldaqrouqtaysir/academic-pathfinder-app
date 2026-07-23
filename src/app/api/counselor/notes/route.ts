@@ -24,6 +24,16 @@ export async function POST(req: Request) {
     return jsonNoStore({ ok: false, error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const note = await addCounselorNote(parsed.data.studentId, parsed.data.body);
-  return jsonNoStore({ ok: true, note });
+  try {
+    const note = await addCounselorNote(parsed.data.studentId, parsed.data.body);
+    return jsonNoStore({ ok: true, note });
+  } catch (error) {
+    console.error("[counselor-notes] Could not save note.", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return jsonNoStore(
+      { ok: false, code: "NOTE_SAVE_FAILED", error: "Counselor note could not be saved." },
+      { status: 503 },
+    );
+  }
 }

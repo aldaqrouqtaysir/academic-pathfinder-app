@@ -17,6 +17,19 @@ body {
   background-attachment: fixed;
 }
 
+.apf-skip-link {
+  @apply fixed left-4 top-3 z-[100] -translate-y-24 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl transition-transform;
+}
+
+.apf-skip-link:focus {
+  @apply translate-y-0 outline-none ring-2 ring-teal-300 ring-offset-2;
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 3px solid rgb(13 148 136);
+  outline-offset: 3px;
+}
+
 /* Wider journey pages — consistent shell */
 .apf-journey-shell {
   @apply mx-auto w-full max-w-screen-2xl px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12;
@@ -106,6 +119,15 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
   .apf-fade-up,
   .apf-step-in,
   .apf-progress-shimmer {
@@ -119,14 +141,79 @@ body {
 }
 
 @media print {
+  @page {
+    size: auto;
+    margin: 14mm;
+  }
+
+  html,
   body {
     background: white !important;
+    color: #000 !important;
+    height: auto;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
+
+  .apf-skip-link {
+    display: none !important;
+  }
+
+  .min-h-screen {
+    background: #fff !important;
+  }
+
   .counselor-print-root {
     max-width: none;
     padding: 0;
   }
+
+  main#main-content {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
   .counselor-report {
-    color: #0f172a;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  .counselor-report > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 12pt !important;
+  }
+
+  .counselor-report .apf-print-section,
+  .counselor-report .apf-print-block,
+  .counselor-report li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .counselor-report h1,
+  .counselor-report h2,
+  .counselor-report h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .counselor-report p,
+  .counselor-report li,
+  .counselor-report dd {
+    overflow-wrap: anywhere;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .counselor-report a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+
+  .counselor-report > p:last-child {
+    break-before: avoid;
+    page-break-before: avoid;
+    margin-top: 8pt !important;
   }
 }

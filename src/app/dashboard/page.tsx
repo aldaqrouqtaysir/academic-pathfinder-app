@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -845,7 +845,7 @@ function QuickExploreBar(props: {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "empty" | "error">("loading");
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [compareWith, setCompareWith] = useState<"balanced" | "stretch">("balanced");
   const [adjustBanner, setAdjustBanner] = useState<string | null>(null);
@@ -862,22 +862,32 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  useEffect(() => {
-    (async () => {
+  const loadPlan = useCallback(async () => {
+    setLoadState("loading");
+    try {
       const res = await fetch("/api/student/active-plan", { cache: "no-store" });
       if (res.status === 401) {
         router.push("/login");
         return;
       }
-      const json = await res.json();
+      if (!res.ok) throw new Error("Active plan request failed.");
+      const json = await res.json().catch(() => null);
       if (!json?.activeSession?.outputs?.bundle) {
-        router.push("/intake");
+        setSession(null);
+        setLoadState("empty");
         return;
       }
       setSession(json.activeSession);
-      setLoading(false);
-    })();
+      setLoadState("ready");
+    } catch {
+      setSession(null);
+      setLoadState("error");
+    }
   }, [router]);
+
+  useEffect(() => {
+    void loadPlan();
+  }, [loadPlan]);
 
   const bundle = session?.outputs?.bundle as DashboardBundle | undefined;
   const visibleAlternatives = useMemo(() => (bundle ? uniqueAlternativePaths(bundle) : []), [bundle]);
@@ -885,16 +895,51 @@ export default function DashboardPage() {
     return visibleAlternatives.find((rec) => rec.kind === compareWith) ?? visibleAlternatives[0] ?? null;
   }, [compareWith, visibleAlternatives]);
 
-  if (loading) {
+  if (loadState === "loading") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-50 via-cyan-50/50 to-teal-100/40 text-sm font-semibold text-slate-700">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        aria-busy="true"
+        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-50 via-cyan-50/50 to-teal-100/40 text-sm font-semibold text-slate-700"
+      >
         <span className="h-12 w-12 animate-pulse rounded-2xl bg-gradient-to-br from-teal-500 via-sky-500 to-violet-500 opacity-90 shadow-lg shadow-teal-900/20" />
-        <span>Loading your pathway.</span>
-      </div>
+        <span role="status">Loading your pathway.</span>
+      </main>
     );
   }
 
-  if (!bundle) return null;
+  if (loadState === "empty" || loadState === "error" || !bundle) {
+    const isError = loadState === "error";
+    return (
+      <div className="min-h-screen">
+        <StudentHeader />
+        <main id="main-content" tabIndex={-1} className="apf-journey-shell">
+          <Card className="mx-auto max-w-2xl text-center">
+            <p className="apf-kicker">{isError ? "Plan unavailable" : "No active plan"}</p>
+            <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">
+              {isError ? "We could not load your pathway." : "You do not have an active pathway yet."}
+            </h1>
+            <p id="dashboard-load-message" role={isError ? "alert" : "status"} className="mt-3 text-sm font-medium leading-6 text-slate-600">
+              {isError
+                ? "Your saved work has not been changed. Check your connection and try again."
+                : "Complete the intake to build a recommendation, or start a new journey if you cleared an older active plan."}
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              {isError ? (
+                <Button type="button" onClick={() => void loadPlan()}>
+                  Try again
+                </Button>
+              ) : null}
+              <Button type="button" variant={isError ? "secondary" : "primary"} onClick={() => router.push("/intake")}>
+                Go to intake
+              </Button>
+            </div>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   const answers = session?.answers ?? {};
   const guidanceMode = isGuidanceMode(bundle.bestFit);
@@ -911,7 +956,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_120%_55%_at_50%_-12%,rgba(34,211,238,0.2),transparent)]">
       <StudentHeader />
-      <div className="apf-journey-shell">
+      <main id="main-content" tabIndex={-1} className="apf-journey-shell">
         {freshCelebration ? (
           <div
             className="apf-fade-up mb-8 flex flex-col gap-3 rounded-2xl border-2 border-teal-300/60 bg-gradient-to-r from-teal-50 via-cyan-50 to-violet-50 px-5 py-4 shadow-lg ring-1 ring-teal-200/50 sm:flex-row sm:items-center sm:justify-between sm:px-6"
@@ -1081,7 +1126,7 @@ export default function DashboardPage() {
           </div>
           </details>
         ) : null}
-      </div>
+      </main>
     </div>
   );
 }
