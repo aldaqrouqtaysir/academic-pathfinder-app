@@ -1,10 +1,10 @@
 import type { Rule } from "@/lib/domain/models/rules";
 
 /**
- * Starter rule catalog for Phase 2.
+ * Prototype rule metadata used by the current deterministic engine.
  *
- * This file describes the rule *shape* required by the product docs.
- * Placeholder validator_config will be replaced once real SAIS rule logic + matrices are available.
+ * This catalog is not a complete or school-approved policy source. In
+ * particular, prerequisite and sequence coverage remains incomplete.
  */
 export const rulesCatalogSeed: Rule[] = [
   {

@@ -18,11 +18,9 @@ export interface HardValidationResult {
 /**
  * Deterministic hard constraint validator.
  *
- * Phase 1 starter behavior:
- * - Enforces the *shape* of SAIS rules that we can express from the docs.
- * - Does NOT yet enforce the full prerequisite matrices because the course catalog is starter seed only.
- *
- * Phase 2 will replace placeholder logic with validator_config-driven checks and real course prerequisite data.
+ * The six current validator functions enforce only the prototype rules encoded
+ * below. They do not provide complete prerequisite, sequence, or school-policy
+ * coverage; any production policy set requires counselor review and verified data.
  */
 export function validateHardConstraints(params: {
   input: HardConstraintInput;

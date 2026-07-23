@@ -50,7 +50,7 @@ export interface StudentProfile {
   preferencesToAvoid: string[]; // e.g. "very heavy homework", "no lab sciences", etc.
   preferences: string[]; // e.g. "hands-on projects", "writing-heavy", etc.
 
-  // Additional signal for confidence scoring and explanation framing
+  // Additional self-report signal for deterministic match-score framing, not statistical confidence
   selfReportedAcademicConfidence: SelfReportedAcademicConfidence;
 
   // Student preference about when to apply changes (kept for MVP; used later if needed)

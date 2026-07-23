@@ -1,20 +1,22 @@
 # SAIS Academic Navigator - Demo Guide
 
-This document provides a step-by-step script for demonstrating the SAIS Academic Navigator to stakeholders or showcasing it in a portfolio/resume.
+This document provides a step-by-step script for demonstrating SAIS Academic Navigator as a portfolio MVP.
 
 ## Demo Scope
-This demo uses sample/student-entered IDs and MVP-grade authentication. It does not represent a production school deployment, trained AI model, or large-scale student data protection system. A real pilot would require school-approved authentication, database-backed storage, and privacy/security review.
+This demo uses synthetic/student-entered IDs and MVP-grade authentication. It does not represent a production school deployment, trained AI model, statistically validated recommender, or system approved for real student records. Recommendations should be reviewed with a qualified school counselor.
 
 ## Recommended Demo IDs
-- Student demo ID: `<synthetic-8-digit-demo-id>`
+- Student demo ID: `90000001` (synthetic)
 - Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local`.
+
+The repository does not seed an existing plan for this ID. On a fresh deployment it starts a new intake. If the same synthetic ID has already saved a plan in the configured store, it opens the returning-student flow; use another clearly synthetic eight-digit ID for a clean run.
 
 ## Recommended Screenshots for GitHub & Resumes
 To create a compelling portfolio piece, capture high-quality screenshots of the following states:
 1. **Student Login Page:** Showcases the modern, gradient-rich aesthetic and value proposition.
 2. **Intake Flow (Step 2 - Interests & Future):** Highlights the interactive chip UI and multi-select capabilities.
 3. **Student Dashboard:** The core value delivery, displaying the recommended path, course choices, tradeoffs, and actionable next steps.
-4. **Counselor Dashboard / Student Lookup:** Shows the tabular data presentation of all active student plans.
+4. **Counselor Dashboard / Student Lookup:** Shows lookup of one saved plan by an eight-digit student ID.
 5. **Counselor Detailed Summary:** Demonstrates the detailed breakdown and printable format of a student's submission.
 
 ---
@@ -31,7 +33,7 @@ To create a compelling portfolio piece, capture high-quality screenshots of the 
 "SAIS Academic Navigator replaces scattered course-selection documents with a guided academic planning experience. For this MVP demo, students enter an 8-digit Student ID. A real school pilot would require school-approved authentication."
 
 **Test:**
-Enter the recommended demo ID: `<synthetic-8-digit-demo-id>`.
+Enter the recommended synthetic demo ID: `90000001`.
 
 ---
 
@@ -51,7 +53,7 @@ Suggested profile:
 - Optimization target: University competitiveness
 
 **Talking Point:**
-"The app does not simply ask which course a student wants. It asks about goals, workload, confidence, and future direction, then generates a rule-based recommendation using SAIS-specific course structures."
+"The app does not simply ask which course a student wants. It asks about goals, workload, confidence, and future direction, then generates a deterministic, rule-based recommendation using the current prototype course structure."
 
 **Action:** Click `Unlock my plan`.
 
@@ -72,6 +74,8 @@ Show:
 
 **Talking Point:**
 "The dashboard explains the reasoning behind each pathway, including why a student might choose a more rigorous path, a safer workload, or a more flexible option."
+
+Clarify that the displayed score is a deterministic match score, not a probability or admission forecast, and that prerequisite enforcement remains incomplete.
 
 ---
 
@@ -94,10 +98,12 @@ Show:
 
 **Test:** Enter the passcode from `COUNSELOR_ACCESS_CODE`.
 
-**Action:** Search for the demo student ID: `<synthetic-8-digit-demo-id>`.
+**Action:** Search for the same synthetic demo ID after its intake has been saved.
 
 **Talking Point:**
 "Counselors can review student inputs, see the recommendation summary, add internal notes, and open a printable advising report."
+
+The current counselor interface is student lookup, not a roster. It uses one shared demo access code rather than named counselor accounts and does not implement plan flagging, role management, or production auditing.
 
 ---
 
