@@ -78,10 +78,10 @@ Currently, the app relies on a local JSON file-based store to quickly iterate an
 4. **Export:** Generate clean, printable summaries for advising conversations and demos.
 
 ## Recommendation Engine Overview
-The recommendation logic is **deterministic and rule-based**, not a trained Machine Learning model. It evaluates a student's responses against an array of hard constraints (graduation requirements, prerequisites) and soft constraints (interests, workload tolerance). The engine scores potential course combinations and selects the path that maximizes the student's personal optimization target (e.g., "University competitiveness" vs. "Lighter workload").
+The recommendation logic is **deterministic and rule-based**, not a trained Machine Learning model. It evaluates a student's responses against the currently implemented hard constraints and soft constraints (interests, workload tolerance). Prerequisite matrices are not yet fully enforced. The engine scores potential course combinations and selects the path that maximizes the student's personal optimization target (e.g., "University competitiveness" vs. "Lighter workload").
 
-## Recommended Demo IDs
-- Student demo IDs: `20120164`, `20120167`, `20120168`, `20120169`
+## Demo Access
+- Use only a clearly synthetic 8-digit ID for student demos. Never publish or reuse a real school identifier.
 - Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local` or the deployment environment.
 
 ## Local Setup Instructions
@@ -112,8 +112,24 @@ See `.env.example` for details. You must configure the following in your `.env.l
 - `SUPABASE_SERVICE_ROLE_KEY` (Optional): Server-side Supabase service role key. Required with `SUPABASE_URL`; never expose this as a `NEXT_PUBLIC_*` variable.
 - `DATA_DIR` (Optional): The directory path where JSON storage will reside when Supabase is not configured. Default is `.data/`. Serverless demo hosts can use a writable temporary path such as `/tmp/sais-academic-navigator`, but data will not be durable.
 
-## Demo & Testing
-For a comprehensive guide on how to test the application, including suggested scripts and workflows, please refer to [DEMO.md](./DEMO.md).
+## Testing and Quality
+
+Use Node.js 20.x and the committed npm lockfile:
+
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm run test:run
+npm run build
+npm run quality
+```
+
+The Vitest suite preserves the current deterministic recommendation behavior through explicit catalog, validator, scoring, ordering, warning, and output assertions. Every test fixture is visibly synthetic and is loaded only by unit tests. Known limitations, including incomplete prerequisite enforcement and stable insertion-order ties, are intentionally characterized rather than changed in this milestone.
+
+Public repository data must always be synthetic. Local `.data` files are ignored, and real student data must never be committed. This project is a portfolio/demo application and is not approved for storing real student records.
+
+For the manual demo flow, see [DEMO.md](./DEMO.md).
 
 ## Optional Supabase Persistence
 The app supports optional Supabase-backed persistence for student plans and counselor notes. This is recommended for Vercel because serverless filesystem storage is temporary and not reliable across separate requests, cold starts, or deploys.

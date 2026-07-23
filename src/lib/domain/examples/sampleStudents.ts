@@ -2,7 +2,7 @@ import type { StudentProfile } from "../models/studentProfile";
 
 export const sampleStudents: StudentProfile[] = [
   {
-    studentId: "12004567",
+    studentId: "SYNTHETIC-SAMPLE-CS",
     currentGrade: 12,
     currentCourses: ["CALCULUS", "ENG_11"],
     currentAPs: ["AP_CSP", "AP_CALC_AB"],
@@ -27,7 +27,7 @@ export const sampleStudents: StudentProfile[] = [
     optimizationTarget: "career_alignment",
   },
   {
-    studentId: "12004568",
+    studentId: "SYNTHETIC-SAMPLE-BUSINESS",
     currentGrade: 11,
     currentCourses: ["MATH_INT_3", "ENG_11"],
     currentAPs: [],
@@ -52,7 +52,7 @@ export const sampleStudents: StudentProfile[] = [
     optimizationTarget: "higher_grades",
   },
   {
-    studentId: "12004569",
+    studentId: "SYNTHETIC-SAMPLE-CREATIVE",
     currentGrade: 10,
     currentCourses: ["MATH_INT_2", "CHEM_10", "VPA"],
     currentAPs: [],

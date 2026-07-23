@@ -6,7 +6,7 @@ This document provides a step-by-step script for demonstrating the SAIS Academic
 This demo uses sample/student-entered IDs and MVP-grade authentication. It does not represent a production school deployment, trained AI model, or large-scale student data protection system. A real pilot would require school-approved authentication, database-backed storage, and privacy/security review.
 
 ## Recommended Demo IDs
-- Student demo ID: `20120164`
+- Student demo ID: `<synthetic-8-digit-demo-id>`
 - Counselor access depends on `COUNSELOR_ACCESS_CODE` in `.env.local`.
 
 ## Recommended Screenshots for GitHub & Resumes
@@ -31,7 +31,7 @@ To create a compelling portfolio piece, capture high-quality screenshots of the 
 "SAIS Academic Navigator replaces scattered course-selection documents with a guided academic planning experience. For this MVP demo, students enter an 8-digit Student ID. A real school pilot would require school-approved authentication."
 
 **Test:**
-Enter the recommended demo ID: `20120164`.
+Enter the recommended demo ID: `<synthetic-8-digit-demo-id>`.
 
 ---
 
@@ -94,7 +94,7 @@ Show:
 
 **Test:** Enter the passcode from `COUNSELOR_ACCESS_CODE`.
 
-**Action:** Search for the demo student ID: `20120164`.
+**Action:** Search for the demo student ID: `<synthetic-8-digit-demo-id>`.
 
 **Talking Point:**
 "Counselors can review student inputs, see the recommendation summary, add internal notes, and open a printable advising report."

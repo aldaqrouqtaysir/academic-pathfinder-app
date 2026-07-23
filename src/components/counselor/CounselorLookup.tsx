@@ -68,7 +68,7 @@ export function CounselorLookup() {
             className="mt-1 font-mono"
             inputMode="numeric"
             maxLength={8}
-            placeholder="12345678"
+            placeholder="8-digit student ID"
             value={id}
             onChange={(e) => setId(e.target.value.replace(/\D/g, "").slice(0, 8))}
             onKeyDown={(e) => {
