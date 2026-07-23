@@ -83,9 +83,9 @@ All repository screenshots use synthetic demo data.
 
 ## Tech Stack
 
-- **Framework:** Next.js 14 App Router
+- **Framework:** Next.js 15.5.21 App Router (Maintenance LTS)
 - **Language:** TypeScript
-- **UI:** React 18, Tailwind CSS, and project CSS
+- **UI:** React 19.0, Tailwind CSS, and project CSS
 - **Forms and validation:** React Hook Form and Zod
 - **MVP sessions:** `jose`-signed HTTP-only cookies
 - **Persistence:** Optional Supabase service-role access or a JSON/file fallback
@@ -171,6 +171,8 @@ The current unit suite contains 31 automated tests:
 The browser suite uses an isolated synthetic file store and covers protected routes, student login/intake/dashboard/returning-student flows, counselor login/lookup/notes/report flows, failure recovery, mobile layout, print media, and automated axe scans on critical pages. Browser output is written under `output/playwright/`; the normal `.data` directory is never used.
 
 `npm run quality` remains the fast lint/typecheck/unit/build gate. Run `npm run test:e2e` separately after installing Chromium. See [docs/TESTING.md](./docs/TESTING.md) for commands and isolation details, and [docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md) for the automated and manual accessibility scope.
+
+Next.js 15.5 deprecates `next lint`, so `npm run lint` invokes the ESLint CLI directly while retaining the existing Core Web Vitals configuration.
 
 GitHub Actions runs `npm ci`, lint, typecheck, Vitest, the production build, Chromium installation, and Playwright E2E in that order. Failure-only Playwright reports, screenshots, videos, and traces are retained as workflow artifacts for seven days. The project does not claim full WCAG conformance or performance benchmarks.
 
