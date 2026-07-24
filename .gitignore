@@ -4,7 +4,9 @@ coverage
 *.tsbuildinfo
 .data
 .tmp
+.playwright-cli
 output/playwright
+output/pdf
 
 # env
 .env
@@ -16,3 +18,4 @@ output/playwright
 .cursor
 public.zip
 *.zip
+*.pdf

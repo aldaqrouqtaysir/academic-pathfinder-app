@@ -9,6 +9,11 @@ test.describe("counselor critical journeys", () => {
 
   test("protects counselor routes and handles login, lookup, notes, reload, and logout", async ({ page }) => {
     test.setTimeout(120_000);
+    const consoleErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+
     await page.goto("/counselor");
     await expect(page).toHaveURL(/\/counselor\/login$/);
 
@@ -57,8 +62,10 @@ test.describe("counselor critical journeys", () => {
 
     await page.getByRole("link", { name: "Back to student" }).click();
     await page.waitForURL(new RegExp(`/counselor/student/${syntheticStudentIds.counselor}$`));
+    consoleErrors.length = 0;
     await page.reload();
     await expect(page.getByText(note)).toHaveCount(1);
+    expect(consoleErrors).toEqual([]);
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/counselor\/login$/);

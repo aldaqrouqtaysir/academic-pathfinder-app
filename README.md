@@ -2,6 +2,10 @@
 
 > A deterministic, rule-based academic planning and decision-support platform for SAIS Dubai.
 
+[![Quality](https://github.com/aldaqrouqtaysir/academic-pathfinder-app/actions/workflows/quality.yml/badge.svg)](https://github.com/aldaqrouqtaysir/academic-pathfinder-app/actions/workflows/quality.yml)
+
+**Release:** v1.0.0 — Portfolio MVP
+
 ## Live Demo
 
 [Open the primary Vercel deployment](https://academic-pathfinder-app.vercel.app/)
@@ -230,7 +234,7 @@ Taysir created the product concept and problem definition, designed the user flo
 - Authentication is demo-oriented.
 - Supabase support does not by itself provide a production governance model.
 - Counselor access uses lookup rather than a roster, named accounts, roles, or plan flagging.
-- Five high-severity npm audit package paths remain because resolving them requires a major Next.js and matching ESLint-config migration. See [docs/dependency-audit.md](./docs/dependency-audit.md).
+- Three high-severity npm audit package paths remain in the Next.js dependency graph; npm offers no compatible non-breaking fix within the approved framework line. See [docs/dependency-audit.md](./docs/dependency-audit.md).
 
 ## Roadmap
 
@@ -247,4 +251,4 @@ Potential future milestones, subject to separate review:
 
 ---
 
-**Portfolio summary:** Built a full-stack academic planning MVP with Next.js 14 and TypeScript, integrating a deterministic recommendation engine, student intake, saved plans, counselor review, printable summaries, automated characterization tests, and CI. The project is presented as decision-support software with explicit prototype, privacy, and validation limits.
+**Portfolio summary:** Built a full-stack academic planning MVP with Next.js 15.5.21 and TypeScript, integrating a deterministic recommendation engine, student intake, saved plans, counselor review, printable summaries, automated characterization tests, and CI. The project is presented as decision-support software with explicit prototype, privacy, and validation limits.

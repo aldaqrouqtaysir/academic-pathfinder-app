@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import type { CounselorNote } from "@/lib/persistence/counselorNotesStore";
 import { Button } from "@/components/ui/Button";
 
+const noteDateTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Dubai",
+});
+
 export function CounselorNotesForm(props: { studentId: string; initialNotes: CounselorNote[] }) {
   const { studentId, initialNotes } = props;
   const [text, setText] = useState("");
@@ -57,7 +63,9 @@ export function CounselorNotesForm(props: { studentId: string; initialNotes: Cou
         <ul className="mt-4 max-h-56 space-y-3 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/70 p-3 ring-1 ring-white/80">
           {initialNotes.map((n) => (
             <li key={n.id} className="rounded-xl bg-slate-50/80 p-3 text-sm ring-1 ring-slate-100">
-              <span className="text-xs text-slate-500">{new Date(n.createdAt).toLocaleString()}</span>
+              <time dateTime={n.createdAt} className="text-xs text-slate-500">
+                {noteDateTimeFormatter.format(new Date(n.createdAt))} GST
+              </time>
               <p className="mt-0.5 whitespace-pre-wrap text-slate-800">{n.body}</p>
             </li>
           ))}
