@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Visual and UX
+
+- Reduced decision fatigue by separating required choices from optional detail
+- Clarified intake grouping and real required-answer progress
+- Added an editable, answer-derived planning profile
+- Strengthened the Best Fit recommendation hierarchy while keeping full reasoning available
+- Simplified the visual system for a calmer academic-advising identity
+- Improved counselor-record scanability and print presentation
+- Preserved accessibility, reduced-motion, and mobile behavior
+
 ## 1.0.0 — 2026-07-24
 
 ### Product
