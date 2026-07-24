@@ -14,12 +14,12 @@ export function Progress({ value, size = "md", label = "Journey progress" }: Pro
       aria-valuemax={100}
       aria-valuemin={0}
       aria-valuenow={Math.round(w)}
-      className={`w-full overflow-hidden rounded-full bg-slate-200/90 shadow-inner ring-1 ring-slate-200/60 ${h}`}
+      className={`w-full overflow-hidden rounded-full bg-slate-200 ${h}`}
       role="progressbar"
     >
       <div
         aria-hidden="true"
-        className={`apf-progress-shimmer rounded-full bg-gradient-to-r from-teal-500 via-sky-500 to-violet-500 transition-[width] duration-700 ease-out ${h}`}
+        className={`apf-progress-shimmer rounded-full transition-[width] duration-200 ease-out ${h}`}
         style={{ width: `${w}%` }}
       />
     </div>

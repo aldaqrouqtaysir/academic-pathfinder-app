@@ -1,9 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 import { StudentHeader } from "@/components/student/StudentHeader";
 
 export default function WelcomeBackPage() {
@@ -24,12 +23,12 @@ export default function WelcomeBackPage() {
         return;
       }
       if (!response.ok) {
-        setError("Could not start a new journey. Your saved plan is unchanged; please try again.");
+        setError("Could not start a new plan. Your saved plan is unchanged. Try again.");
         return;
       }
       router.push("/intake");
     } catch {
-      setError("Network error. Your saved plan is unchanged; please try again.");
+      setError("Could not connect. Your saved plan is unchanged. Check your connection and try again.");
     } finally {
       startInFlight.current = false;
       setLoading(false);
@@ -37,62 +36,75 @@ export default function WelcomeBackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_120%_75%_at_50%_-18%,rgba(34,211,238,0.2),transparent)]">
+    <div className="min-h-[100dvh] bg-slate-100">
       <StudentHeader />
       <main id="main-content" tabIndex={-1} className="apf-journey-shell">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-6 text-center sm:text-left">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-800">SAIS Navigator</p>
-            <h1 className="mt-2 bg-gradient-to-r from-slate-900 via-teal-800 to-cyan-800 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-              Welcome back 👋
-            </h1>
-            <p className="mx-auto mt-3 max-w-xl text-sm font-semibold leading-snug text-slate-600 sm:mx-0">
-              Your pathway is saved. Jump back in, or start a fresh run — you’re in control.
+        <div className="mx-auto max-w-4xl py-4 sm:py-8">
+          <header className="max-w-2xl">
+            <p className="apf-document-label">Returning student</p>
+            <h1 className="apf-display mt-3 text-4xl text-slate-950 sm:text-5xl">Your active plan is ready to review.</h1>
+            <p className="mt-4 text-base leading-7 text-slate-700">
+              Continue with the recommendation already saved to your planning record, or begin a new set of answers.
             </p>
-          </div>
+          </header>
 
-          <Card className="apf-fade-up apf-journey-card overflow-hidden p-0 shadow-xl">
-            <div className="grid sm:grid-cols-5">
-              <div className="flex flex-col justify-center border-b border-teal-100/80 bg-gradient-to-br from-teal-50/90 via-cyan-50/50 to-white p-6 sm:col-span-2 sm:border-b-0 sm:border-r sm:p-8">
-                <p className="text-sm font-bold text-teal-950">You’ve got this</p>
-                <ul className="mt-4 space-y-2.5 text-left text-xs font-semibold text-slate-700">
-                  <li className="flex gap-2">
-                    <span className="text-teal-600">▸</span>
-                    <span>Same great plan — open it anytime.</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-teal-600">▸</span>
-                    <span>New run = new active plan; history stays.</span>
-                  </li>
-                </ul>
+          <section className="apf-paper mt-8 overflow-hidden" aria-labelledby="saved-plan-heading">
+            <div className="grid lg:grid-cols-[1fr_0.9fr]">
+              <div className="p-5 sm:p-8">
+                <p className="apf-document-label">Active planning record</p>
+                <h2 id="saved-plan-heading" className="apf-display mt-2 text-3xl text-slate-950">
+                  Saved course plan
+                </h2>
+                <dl className="mt-6 space-y-4 border-y border-slate-200 py-5 text-sm">
+                  <div className="flex items-start justify-between gap-5">
+                    <dt className="text-slate-600">Status</dt>
+                    <dd className="font-semibold text-emerald-800">Available to review</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-5">
+                    <dt className="text-slate-600">Recommendation method</dt>
+                    <dd className="text-right font-semibold text-slate-900">Deterministic, rule-based</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-5">
+                    <dt className="text-slate-600">Can answers be revised?</dt>
+                    <dd className="font-semibold text-slate-900">Yes</dd>
+                  </div>
+                </dl>
+                <p className="mt-5 text-sm leading-6 text-slate-600">
+                  Opening the plan does not change it. You can review the courses, reasons, tradeoffs, and next steps before editing anything.
+                </p>
               </div>
-              <div className="flex flex-col justify-center gap-4 p-6 sm:col-span-3 sm:p-8">
-                <Button
-                  className="w-full py-3.5 text-base font-bold shadow-md"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  🎯 Open my plan
-                </Button>
-                <Button
-                  className="w-full py-3 font-bold"
-                  variant="secondary"
-                  onClick={startNew}
-                  aria-busy={loading}
-                  disabled={loading}
-                >
-                  {loading ? "Starting" : "✨ Start a new journey"}
-                </Button>
+
+              <div className="border-t border-slate-200 bg-slate-50 p-5 sm:p-8 lg:border-l lg:border-t-0">
+                <div className="space-y-3">
+                  <Button className="w-full text-base" onClick={() => router.push("/dashboard")}>
+                    Resume current plan
+                  </Button>
+                  <Button
+                    className="w-full"
+                    variant="secondary"
+                    onClick={startNew}
+                    aria-busy={loading}
+                    disabled={loading}
+                  >
+                    {loading ? "Starting new plan" : "Start a new plan"}
+                  </Button>
+                </div>
+
                 {error ? (
-                  <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 ring-1 ring-red-100">
+                  <p role="alert" className="mt-4 border-l-4 border-red-700 bg-red-50 px-3 py-3 text-sm text-red-900">
                     {error}
                   </p>
                 ) : null}
-                <p className="text-center text-[11px] font-medium leading-snug text-slate-500 sm:text-left">
-                  Starting new keeps older plans in history but switches what you see as active.
-                </p>
+
+                <div className="mt-6 border-t border-slate-300 pt-5">
+                  <h3 className="text-sm font-semibold text-slate-950">If you start again</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Earlier plans remain in history. A new active plan appears only after you complete and save the intake again.
+                  </p>
+                </div>
               </div>
             </div>
-          </Card>
+          </section>
         </div>
       </main>
     </div>

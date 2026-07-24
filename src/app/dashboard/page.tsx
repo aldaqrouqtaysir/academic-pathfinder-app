@@ -1,37 +1,18 @@
 "use client";
 
-import type { ComponentType } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import type { PathRecommendation, ScoringFactorKey } from "@/lib/domain/models/recommendations";
+import { Card } from "@/components/ui/Card";
 import { StudentHeader } from "@/components/student/StudentHeader";
-import { Badge } from "@/components/ui/Badge";
-import { Chip } from "@/components/ui/Chip";
-import { courseName, categoryLabel } from "@/lib/student/display";
-import { pathMetricBars, pathSummaryTopRow, strengthCaption } from "@/lib/student/pathMetrics";
+import type { PathRecommendation } from "@/lib/domain/models/recommendations";
+import { categoryLabel, courseName } from "@/lib/student/display";
 import {
   buildWhatYouGain,
   buildWowMessage,
   inferRiskLevel,
-  quickAdjustGuide,
-  riskLevelLabel,
-  type QuickAdjustMode,
   type RiskLevel,
 } from "@/lib/student/recommendationPolish";
-import {
-  IconArrowRight,
-  IconBookOpen,
-  IconGauge,
-  IconGlobe,
-  IconLayers,
-  IconRoute,
-  IconSparkles,
-  IconTarget,
-  IconTrophy,
-  IconZap,
-} from "@/components/icons/StudentIcons";
 
 type DashboardBundle = {
   bestFit: PathRecommendation;
@@ -39,116 +20,15 @@ type DashboardBundle = {
   stretch: PathRecommendation;
 };
 
-function confidenceBand(value: number) {
-  if (value >= 0.75) return "High";
-  if (value >= 0.5) return "Medium";
-  return "Low";
-}
+type ActiveSession = {
+  answers?: Record<string, unknown>;
+  outputs?: { bundle?: unknown };
+};
 
 function prettyKind(kind: PathRecommendation["kind"]) {
   if (kind === "bestFit") return "Best Fit";
   if (kind === "balanced") return "Balanced";
   return "Stretch";
-}
-
-function confidenceTone(band: string): "primary" | "success" | "warning" | "neutral" {
-  if (band === "High") return "success";
-  if (band === "Medium") return "primary";
-  return "warning";
-}
-
-function RiskPill({ level }: { level: RiskLevel }) {
-  const cls =
-    level === "low"
-      ? "bg-emerald-50 text-emerald-900 ring-emerald-200/80"
-      : level === "moderate"
-        ? "bg-amber-50 text-amber-900 ring-amber-200/80"
-        : "bg-rose-50 text-rose-900 ring-rose-200/80";
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${cls}`}
-      title="How demanding this path may feel — not a grade prediction."
-    >
-      {riskLevelLabel(level)}
-    </span>
-  );
-}
-
-function futureImpactBullets(text: string): string[] {
-  return text
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 5);
-}
-
-function splitFutureImpact(summary: string): { body: string; who: string | null } {
-  const marker = "Best for:";
-  const i = summary.indexOf(marker);
-  if (i === -1) return { body: summary, who: null };
-  const body = summary.slice(0, i).trim().replace(/[.;]\s*$/, "");
-  const who = summary
-    .slice(i + marker.length)
-    .trim()
-    .replace(/\.$/, "");
-  return { body, who };
-}
-
-function cleanDisplayText(s: string) {
-  return s
-    .replace(/three-path course recommendation/gi, "course-selection pathway")
-    .trim();
-}
-
-function truncateBullet(s: string, max = 96) {
-  const t = s.trim();
-  return cleanDisplayText(t);
-}
-
-function sentencesTwoMax(text: string, maxLen = 128): string[] {
-  const parts = text
-    .split(/(?<=[.!?])\s+/)
-    .map((x) => x.trim())
-    .filter(Boolean);
-  return parts.slice(0, 2).map((p) => truncateBullet(p, maxLen));
-}
-
-function quickOverviewTriples(rec: PathRecommendation) {
-  const fb = rec.rationale.factorBreakdown;
-  const maxPoints = Math.max(1, ...fb.map((f) => f.points));
-  const row = (key: ScoringFactorKey, title: string, Icon: ComponentType<{ className?: string }>) => {
-    const pts = fb.find((f) => f.key === key)?.points ?? 0;
-    const pct = Math.round((pts / maxPoints) * 100);
-    return { key, title, Icon, pct, band: strengthCaption(pct) };
-  };
-  return [
-    row("pathway_alignment", "Goal match", IconTarget),
-    row("workload_fit", "Workload", IconLayers),
-    row("country_alignment", "Flexibility", IconGlobe),
-  ];
-}
-
-function SectionHeading({
-  icon: Icon = IconSparkles,
-  title,
-  kicker,
-}: {
-  emoji?: string;
-  icon?: ComponentType<{ className?: string }>;
-  title: string;
-  kicker?: string;
-}) {
-  return (
-    <div className="mb-3 flex items-start gap-2.5">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-teal-800 shadow-sm ring-1 ring-teal-100" aria-hidden>
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0">
-        <h3 className="text-lg font-bold tracking-tight text-slate-900">{title}</h3>
-        {kicker ? <p className="mt-0.5 text-xs font-medium leading-snug text-slate-600">{kicker}</p> : null}
-      </div>
-    </div>
-  );
 }
 
 function isGuidanceMode(rec: PathRecommendation) {
@@ -169,677 +49,531 @@ function uniqueAlternativePaths(bundle: DashboardBundle) {
   });
 }
 
-function readinessFactorLabel(f: { key: ScoringFactorKey; label: string }) {
-  if (f.key === "interest_alignment") return "What to focus on now";
-  if (f.key === "pathway_alignment") return "How to prepare for Grade 11 choices";
-  if (f.key === "strength_match") return "Skills to build";
-  if (f.key === "future_relevance") return "Interests to explore";
-  return f.label;
+function cleanDisplayText(text: string) {
+  return text
+    .replace(/three-path course recommendation/gi, "course-selection pathway")
+    .replace(/\bstem\b/gi, "STEM")
+    .trim();
 }
 
-function displayRecommendationLabel(label: PathRecommendation["label"]) {
-  return label === "Optimal" ? "Recommended" : label;
+function workloadDemandLabel(level: RiskLevel) {
+  if (level === "low") return "Lower";
+  if (level === "moderate") return "Moderate";
+  return "Higher";
 }
 
-const guidanceCardIcons = [IconTarget, IconGlobe, IconZap, IconBookOpen] as const;
+function sentenceList(text: string, limit = 5) {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((item) => cleanDisplayText(item))
+    .filter(Boolean)
+    .slice(0, limit);
+}
 
-function GuidanceHero({ rec, answers }: { rec: PathRecommendation; answers: Record<string, unknown> }) {
-  const factors = rec.rationale.topContributingFactors;
-  const { body, who } = splitFutureImpact(rec.futureImpactSummary);
-  const futureBits = futureImpactBullets(body || rec.futureImpactSummary).map((x) => truncateBullet(x));
-  const wow = buildWowMessage(answers, rec);
-  const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
-  const gains = buildWhatYouGain(rec, answers);
-  const wowLines = sentencesTwoMax(wow);
-  const thingsToKnow = [
-    ...rec.whyMayFeelHard.slice(0, 2).map((x) => truncateBullet(x)),
-    ...rec.tradeOffs.slice(0, 2).map((x) => truncateBullet(x)),
-  ].filter(Boolean);
+function firstSentences(text: string, limit = 2) {
+  return sentenceList(text, limit);
+}
 
+function uniqueText(lines: string[], limit: number) {
+  const seen = new Set<string>();
+  return lines
+    .map((line) => cleanDisplayText(line))
+    .filter((line) => {
+      if (!line || seen.has(line)) return false;
+      seen.add(line);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+function recommendationReasons(rec: PathRecommendation) {
+  const selectionReasons = rec.selectionBecause ?? [];
+  const factorReasons = rec.rationale.topContributingFactors.flatMap((factor) =>
+    factor.evidence.length ? [factor.evidence[0]] : [factor.label],
+  );
+  return uniqueText([...selectionReasons, ...factorReasons], 3);
+}
+
+function recommendationConsiderations(rec: PathRecommendation) {
+  const softWarningText = new Set(rec.softWarnings.map(cleanDisplayText));
+  const lines = [
+    ...rec.hardRisks.map((line) => `Confirm before proceeding: ${line}`),
+    ...rec.softWarnings,
+    ...rec.whyMayFeelHard,
+    ...rec.tradeOffs,
+    ...rec.whyMayNotFit
+      .filter((line) => !softWarningText.has(cleanDisplayText(line)))
+      .map((line) => `Check with your counselor: ${line}`),
+  ];
+  return uniqueText(lines, lines.length);
+}
+
+function RecommendationSectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+}) {
   return (
-    <div
-      id="hero-best-fit"
-      className="apf-fade-up relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br from-indigo-50/85 via-white to-teal-50/55 p-6 shadow-[0_28px_70px_-36px_rgba(79,70,229,0.32)] ring-1 ring-indigo-200/50 transition-shadow duration-300 hover:shadow-[0_32px_78px_-38px_rgba(79,70,229,0.36)] sm:p-9"
-    >
-      <section className="relative border-b border-indigo-100/90 pb-8 text-center sm:text-left">
-        <SectionHeading icon={IconRoute} title="Your readiness plan" kicker="SAIS Grades 9-10 guidance mode" />
-        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">What to focus on now</h2>
-            <div className="mx-auto mt-4 max-w-2xl space-y-2 sm:mx-0">
-              {wowLines.map((line, i) => (
-                <p key={`g-wow-${i}`} className="text-sm font-semibold leading-snug text-indigo-950">
-                  {line}
-                </p>
-              ))}
-        </div>
-        <p className="mx-auto mt-3 max-w-2xl text-xs leading-snug text-slate-600 sm:mx-0">
-          {truncateBullet(rec.confidenceExplanation, 140)}
-        </p>
-        <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-          <Badge tone="primary">Guidance</Badge>
-          <RiskPill level={risk} />
-        </div>
-        <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-indigo-200/80 bg-white/95 p-4 text-sm font-semibold leading-snug text-slate-800 shadow-sm ring-1 ring-indigo-100/60 sm:mx-0">
-          {truncateBullet(rec.explanation, 320)}
-        </div>
-      </section>
-
-      <section className="relative mt-8">
-        <SectionHeading icon={IconZap} title="Skills to build" kicker="Interests, habits, and Grade 11 preparation" />
-        <div className="grid gap-3 sm:grid-cols-2">
-          {factors.slice(0, 4).map((f, i) => {
-            const Icon = guidanceCardIcons[i] ?? IconSparkles;
-            const tones = [
-              "border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50/80 ring-teal-200/60",
-              "border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50/70 ring-violet-200/60",
-              "border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50/60 ring-amber-200/50",
-            ];
-            return (
-              <div
-                key={f.key}
-                className={`rounded-2xl border p-4 shadow-sm ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-md ${tones[i % tones.length]}`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-teal-800 shadow-sm ring-1 ring-slate-100">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wide text-slate-700">{readinessFactorLabel(f)}</span>
-                </div>
-                <p className="mt-2 text-xs leading-snug text-slate-700">{truncateBullet(f.evidence[0] ?? "", 120)}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="relative mt-8 rounded-2xl border border-slate-200/80 bg-white/85 p-5 ring-1 ring-violet-100/80">
-        <SectionHeading icon={IconBookOpen} title="How to prepare for Grade 11 choices" kicker="Foundations and next steps" />
-        <CategoryGrid rec={rec} />
-      </section>
-
-      <details className="relative mt-6 group rounded-2xl border border-amber-200/70 bg-amber-50/40 shadow-sm open:bg-amber-50/60">
-        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-amber-950 marker:content-none [&::-webkit-details-marker]:hidden">
-          <IconSparkles className="h-4 w-4 text-amber-700" />
-          <span className="flex-1">Things to know</span>
-          <span className="text-xs font-medium text-amber-800/80 group-open:hidden">Show</span>
-          <span className="hidden text-xs font-medium text-amber-800/80 group-open:inline">Hide</span>
-        </summary>
-        <ul className="space-y-2 border-t border-amber-100/90 px-4 pb-4 pt-3 text-xs text-amber-950">
-          {thingsToKnow.slice(0, 5).map((t, i) => (
-            <li key={`g-tk-${i}`} className="flex gap-2">
-              <span className="text-amber-600">▸</span>
-              <span className="leading-snug">{t}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
-
-      <section className="relative mt-8">
-        <SectionHeading icon={IconSparkles} title="What you gain" kicker="Skills, doors, and momentum" />
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {gains.slice(0, 4).map((line) => (
-            <li
-              key={line}
-              className="flex gap-2 rounded-xl border border-teal-200/80 bg-gradient-to-r from-teal-50/90 to-white px-3 py-2.5 text-xs font-medium text-slate-800 shadow-sm ring-1 ring-teal-100/60"
-            >
-              <span className="text-teal-600">▸</span>
-              <span className="leading-snug">{truncateBullet(line, 110)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <details className="relative mt-6 rounded-2xl border border-slate-200/90 bg-slate-50/50 shadow-sm open:bg-white/90">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-800 marker:content-none [&::-webkit-details-marker]:hidden">
-          Next steps, future doors, and ideas
-        </summary>
-        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3 text-xs text-slate-700">
-          <div>
-            <p className="font-bold text-slate-800">Do next</p>
-            <ul className="mt-2 space-y-1.5">
-              {rec.actionSteps.map((step, i) => (
-                <li key={`${i}-${step.slice(0, 16)}`} className="flex gap-2 leading-snug">
-                  <span className="font-bold text-teal-700">{i + 1}.</span>
-                  <span className="">{truncateBullet(step, 120)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="font-bold text-slate-800">Future doors</p>
-            <ul className="mt-2 space-y-1">
-              {futureBits.slice(0, 3).map((line) => (
-                <li key={line} className="flex gap-2 leading-snug">
-                  <span className="text-violet-600">▸</span>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-            {who ? (
-              <p className="mt-2 border-t border-slate-100 pt-2 text-xs text-slate-600">
-                <span className="font-semibold text-slate-800">Best for: </span>
-                {truncateBullet(who, 100)}
-              </p>
-            ) : null}
-          </div>
-          <p className="leading-snug">{truncateBullet(rec.explanation, 160)}</p>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Ideas</p>
-            <ul className="mt-1 flex flex-wrap gap-1.5">
-              {rec.alternatives.slice(0, 6).map((a) => (
-                <li key={a}>
-                  <Chip tone="teal" label={truncateBullet(a, 40)} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </details>
-    </div>
+    <header>
+      {eyebrow ? <p className="apf-document-label">{eyebrow}</p> : null}
+      <h3 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">{title}</h3>
+      {description ? <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">{description}</p> : null}
+    </header>
   );
 }
 
-function CategoryGrid({ rec, muted }: { rec: PathRecommendation; muted?: boolean }) {
+function CategoryGrid({ rec, muted = false }: { rec: PathRecommendation; muted?: boolean }) {
   const entries = Object.entries(rec.selections.categorySelections ?? {});
   if (!entries.length) {
     return (
-      <p className={`text-xs font-medium leading-snug ${muted ? "text-slate-500" : "text-slate-600"}`}>
-        Guidance mode — focus on foundations; your counselor helps lock courses next.
+      <p className="max-w-2xl text-sm leading-6 text-slate-600">
+        This readiness plan focuses on preparation before course pathways open in Grade 11.
       </p>
     );
   }
-  const palettes = muted
-    ? ["border-slate-200 bg-slate-50/90 text-slate-800 ring-slate-100"]
-    : [
-        "border-teal-300/80 bg-gradient-to-r from-teal-50 to-cyan-50/70 text-slate-900 ring-teal-200/60",
-        "border-violet-300/70 bg-gradient-to-r from-violet-50 to-indigo-50/60 text-slate-900 ring-violet-200/50",
-        "border-amber-300/70 bg-gradient-to-r from-amber-50 to-orange-50/50 text-slate-900 ring-amber-200/45",
-        "border-sky-300/70 bg-gradient-to-r from-sky-50 to-blue-50/50 text-slate-900 ring-sky-200/50",
-      ];
+
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-      {entries.map(([k, v], i) => (
+    <dl className="grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+      {entries.map(([category, code]) => (
         <div
-          key={k}
-          className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm shadow-sm ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-            muted ? palettes[0] : palettes[i % palettes.length]
+          key={category}
+          className={`flex min-h-16 items-center justify-between gap-4 px-4 py-3 ${
+            muted ? "bg-slate-50" : "bg-white"
           }`}
         >
-          <span className="font-semibold text-slate-800">{categoryLabel(k as never)}</span>
-          <span className="text-right text-sm font-bold text-slate-900">{courseName(v)}</span>
+          <dt className="text-sm text-slate-600">{categoryLabel(category as never)}</dt>
+          <dd className="text-right text-sm font-semibold text-slate-950">{courseName(code)}</dd>
         </div>
       ))}
-    </div>
+    </dl>
   );
 }
 
-function MetricRow({
-  label,
-  caption,
-  hint,
-  pct,
-  icon: Icon,
+function RecommendationActions({
+  detailsId,
+  onEdit,
 }: {
-  label: string;
-  caption: string;
-  hint?: string;
-  pct: number;
-  icon?: ComponentType<{ className?: string }>;
+  detailsId: string;
+  onEdit: () => void;
 }) {
+  function openNextSteps() {
+    const details = document.getElementById(detailsId) as HTMLDetailsElement | null;
+    if (!details) return;
+    details.open = true;
+    const summary = details.querySelector("summary");
+    summary?.focus({ preventScroll: true });
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    details.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }
+
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-start justify-between gap-2">
-        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
-          {Icon ? <Icon className="h-3.5 w-3.5 shrink-0 text-violet-600" /> : null}
-          {label}
-        </span>
-        <span className="shrink-0 rounded-full bg-gradient-to-r from-teal-50 to-violet-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-900 ring-1 ring-teal-200/60">
-          {caption}
-        </span>
+    <div className="border-t border-slate-200 pt-5 print:hidden">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Button type="button" onClick={openNextSteps}>
+          Review next steps
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => window.print()}>
+          Print summary
+        </Button>
+        <Button type="button" variant="secondary" onClick={onEdit}>
+          Edit preferences
+        </Button>
       </div>
-      {hint ? <p className="text-[11px] leading-snug text-slate-500">{hint}</p> : null}
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-teal-500 via-cyan-400 to-violet-500 transition-all duration-700"
-          style={{ width: `${pct}%` }}
-        />
+      <div className="mt-4 flex flex-col gap-1 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <p>
+          <span className="font-semibold text-emerald-800">Plan saved.</span> Your latest answers and recommendation are active.
+        </p>
+        <p>Review course availability and tradeoffs with your counselor.</p>
       </div>
     </div>
   );
 }
 
-const metricIcons: Record<string, ComponentType<{ className?: string }>> = {
-  "How the load feels": IconLayers,
-  "Challenge level": IconGauge,
-  "Your direction": IconRoute,
-  "Future doors": IconSparkles,
-  "Competitive edge": IconTrophy,
-};
-
-function RecommendationHero({ rec, answers }: { rec: PathRecommendation; answers: Record<string, unknown> }) {
-  if (isGuidanceMode(rec)) return <GuidanceHero rec={rec} answers={answers} />;
-
-  const band = confidenceBand(rec.confidence.overall);
-  const metrics = pathMetricBars(rec);
-  const topFactors = rec.rationale.topContributingFactors.slice(0, 3);
-  const { body: impactBody, who: whoLine } = splitFutureImpact(rec.futureImpactSummary);
-  const impactLines = futureImpactBullets(impactBody || rec.futureImpactSummary).slice(0, 3);
-  const wow = buildWowMessage(answers, rec);
-  const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
+function DetailedReasoning({
+  rec,
+  answers,
+  detailsId,
+}: {
+  rec: PathRecommendation;
+  answers: Record<string, unknown>;
+  detailsId: string;
+}) {
   const gains = buildWhatYouGain(rec, answers);
-  const wowLines = sentencesTwoMax(wow);
-  const overview = quickOverviewTriples(rec);
-  const thingsToKnow = [
-    ...rec.whyMayFeelHard.slice(0, 3).map((x) => truncateBullet(x)),
-    ...rec.tradeOffs.slice(0, 2).map((x) => truncateBullet(x)),
-    ...(rec.whyMayNotFit[0] ? [truncateBullet(`Heads-up: ${rec.whyMayNotFit[0]}`, 100)] : []),
-  ].filter(Boolean);
-
-  const overviewCardTone = [
-    "border-teal-300/80 bg-gradient-to-br from-teal-50 via-white to-cyan-50/70 ring-teal-200/55",
-    "border-violet-300/75 bg-gradient-to-br from-violet-50 via-white to-indigo-50/60 ring-violet-200/50",
-    "border-amber-300/70 bg-gradient-to-br from-amber-50 via-white to-orange-50/50 ring-amber-200/45",
-  ];
+  const future = sentenceList(rec.futureImpactSummary, 4);
+  const considerations = recommendationConsiderations(rec);
+  const planningIdeas = uniqueText(rec.alternatives, rec.alternatives.length);
+  const fullReasons = uniqueText(
+    [
+      ...(rec.selectionBecause ?? []),
+      ...rec.rationale.topContributingFactors.flatMap((factor) =>
+        factor.evidence.length ? factor.evidence : [factor.label],
+      ),
+    ],
+    8,
+  );
 
   return (
-    <div
-      id="hero-best-fit"
-      className="apf-fade-up relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br from-white via-teal-50/55 to-violet-100/35 p-6 shadow-[0_28px_70px_-36px_rgba(15,118,110,0.45)] ring-1 ring-teal-300/40 transition-shadow duration-300 hover:shadow-[0_32px_78px_-38px_rgba(15,118,110,0.48)] sm:p-9"
-    >
-      <section className="relative border-b border-teal-100/80 pb-8 text-center sm:text-left">
-        <SectionHeading icon={IconTarget} title="Recommended path summary" kicker="Your best fit - built from your answers" />
-        <div className="mt-2 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-violet-600 text-white shadow-lg ring-4 ring-white/90 transition duration-300 hover:scale-[1.03]">
-            <IconSparkles className="h-7 w-7" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">This is your recommended SAIS path</h2>
-            <div className="mx-auto mt-4 max-w-2xl space-y-2 sm:mx-0">
-              {wowLines.map((line, i) => (
-                <p key={`wow-${i}`} className="text-sm font-semibold leading-snug text-teal-950">
-                  {line}
-                </p>
-              ))}
-            </div>
-            <p className="mx-auto mt-3 max-w-2xl text-xs leading-snug text-slate-600 sm:mx-0">
-              {truncateBullet(rec.confidenceExplanation, 140)}
-            </p>
-            <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-              <Badge tone="primary">Primary pick</Badge>
-              <Badge tone="neutral">{displayRecommendationLabel(rec.label)}</Badge>
-              <RiskPill level={risk} />
-              <Badge tone={confidenceTone(band)}>
-                {band === "High" ? "Strong fit" : band === "Medium" ? "Solid fit" : "Room to grow"}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative mt-8">
-        <SectionHeading icon={IconGauge} title="Quick overview" kicker="Goal match / workload / flexibility" />
-        <div className="grid gap-3 sm:grid-cols-3">
-          {overview.map((row, idx) => (
-            <div
-              key={row.key}
-              style={{ animationDelay: `${idx * 60}ms` }}
-              className={`apf-fade-up rounded-2xl border p-4 shadow-md ring-1 transition duration-300 hover:-translate-y-0.5 hover:shadow-lg ${overviewCardTone[idx % overviewCardTone.length]}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-900 ring-1 ring-teal-200/60">
-                  {row.band}
-                </span>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <row.Icon className="h-4 w-4 text-violet-700" />
-                <span className="text-sm font-bold text-slate-900">{row.title}</span>
-              </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/80 ring-1 ring-slate-200/50">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-500 via-cyan-400 to-violet-500 transition-all duration-700"
-                  style={{ width: `${row.pct}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="relative mt-8 rounded-2xl border border-teal-200/70 bg-gradient-to-br from-white/95 to-teal-50/30 p-5 ring-1 ring-teal-100/80">
-        <SectionHeading icon={IconBookOpen} title="Your plan" kicker="Courses by category" />
-        <CategoryGrid rec={rec} />
-      </section>
-
-      {rec.selectionBecause && rec.selectionBecause.length > 0 ? (
-        <details className="relative mt-6 group rounded-2xl border-2 border-cyan-200/70 bg-gradient-to-br from-cyan-50/40 to-white shadow-md open:shadow-lg" open>
-          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-slate-900 marker:content-none [&::-webkit-details-marker]:hidden">
-            <IconRoute className="h-4 w-4 text-cyan-700" />
-            <span className="flex-1">Why these picks - for you</span>
-            <span className="text-xs font-medium text-cyan-800/80 group-open:hidden">Show</span>
-            <span className="hidden text-xs font-medium text-cyan-800/80 group-open:inline">Hide</span>
-          </summary>
-          <ul className="space-y-2.5 border-t border-cyan-100/80 px-4 pb-4 pt-3 text-xs font-medium leading-snug text-slate-800">
-            {rec.selectionBecause.map((line, i) => (
-              <li key={`sb-${i}`} className="flex gap-2">
-                <span className="shrink-0 text-cyan-600">▸</span>
+    <details id={detailsId} className="group scroll-mt-24 border-t border-slate-200 pt-1">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-semibold text-teal-900 marker:content-none [&::-webkit-details-marker]:hidden">
+        <span>View detailed reasoning and next steps</span>
+        <span aria-hidden className="text-lg leading-none transition-transform duration-150 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+      <div className="grid gap-8 border-t border-slate-200 py-6 lg:grid-cols-2">
+        <section>
+          <RecommendationSectionHeading title="Detailed reasoning" />
+          <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-700">
+            {fullReasons.map((line) => (
+              <li key={line} className="flex gap-3">
+                <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-700" />
                 <span>{line}</span>
               </li>
             ))}
           </ul>
-        </details>
-      ) : null}
-
-      <details className="relative mt-6 group rounded-2xl border border-amber-200/75 bg-amber-50/45 shadow-sm open:bg-amber-50/65">
-        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-amber-950 marker:content-none [&::-webkit-details-marker]:hidden">
-          <IconSparkles className="h-4 w-4 text-amber-700" />
-          <span className="flex-1">Things to know</span>
-          <span className="text-xs font-medium text-amber-900/70 group-open:hidden">Show</span>
-          <span className="hidden text-xs font-medium text-amber-900/70 group-open:inline">Hide</span>
-        </summary>
-        <ul className="space-y-2 border-t border-amber-100/90 px-4 pb-4 pt-3 text-xs text-amber-950">
-          {thingsToKnow.slice(0, 6).map((t, i) => (
-            <li key={`tk-${i}`} className="flex gap-2">
-              <span className="text-amber-600">▸</span>
-              <span className="leading-snug">{t}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
-
-      <section className="relative mt-8">
-        <SectionHeading icon={IconSparkles} title="What you gain" kicker="Outcomes that match your goals" />
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {gains.map((line) => (
-            <li
-              key={line}
-              className="flex gap-2 rounded-xl border border-violet-200/80 bg-gradient-to-r from-violet-50/90 to-white px-3 py-2.5 text-xs font-medium text-slate-800 shadow-sm ring-1 ring-violet-100/70 transition duration-200 hover:shadow-md"
-            >
-              <span className="text-violet-600">▸</span>
-              <span className="leading-snug">{truncateBullet(line, 120)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <details className="relative mt-6 rounded-2xl border border-slate-200/90 bg-slate-50/60 shadow-sm open:bg-white/95">
-        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-bold text-slate-800 marker:content-none [&::-webkit-details-marker]:hidden">
-          <IconBookOpen className="h-4 w-4 text-teal-700" />
-          <span className="flex-1">More: why it fits, next steps, fit bars, and ideas</span>
-          <span className="text-xs font-medium text-slate-500">Optional</span>
-        </summary>
-        <div className="space-y-5 border-t border-slate-100 px-4 pb-5 pt-4 text-xs text-slate-700">
-          <div>
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-teal-900">
-              <IconTarget className="h-3.5 w-3.5" />
-              Why this fits
-            </p>
-            <ul className="mt-2 space-y-1.5">
-              {topFactors.map((f) => (
-                <li key={f.key} className="flex gap-2 leading-snug">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
-                  <span className="">{truncateBullet(f.evidence[0] ?? f.label, 130)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-teal-900">
-              <IconArrowRight className="h-3.5 w-3.5" />
-              Do this next
-            </p>
-            <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
-              {rec.actionSteps.slice(0, 4).map((step, i) => (
-                <li key={`${i}-${step.slice(0, 16)}`} className="flex gap-2 rounded-lg bg-teal-50/60 px-2 py-1.5 ring-1 ring-teal-100/60">
-                  <span className="font-bold text-teal-700">{i + 1}.</span>
-                  <span className="">{truncateBullet(step, 110)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-violet-900">
-              <IconGlobe className="h-3.5 w-3.5" />
-              Where it leads
-            </p>
-            <ul className="mt-2 space-y-1">
-              {impactLines.map((line) => (
-                <li key={line} className="flex gap-2 leading-snug">
-                  <span className="text-violet-600">▸</span>
-                  <span>{truncateBullet(line, 120)}</span>
-                </li>
-              ))}
-            </ul>
-            {whoLine ? (
-              <p className="mt-2 border-t border-violet-100 pt-2 text-xs text-slate-600">
-                <span className="font-semibold text-slate-800">Best for: </span>
-                {truncateBullet(whoLine, 100)}
-              </p>
-            ) : null}
-          </div>
-          <div className="rounded-xl border border-violet-100 bg-white/90 p-4 ring-1 ring-violet-50">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-800">
-              <IconGauge className="h-3.5 w-3.5 text-violet-600" />
-              Fit snapshot
-            </p>
-            <p className="mt-1 text-[10px] text-slate-500">From your answers — not grades.</p>
-            <div className="mt-3 grid gap-3">
-              {metrics.slice(0, 5).map((m) => (
-                <MetricRow
-                  key={m.label}
-                  label={m.label}
-                  hint={m.hint}
-                  caption={m.caption}
-                  pct={m.pct}
-                  icon={metricIcons[m.label]}
-                />
-              ))}
-            </div>
-          </div>
-          <p className="leading-snug">{truncateBullet(rec.explanation, 220)}</p>
-          {rec.continuationSuggestions.length ? (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Next-semester ideas</p>
-              <ul className="mt-2 flex flex-wrap gap-1.5">
-                {rec.continuationSuggestions.slice(0, 8).map((c) => (
-                  <li key={`${c.fromCourseCode}-${c.toCourseCode}`}>
-                    <Chip tone="teal" label={`${courseName(c.fromCourseCode)} → ${courseName(c.toCourseCode)}`} />
+          <p className="mt-5 border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-600">
+            {cleanDisplayText(rec.explanation)}
+          </p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{cleanDisplayText(rec.confidenceExplanation)}</p>
+          {considerations.length ? (
+            <section className="mt-7 border-t border-slate-200 pt-5">
+              <h4 className="text-sm font-semibold text-slate-950">Full considerations</h4>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+                {considerations.map((line) => (
+                  <li key={line} className="border-l-2 border-amber-500 pl-3">
+                    {line}
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
+          ) : null}
+        </section>
+
+        <div className="space-y-8">
+          <section id="next-steps" className="scroll-mt-24">
+            <RecommendationSectionHeading title="Next steps" />
+            <ol className="mt-4 space-y-3">
+              {rec.actionSteps.map((step, index) => (
+                <li key={`${index}-${step}`} className="grid grid-cols-[2rem_1fr] gap-2 text-sm leading-6 text-slate-700">
+                  <span className="font-semibold tabular-nums text-teal-800">{String(index + 1).padStart(2, "0")}</span>
+                  <span>{cleanDisplayText(step)}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+          <section>
+            <RecommendationSectionHeading title="What this path supports" />
+            <ul className="mt-4 space-y-2 text-sm leading-6 text-slate-700">
+              {uniqueText([...gains, ...future], 6).map((line) => (
+                <li key={line} className="border-l-2 border-teal-200 pl-3">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </section>
+          {rec.continuationSuggestions.length ? (
+            <section>
+              <RecommendationSectionHeading title="Next-semester ideas" />
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-slate-700">
+                {rec.continuationSuggestions.map((suggestion) => (
+                  <li key={`${suggestion.fromCourseCode}-${suggestion.toCourseCode}`}>
+                    <span className="font-medium text-slate-900">
+                      {courseName(suggestion.fromCourseCode)} → {courseName(suggestion.toCourseCode)}
+                    </span>
+                    {suggestion.note ? ` — ${cleanDisplayText(suggestion.note)}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {planningIdeas.length ? (
+            <section>
+              <RecommendationSectionHeading title="Other planning ideas considered" />
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-700">
+                {planningIdeas.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </section>
           ) : null}
         </div>
-      </details>
-    </div>
+      </div>
+    </details>
   );
 }
 
-function SecondaryPathCard({
+function GuidancePlan({
   rec,
   answers,
-  anchorId,
+  onEdit,
 }: {
   rec: PathRecommendation;
   answers: Record<string, unknown>;
-  anchorId: string;
+  onEdit: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const band = confidenceBand(rec.confidence.overall);
-  const metrics = pathMetricBars(rec);
-  const summaryRow = pathSummaryTopRow(rec);
-  const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
-  const gains = buildWhatYouGain(rec, answers);
-  const tone =
-    rec.kind === "balanced"
-      ? "border-teal-200/90 bg-gradient-to-br from-teal-50/60 via-white to-cyan-50/45"
-      : "border-violet-200/90 bg-gradient-to-br from-violet-50/65 via-white to-indigo-50/50";
-  const accent = rec.kind === "balanced" ? "text-teal-700 ring-teal-100" : "text-violet-700 ring-violet-100";
+  const summary = firstSentences(buildWowMessage(answers, rec), 1)[0] ?? cleanDisplayText(rec.explanation);
+  const factors = rec.rationale.topContributingFactors.slice(0, 4);
+  const considerations = recommendationConsiderations(rec);
+  const considerationPreview = considerations.slice(0, 3);
 
   return (
-    <div id={anchorId} className="scroll-mt-28">
-      <Card className={`rounded-2xl border p-5 shadow-[0_18px_50px_-34px_rgba(15,23,42,0.42)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_62px_-36px_rgba(15,23,42,0.5)] ${tone}`}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ${accent}`} aria-hidden>
-                {rec.kind === "balanced" ? <IconLayers className="h-4 w-4" /> : <IconZap className="h-4 w-4" />}
-              </span>
-              <h3 className="text-base font-bold text-slate-900">{prettyKind(rec.kind)}</h3>
-              <Badge tone="neutral">{displayRecommendationLabel(rec.label)}</Badge>
-              <RiskPill level={risk} />
-              <Badge tone={confidenceTone(band)}>
-                {band === "High" ? "Strong fit" : band === "Medium" ? "Solid fit" : "Room to grow"}
-              </Badge>
+    <article id="hero-best-fit" className="apf-paper space-y-8 p-5 sm:p-8 lg:p-10">
+      <header className="max-w-3xl">
+        <p className="apf-document-label">Grades 9–10 readiness plan</p>
+        <h2 className="apf-display mt-3 text-3xl text-slate-950 sm:text-4xl">Build the foundation for later course choices</h2>
+        <p className="mt-4 text-base leading-7 text-slate-700">{summary}</p>
+      </header>
+
+      <section className="border-t border-slate-200 pt-7">
+        <RecommendationSectionHeading
+          eyebrow="Focus now"
+          title="Preparation priorities"
+          description="These points come from the answers already in your planning profile."
+        />
+        <div className="mt-5 grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+          {factors.map((factor, index) => (
+            <div key={factor.key} className="bg-white p-4">
+              <p className="text-xs font-semibold tabular-nums text-teal-800">{String(index + 1).padStart(2, "0")}</p>
+              <h4 className="mt-2 text-sm font-semibold text-slate-950">{factor.label}</h4>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{cleanDisplayText(factor.evidence[0] ?? "")}</p>
             </div>
-            <ul className="mt-3 space-y-1 text-xs text-slate-600">
-              {rec.rationale.topContributingFactors.slice(0, 2).map((f) => (
-                <li key={f.key} className="flex gap-2 leading-snug">
-                  <span className="text-teal-500">▸</span>
-                  <span>{truncateBullet(f.evidence[0] ?? f.label, 110)}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {summaryRow.map((row) => (
-                <span
-                  key={row.key}
-                  className="inline-flex items-center rounded-full border border-violet-200/70 bg-violet-50/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-900"
-                >
-                  {row.label}: {row.band}
-                </span>
-              ))}
-            </div>
-          </div>
-          <Button
-            variant="secondary"
-            className="shrink-0 rounded-xl border-violet-200 bg-white font-semibold shadow-sm transition duration-200 hover:scale-[1.02]"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? "Less" : "Full detail"}
-          </Button>
+          ))}
         </div>
-        {open ? (
-          <div className="mt-4 space-y-4 border-t border-slate-200/80 pt-4 text-xs text-slate-700">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">What you gain</p>
-              <ul className="mt-2 space-y-1">
-                {gains.slice(0, 4).map((g, i) => (
-                  <li key={`${i}-${g.slice(0, 12)}`} className="flex gap-2 leading-snug">
-                    <span className="text-indigo-500">▸</span>
-                    <span>{truncateBullet(g, 100)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2 rounded-xl border border-slate-200 bg-white/90 p-3">
-                {metrics.slice(0, 3).map((m) => (
-                  <MetricRow
-                    key={m.label}
-                    label={m.label}
-                    hint={m.hint}
-                    caption={m.caption}
-                    pct={m.pct}
-                    icon={metricIcons[m.label]}
-                  />
-                ))}
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Course picks</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {Object.entries(rec.selections.categorySelections ?? {}).length ? (
-                    Object.entries(rec.selections.categorySelections ?? {}).map(([k, v]) => (
-                      <Chip key={k} tone="teal" label={truncateBullet(`${categoryLabel(k as never)}: ${courseName(v)}`, 48)} />
-                    ))
-                  ) : (
-                    <span className="text-xs text-slate-600">Guidance mode</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            {rec.selectionBecause && rec.selectionBecause.length > 0 ? (
-              <div className="rounded-xl border border-cyan-200/70 bg-cyan-50/40 p-3 ring-1 ring-cyan-100/50">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-cyan-900">Why these picks</p>
-                <ul className="mt-2 space-y-1.5">
-                  {rec.selectionBecause.slice(0, 5).map((line, i) => (
-                    <li key={`alt-sb-${i}`} className="flex gap-2 leading-snug text-slate-800">
-                      <span className="text-cyan-600">▸</span>
-                      <span className="">{truncateBullet(line, 140)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            <p className="leading-snug text-slate-600">{truncateBullet(rec.explanation, 200)}</p>
-            <p className="leading-snug text-slate-500">{truncateBullet(rec.futureImpactSummary, 160)}</p>
-          </div>
-        ) : null}
-      </Card>
-    </div>
+      </section>
+
+      {considerationPreview.length ? (
+        <section className="border-l-4 border-amber-600 bg-amber-50 px-4 py-4">
+          <h3 className="text-sm font-semibold text-amber-950">Important considerations</h3>
+          <ul className="mt-2 space-y-1 text-sm leading-6 text-amber-950">
+            {considerationPreview.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {considerations.length > considerationPreview.length ? (
+            <p className="mt-2 text-xs font-medium text-amber-950">
+              {considerations.length - considerationPreview.length} more item
+              {considerations.length - considerationPreview.length === 1 ? "" : "s"} in detailed reasoning.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      <DetailedReasoning rec={rec} answers={answers} detailsId="recommendation-details" />
+      <RecommendationActions detailsId="recommendation-details" onEdit={onEdit} />
+    </article>
   );
 }
 
-type ActiveSession = {
-  answers?: Record<string, unknown>;
-  outputs?: { bundle?: unknown };
-};
-
-function QuickExploreBar(props: {
-  enabled: boolean;
-  onAdjust: (mode: QuickAdjustMode) => void;
-  banner: string | null;
-  onDismissBanner: () => void;
+function RecommendationPlan({
+  rec,
+  answers,
+  onEdit,
+}: {
+  rec: PathRecommendation;
+  answers: Record<string, unknown>;
+  onEdit: () => void;
 }) {
-  if (!props.enabled) return null;
+  const summary = firstSentences(buildWowMessage(answers, rec), 1)[0] ?? cleanDisplayText(rec.explanation);
+  const reasons = recommendationReasons(rec);
+  const considerations = recommendationConsiderations(rec);
+  const considerationPreview = considerations.slice(0, 3);
+  const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
+
   return (
-    <div className="apf-fade-up mt-10 rounded-2xl border-2 border-violet-300/50 bg-gradient-to-r from-violet-50/95 via-white to-teal-50/80 p-5 shadow-lg shadow-violet-200/25 ring-1 ring-violet-200/40 backdrop-blur-sm transition duration-300 hover:shadow-xl">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-violet-700 shadow-sm ring-1 ring-violet-100" aria-hidden>
-          <IconTarget className="h-4 w-4" />
-        </span>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-900">Quick explore</p>
-      </div>
-      <p className="mt-2 max-w-xl text-xs font-medium leading-snug text-slate-600">
-        Jump to a path we already computed. No redo needed.
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          className="rounded-xl border-teal-200 bg-gradient-to-r from-teal-50 to-cyan-50 font-semibold text-teal-900 shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-md"
-          onClick={() => props.onAdjust("easier")}
-        >
-          Easier ride
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          className="rounded-xl border-violet-200 bg-gradient-to-r from-violet-50 to-indigo-50 font-semibold text-violet-900 shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-md"
-          onClick={() => props.onAdjust("competitive")}
-        >
-          More competitive
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          className="rounded-xl border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 font-semibold text-amber-950 shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-md"
-          onClick={() => props.onAdjust("flexible")}
-        >
-          Stay flexible
-        </Button>
-      </div>
-      {props.banner ? (
-        <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-teal-200/80 bg-teal-50/95 px-4 py-3 text-xs text-teal-950 ring-1 ring-teal-200/70">
-          <p className="leading-snug">{props.banner}</p>
-          <button
-            type="button"
-            className="shrink-0 text-xs font-semibold text-teal-800 underline decoration-teal-400 hover:text-teal-950"
-            onClick={props.onDismissBanner}
+    <article id="hero-best-fit" className="apf-paper space-y-8 p-5 sm:p-8 lg:p-10">
+      <header className="max-w-4xl">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="apf-document-label">Best Fit · active plan</p>
+          <span
+            className="text-xs font-medium text-slate-600"
+            title="A qualitative workload description, not a grade prediction."
           >
-            Dismiss
-          </button>
+            Estimated workload: {workloadDemandLabel(risk)}
+          </span>
         </div>
-      ) : null}
-    </div>
+        <h2 className="apf-display mt-3 text-3xl text-slate-950 sm:text-4xl">Best Fit course plan</h2>
+        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700">{summary}</p>
+      </header>
+
+      <section className="border-t border-slate-200 pt-7">
+        <RecommendationSectionHeading
+          eyebrow="Recommended courses"
+          title="Your course plan"
+          description="Course availability and prerequisites still require counselor confirmation."
+        />
+        <div className="mt-5">
+          <CategoryGrid rec={rec} />
+        </div>
+      </section>
+
+      <div className="grid gap-7 border-t border-slate-200 pt-7 lg:grid-cols-[1.1fr_0.9fr]">
+        <section>
+          <RecommendationSectionHeading
+            eyebrow="Why it fits"
+            title="The three strongest reasons"
+          />
+          <ol className="mt-5 space-y-4">
+            {reasons.map((line, index) => (
+              <li key={line} className="grid grid-cols-[2rem_1fr] gap-2 text-sm leading-6 text-slate-700">
+                <span className="font-semibold tabular-nums text-teal-800">{String(index + 1).padStart(2, "0")}</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="border-l-4 border-amber-600 bg-amber-50 px-4 py-4 sm:px-5">
+          <RecommendationSectionHeading
+            eyebrow="Before you decide"
+            title="Important considerations"
+          />
+          {considerationPreview.length ? (
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-amber-950">
+              {considerationPreview.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-amber-950">
+              Confirm course availability, continuation requirements, and workload with your counselor.
+            </p>
+          )}
+          {considerations.length > considerationPreview.length ? (
+            <p className="mt-3 text-xs font-medium text-amber-950">
+              {considerations.length - considerationPreview.length} more item
+              {considerations.length - considerationPreview.length === 1 ? "" : "s"} in detailed reasoning.
+            </p>
+          ) : null}
+        </section>
+      </div>
+
+      <DetailedReasoning rec={rec} answers={answers} detailsId="recommendation-details" />
+      <RecommendationActions detailsId="recommendation-details" onEdit={onEdit} />
+    </article>
+  );
+}
+
+function AlternativePath({
+  rec,
+  answers,
+}: {
+  rec: PathRecommendation;
+  answers: Record<string, unknown>;
+}) {
+  const reasons = recommendationReasons(rec);
+  const considerations = recommendationConsiderations(rec);
+  const gains = buildWhatYouGain(rec, answers);
+  const future = sentenceList(rec.futureImpactSummary, 4);
+  const planningIdeas = uniqueText(rec.alternatives, rec.alternatives.length);
+  const summary =
+    firstSentences(rec.futureImpactSummary, 1)[0] ??
+    firstSentences(rec.explanation, 1)[0] ??
+    `${prettyKind(rec.kind)} offers a different balance of courses and tradeoffs.`;
+  const risk = inferRiskLevel(rec, answers.workloadTolerance as string | undefined);
+
+  return (
+    <article id={`path-${rec.kind}`} className="scroll-mt-24 border-t border-slate-200 pt-6 first:border-t-0 first:pt-0">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="apf-document-label">Alternative pathway</p>
+          <h3 className="apf-display mt-1 text-2xl text-slate-950">{prettyKind(rec.kind)}</h3>
+        </div>
+        <span className="text-xs font-medium text-slate-600">Estimated workload: {workloadDemandLabel(risk)}</span>
+      </header>
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">{summary}</p>
+
+      <dl className="mt-5 grid gap-4 rounded-xl bg-slate-50 p-4 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs font-semibold text-slate-600">Strongest fit</dt>
+          <dd className="mt-1 text-sm leading-6 text-slate-800">{reasons[0] ?? cleanDisplayText(rec.explanation)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-semibold text-slate-600">Main tradeoff</dt>
+          <dd className="mt-1 text-sm leading-6 text-slate-800">
+            {considerations[0] ?? "Confirm course availability and workload with your counselor."}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-5">
+        <CategoryGrid rec={rec} muted />
+      </div>
+
+      <details className="mt-4 border-t border-slate-200">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-semibold text-teal-900 marker:content-none [&::-webkit-details-marker]:hidden">
+          <span>View {prettyKind(rec.kind)} details</span>
+          <span aria-hidden className="apf-disclosure-mark text-lg leading-none">
+            +
+          </span>
+        </summary>
+        <div className="grid gap-6 border-t border-slate-200 py-5 sm:grid-cols-2">
+          <section>
+            <h4 className="text-sm font-semibold text-slate-950">Why it may fit</h4>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+              {reasons.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+          <section>
+            <h4 className="text-sm font-semibold text-slate-950">What to review</h4>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+              {(considerations.length
+                ? considerations
+                : ["Confirm course availability and workload with your counselor."]
+              ).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+          <section className="border-t border-slate-200 pt-5 sm:col-span-2">
+            <h4 className="text-sm font-semibold text-slate-950">What this path supports</h4>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-700">
+              {uniqueText([...gains, ...future], 8).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm leading-6 text-slate-700">{cleanDisplayText(rec.explanation)}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{cleanDisplayText(rec.confidenceExplanation)}</p>
+          </section>
+          {rec.actionSteps.length ? (
+            <section>
+              <h4 className="text-sm font-semibold text-slate-950">Suggested next steps</h4>
+              <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+                {rec.actionSteps.map((step, index) => (
+                  <li key={`${index}-${step}`} className="grid grid-cols-[1.75rem_1fr] gap-2">
+                    <span className="font-semibold tabular-nums text-teal-800">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>{cleanDisplayText(step)}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
+          {rec.continuationSuggestions.length || planningIdeas.length ? (
+            <section>
+              <h4 className="text-sm font-semibold text-slate-950">Planning ideas</h4>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+                {rec.continuationSuggestions.map((suggestion) => (
+                  <li key={`${suggestion.fromCourseCode}-${suggestion.toCourseCode}`}>
+                    {courseName(suggestion.fromCourseCode)} → {courseName(suggestion.toCourseCode)}
+                    {suggestion.note ? ` — ${cleanDisplayText(suggestion.note)}` : ""}
+                  </li>
+                ))}
+                {planningIdeas.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      </details>
+    </article>
   );
 }
 
@@ -847,31 +581,28 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loadState, setLoadState] = useState<"loading" | "ready" | "empty" | "error">("loading");
   const [session, setSession] = useState<ActiveSession | null>(null);
-  const [compareWith, setCompareWith] = useState<"balanced" | "stretch">("balanced");
-  const [adjustBanner, setAdjustBanner] = useState<string | null>(null);
-  const [freshCelebration, setFreshCelebration] = useState(false);
+  const [freshNotice, setFreshNotice] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const u = new URL(window.location.href);
-    if (u.searchParams.get("fresh") === "1") {
-      setFreshCelebration(true);
-      u.searchParams.delete("fresh");
-      const next = u.pathname + (u.search ? u.search : "");
-      router.replace(next || "/dashboard", { scroll: false });
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("fresh") === "1") {
+      setFreshNotice(true);
+      url.searchParams.delete("fresh");
+      router.replace(url.pathname + (url.search || ""), { scroll: false });
     }
   }, [router]);
 
   const loadPlan = useCallback(async () => {
     setLoadState("loading");
     try {
-      const res = await fetch("/api/student/active-plan", { cache: "no-store" });
-      if (res.status === 401) {
+      const response = await fetch("/api/student/active-plan", { cache: "no-store" });
+      if (response.status === 401) {
         router.push("/login");
         return;
       }
-      if (!res.ok) throw new Error("Active plan request failed.");
-      const json = await res.json().catch(() => null);
+      if (!response.ok) throw new Error("Active plan request failed.");
+      const json = await response.json().catch(() => null);
       if (!json?.activeSession?.outputs?.bundle) {
         setSession(null);
         setLoadState("empty");
@@ -889,11 +620,48 @@ export default function DashboardPage() {
     void loadPlan();
   }, [loadPlan]);
 
+  useEffect(() => {
+    if (loadState !== "ready") return;
+    const details = document.getElementById("recommendation-details") as HTMLDetailsElement | null;
+    if (!details) return;
+    const printableDetails = details;
+
+    const printMedia = window.matchMedia("print");
+    let printActive = false;
+    let restoreOpen = printableDetails.open;
+
+    function enterPrint() {
+      if (!printActive) {
+        restoreOpen = printableDetails.open;
+        printActive = true;
+      }
+      printableDetails.open = true;
+    }
+
+    function leavePrint() {
+      if (!printActive) return;
+      printableDetails.open = restoreOpen;
+      printActive = false;
+    }
+
+    function syncPrintState() {
+      if (printMedia.matches) enterPrint();
+      else leavePrint();
+    }
+
+    syncPrintState();
+    printMedia.addEventListener("change", syncPrintState);
+    window.addEventListener("beforeprint", enterPrint);
+    window.addEventListener("afterprint", leavePrint);
+    return () => {
+      printMedia.removeEventListener("change", syncPrintState);
+      window.removeEventListener("beforeprint", enterPrint);
+      window.removeEventListener("afterprint", leavePrint);
+    };
+  }, [loadState]);
+
   const bundle = session?.outputs?.bundle as DashboardBundle | undefined;
   const visibleAlternatives = useMemo(() => (bundle ? uniqueAlternativePaths(bundle) : []), [bundle]);
-  const compareTarget = useMemo(() => {
-    return visibleAlternatives.find((rec) => rec.kind === compareWith) ?? visibleAlternatives[0] ?? null;
-  }, [compareWith, visibleAlternatives]);
 
   if (loadState === "loading") {
     return (
@@ -901,10 +669,10 @@ export default function DashboardPage() {
         id="main-content"
         tabIndex={-1}
         aria-busy="true"
-        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-50 via-cyan-50/50 to-teal-100/40 text-sm font-semibold text-slate-700"
+        className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-slate-100 px-6 text-sm text-slate-700"
       >
-        <span className="h-12 w-12 animate-pulse rounded-2xl bg-gradient-to-br from-teal-500 via-sky-500 to-violet-500 opacity-90 shadow-lg shadow-teal-900/20" />
-        <span role="status">Loading your pathway.</span>
+        <span className="h-8 w-8 animate-pulse rounded-full border-4 border-teal-700 border-r-transparent" aria-hidden />
+        <span role="status">Loading your saved plan.</span>
       </main>
     );
   }
@@ -912,26 +680,34 @@ export default function DashboardPage() {
   if (loadState === "empty" || loadState === "error" || !bundle) {
     const isError = loadState === "error";
     return (
-      <div className="min-h-screen">
+      <div className="min-h-[100dvh]">
         <StudentHeader />
         <main id="main-content" tabIndex={-1} className="apf-journey-shell">
-          <Card className="mx-auto max-w-2xl text-center">
-            <p className="apf-kicker">{isError ? "Plan unavailable" : "No active plan"}</p>
-            <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">
-              {isError ? "We could not load your pathway." : "You do not have an active pathway yet."}
+          <Card className="mx-auto max-w-2xl">
+            <p className="apf-document-label">{isError ? "Plan unavailable" : "No active plan"}</p>
+            <h1 className="apf-display mt-3 text-3xl text-slate-950">
+              {isError ? "We could not load your plan." : "You do not have an active plan yet."}
             </h1>
-            <p id="dashboard-load-message" role={isError ? "alert" : "status"} className="mt-3 text-sm font-medium leading-6 text-slate-600">
+            <p
+              id="dashboard-load-message"
+              role={isError ? "alert" : "status"}
+              className="mt-3 max-w-xl text-sm leading-6 text-slate-600"
+            >
               {isError
-                ? "Your saved work has not been changed. Check your connection and try again."
-                : "Complete the intake to build a recommendation, or start a new journey if you cleared an older active plan."}
+                ? "Your saved work has not changed. Check your connection and try again."
+                : "Complete the intake to build a recommendation, or start a new plan if you cleared an older active plan."}
             </p>
-            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               {isError ? (
                 <Button type="button" onClick={() => void loadPlan()}>
                   Try again
                 </Button>
               ) : null}
-              <Button type="button" variant={isError ? "secondary" : "primary"} onClick={() => router.push("/intake")}>
+              <Button
+                type="button"
+                variant={isError ? "secondary" : "primary"}
+                onClick={() => router.push("/intake")}
+              >
                 Go to intake
               </Button>
             </div>
@@ -943,189 +719,93 @@ export default function DashboardPage() {
 
   const answers = session?.answers ?? {};
   const guidanceMode = isGuidanceMode(bundle.bestFit);
-  const showQuickExplore = !guidanceMode;
-
-  function runQuickAdjust(mode: QuickAdjustMode) {
-    const { scrollId, message } = quickAdjustGuide(mode);
-    setAdjustBanner(message);
-    requestAnimationFrame(() => {
-      document.getElementById(scrollId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_120%_55%_at_50%_-12%,rgba(34,211,238,0.2),transparent)]">
+    <div className="dashboard-print-root min-h-[100dvh] bg-slate-100">
       <StudentHeader />
       <main id="main-content" tabIndex={-1} className="apf-journey-shell">
-        {freshCelebration ? (
-          <div
-            className="apf-fade-up mb-8 flex flex-col gap-3 rounded-2xl border-2 border-teal-300/60 bg-gradient-to-r from-teal-50 via-cyan-50 to-violet-50 px-5 py-4 shadow-lg ring-1 ring-teal-200/50 sm:flex-row sm:items-center sm:justify-between sm:px-6"
-            role="status"
-          >
-            <div>
-              <p className="text-base font-bold text-teal-950">Your plan is ready</p>
-              <p className="mt-1 max-w-2xl text-sm font-medium leading-snug text-slate-700">
-                Here&apos;s your personalized pathway. Scroll to explore Best Fit first.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="secondary"
-              className="shrink-0 border-teal-200 bg-white font-semibold shadow-sm"
-              onClick={() => setFreshCelebration(false)}
+        <div className="mx-auto max-w-6xl">
+          {freshNotice ? (
+            <div
+              className="mb-6 flex flex-col gap-3 border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 print:hidden sm:flex-row sm:items-center sm:justify-between"
+              role="status"
             >
-              Let&apos;s go
-            </Button>
-          </div>
-        ) : null}
-
-        <header className="apf-fade-up mb-8 lg:mb-10">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-teal-800 shadow-sm ring-1 ring-teal-100" aria-hidden>
-              <IconTarget className="h-5 w-5" />
-            </span>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-800">SAIS / Your pathway</p>
-          </div>
-          <h1 className="mt-2 bg-gradient-to-r from-slate-900 via-teal-800 to-cyan-800 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-            {guidanceMode ? "Your readiness plan" : "Your recommended path"}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-snug text-slate-600">
-            {guidanceMode
-              ? "You made it - this readiness plan keeps the focus on what to build before Grade 11 choices open up."
-              : "You made it - Best Fit is your home base. Peek at Balanced & Stretch when you want to compare."}
-          </p>
-        </header>
-
-        <RecommendationHero rec={bundle.bestFit} answers={answers} />
-
-        <QuickExploreBar
-          enabled={showQuickExplore}
-          onAdjust={runQuickAdjust}
-          banner={adjustBanner}
-          onDismissBanner={() => setAdjustBanner(null)}
-        />
-
-        {!guidanceMode ? (
-          <details className="apf-fade-up group mt-10 rounded-2xl border-2 border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 shadow-md open:shadow-lg">
-          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 text-sm font-bold text-indigo-950 marker:content-none [&::-webkit-details-marker]:hidden sm:px-5">
-            <IconRoute className="h-4 w-4 text-indigo-700" />
-            <span className="flex-1">Other paths</span>
-            <span className="text-xs font-medium text-indigo-800/70 group-open:hidden">Show</span>
-            <span className="hidden text-xs font-medium text-indigo-800/70 group-open:inline">Hide</span>
-          </summary>
-          <div className="border-t border-indigo-100/80 p-4 pt-3 sm:p-5">
-            {visibleAlternatives.length ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {visibleAlternatives.map((rec) => (
-                  <SecondaryPathCard key={rec.kind} rec={rec} answers={answers} anchorId={`path-${rec.kind}`} />
-                ))}
+              <div>
+                <p className="font-semibold text-emerald-950">Your plan is ready and saved.</p>
+                <p className="mt-1 text-sm text-emerald-900">Start with the course plan, then review the reasons and tradeoffs.</p>
               </div>
-            ) : (
-              <p className="rounded-xl border border-indigo-100 bg-white/80 p-4 text-sm font-medium leading-6 text-slate-700">
-                The system found one clear path for this profile, so alternatives are limited.
-              </p>
-            )}
-          </div>
-          </details>
-        ) : null}
-
-        {!guidanceMode && visibleAlternatives.length ? (
-          <details className="apf-fade-up group mt-8 rounded-3xl border-2 border-slate-200/85 bg-white/95 shadow-lg shadow-slate-200/30 open:border-teal-200/55 sm:mt-10">
-          <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 marker:content-none [&::-webkit-details-marker]:hidden sm:px-8 sm:py-5">
-            <span className="text-xl" aria-hidden>
-              <IconLayers className="h-4 w-4 text-teal-700" />
-            </span>
-            <div className="min-w-0 flex-1 text-left">
-              <h2 className="text-base font-bold text-slate-900">Side-by-side compare</h2>
-              <p className="mt-0.5 text-xs font-medium leading-snug text-slate-600">
-                Best Fit vs one alternative. Open when you want the grid next to each other.
-              </p>
-            </div>
-            <span className="shrink-0 text-xs font-bold text-teal-700 group-open:hidden">Open</span>
-            <span className="hidden shrink-0 text-xs font-bold text-teal-700 group-open:inline">Close</span>
-          </summary>
-          <div className="border-t border-slate-200/80 px-5 pb-6 pt-4 sm:px-8">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Compare with</span>
-              <select
-                className="rounded-xl border-2 border-teal-200/70 bg-teal-50/50 px-3 py-2 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300"
-                value={(compareTarget?.kind as "balanced" | "stretch" | undefined) ?? compareWith}
-                onChange={(e) => setCompareWith(e.target.value as "balanced" | "stretch")}
+              <button
+                type="button"
+                className="inline-flex min-h-11 items-center self-start px-2 text-sm font-semibold text-emerald-900 underline underline-offset-4 sm:self-auto"
+                onClick={() => setFreshNotice(false)}
               >
-                {visibleAlternatives.map((rec) => (
-                  <option key={rec.kind} value={rec.kind}>
-                    {prettyKind(rec.kind)}
-                  </option>
-                ))}
-              </select>
+                Dismiss
+              </button>
             </div>
-            {compareTarget ? (
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border-2 border-teal-300/60 bg-gradient-to-b from-teal-50/70 to-white p-5 shadow-sm ring-1 ring-teal-100">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">Best Fit</span>
-                    <Badge tone="primary">Primary</Badge>
-                  </div>
-                  <div className="mt-3">
-                    <CategoryGrid rec={bundle.bestFit} />
-                  </div>
-                  <dl className="mt-4 space-y-2 text-xs">
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-slate-500">Fit</dt>
-                      <dd className="font-bold text-slate-800">{confidenceBand(bundle.bestFit.confidence.overall)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-slate-500">Snapshot</dt>
-                      <dd className="mt-1 text-slate-800">
-                        <ul className="space-y-1">
-                          {futureImpactBullets(splitFutureImpact(bundle.bestFit.futureImpactSummary).body)
-                            .slice(0, 3)
-                            .map((line, i) => (
-                              <li key={`bf-${i}`} className="flex gap-2 leading-snug">
-                                <span className="text-teal-600">▸</span>
-                                <span>{truncateBullet(line, 100)}</span>
-                              </li>
-                            ))}
-                        </ul>
-                      </dd>
-                    </div>
-                  </dl>
+          ) : null}
+
+          <header className="mb-6 print:mb-4">
+            <p className="apf-document-label">SAIS Academic Navigator</p>
+            <h1 className="apf-display mt-2 text-3xl text-slate-950 sm:text-4xl">
+              {guidanceMode ? "Your readiness plan" : "Your recommended path"}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              {guidanceMode
+                ? "A focused preparation brief for the choices ahead."
+                : "Your main recommendation appears first. Alternatives remain available for a deliberate comparison."}
+            </p>
+          </header>
+
+          {guidanceMode ? (
+            <GuidancePlan
+              rec={bundle.bestFit}
+              answers={answers}
+              onEdit={() => router.push("/intake?mode=edit")}
+            />
+          ) : (
+            <RecommendationPlan
+              rec={bundle.bestFit}
+              answers={answers}
+              onEdit={() => router.push("/intake?mode=edit")}
+            />
+          )}
+
+          {!guidanceMode ? (
+            <section className="mt-8 print:hidden" aria-labelledby="alternative-pathways-heading">
+              <div className="apf-paper">
+                <header className="p-5 pb-0 sm:p-7 sm:pb-0">
+                  <p className="apf-document-label">Alternatives</p>
+                  <h2 id="alternative-pathways-heading" className="apf-display mt-1 text-2xl text-slate-950">
+                    Compare other pathways
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Balanced and Stretch remain available without competing with Best Fit above the fold.
+                  </p>
+                </header>
+                <details className="px-5 pb-5 sm:px-7 sm:pb-7">
+                  <summary className="mt-4 flex min-h-12 cursor-pointer list-none items-center justify-between gap-5 border-t border-slate-200 py-3 text-sm font-semibold text-teal-900 marker:content-none [&::-webkit-details-marker]:hidden">
+                    <span className="apf-disclosure-closed">Compare pathways</span>
+                    <span className="apf-disclosure-open hidden">Close comparison</span>
+                    <span aria-hidden className="apf-disclosure-mark text-lg leading-none">
+                      +
+                    </span>
+                </summary>
+                <div className="space-y-7 border-t border-slate-200 pt-5">
+                  {visibleAlternatives.length ? (
+                    visibleAlternatives.map((rec) => (
+                      <AlternativePath key={rec.kind} rec={rec} answers={answers} />
+                    ))
+                  ) : (
+                    <p className="text-sm leading-6 text-slate-600">
+                      This profile produced one distinct course plan. Review the detailed reasoning with your counselor.
+                    </p>
+                  )}
                 </div>
-                <div className="rounded-2xl border-2 border-violet-200/50 bg-gradient-to-b from-violet-50/40 to-slate-50/80 p-5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-800">{prettyKind(compareTarget.kind)}</span>
-                    <Badge tone="neutral">Alt</Badge>
-                  </div>
-                  <div className="mt-3">
-                    <CategoryGrid rec={compareTarget} muted />
-                  </div>
-                  <dl className="mt-4 space-y-2 text-xs">
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-slate-500">Fit</dt>
-                      <dd className="font-bold text-slate-800">{confidenceBand(compareTarget.confidence.overall)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-slate-500">Snapshot</dt>
-                      <dd className="mt-1 text-slate-700">
-                        <ul className="space-y-1">
-                          {futureImpactBullets(splitFutureImpact(compareTarget.futureImpactSummary).body)
-                            .slice(0, 3)
-                            .map((line, i) => (
-                              <li key={`alt-${i}`} className="flex gap-2 leading-snug">
-                                <span className="text-violet-600">▸</span>
-                                <span>{truncateBullet(line, 100)}</span>
-                              </li>
-                            ))}
-                        </ul>
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
+                </details>
               </div>
-            ) : null}
-          </div>
-          </details>
-        ) : null}
+            </section>
+          ) : null}
+        </div>
       </main>
     </div>
   );

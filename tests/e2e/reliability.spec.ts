@@ -13,7 +13,7 @@ test.describe("reliability and failure states", () => {
     await page.route("**/api/auth/login", (route) => route.abort("failed"));
     await page.getByLabel("Student ID").fill(syntheticStudentIds.reliability);
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page.locator("#student-login-error")).toContainText("Network hiccup");
+    await expect(page.locator("#student-login-error")).toContainText("Could not connect");
     await expect(page.getByRole("button", { name: "Continue" })).toBeEnabled();
 
     await page.unroute("**/api/auth/login");
@@ -31,12 +31,12 @@ test.describe("reliability and failure states", () => {
       route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false }) }),
     );
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: "We could not load your pathway." })).toBeVisible();
-    await expect(page.locator("#dashboard-load-message")).toContainText("saved work has not been changed");
+    await expect(page.getByRole("heading", { name: "We could not load your plan." })).toBeVisible();
+    await expect(page.locator("#dashboard-load-message")).toContainText("saved work has not changed");
 
     await page.unroute("**/api/student/active-plan");
     await page.getByRole("button", { name: "Try again" }).click();
-    await expect(page.getByRole("heading", { name: "You do not have an active pathway yet." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "You do not have an active plan yet." })).toBeVisible();
   });
 
   test("retains intake answers and prevents duplicate saves after a persistence failure", async ({ page }) => {
@@ -57,9 +57,9 @@ test.describe("reliability and failure states", () => {
       });
     });
 
-    await page.getByRole("button", { name: "Unlock my plan" }).dblclick();
+    await page.getByRole("button", { name: "Build my plan" }).dblclick();
     await expect(page.locator("#intake-error-summary")).toContainText("could not save");
-    await expect(page.getByRole("button", { name: "Unlock my plan" })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Build my plan" })).toBeEnabled();
     await expect(page.getByLabel("Anything else? (optional)")).toHaveValue(/engineering degree/);
     expect(saveRequests).toBe(1);
   });

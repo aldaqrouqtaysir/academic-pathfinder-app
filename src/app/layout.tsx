@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "SAIS Academic Navigator",
-  description: "Personalized academic pathway guidance for SAIS students.",
+  description: "Rule-based academic planning and counselor review for SAIS students.",
   icons: {
     icon: "/sais-logo.png",
   },

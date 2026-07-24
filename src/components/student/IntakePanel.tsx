@@ -21,25 +21,23 @@ export function IntakePanel({ id, title, hint, hasError = false, missingHint, ch
       id={id}
       aria-describedby={hasError && missingHint ? errorId : undefined}
       aria-labelledby={headingId}
+      aria-label={headingId ? undefined : title}
       tabIndex={hasError ? -1 : undefined}
       className={clsx(
-        "apf-section-card overflow-hidden border-l-[6px] border-l-teal-600 p-5 transition duration-300 hover:border-teal-200/90 hover:shadow-[0_22px_64px_-36px_rgba(15,118,110,0.5)] sm:p-6 lg:p-7",
+        "apf-section-card overflow-hidden border border-slate-200 bg-white p-5 shadow-none ring-0 sm:p-6 lg:p-7",
         hasError &&
-          "border-l-red-500 bg-red-50/30 ring-2 ring-red-200/90 hover:border-red-200 hover:shadow-[0_22px_64px_-36px_rgba(220,38,38,0.4)]",
+          "border-red-400 bg-red-50/40 ring-2 ring-red-200",
         className,
       )}
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(180px,250px)_1fr] lg:gap-8 xl:grid-cols-[minmax(200px,270px)_1fr]">
-        <div className="lg:pt-1">
-          <h2 id={headingId} className="flex flex-wrap items-center gap-3 text-lg font-black tracking-tight text-slate-950 sm:text-xl">
-            <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-700 to-cyan-600 text-sm font-black text-white shadow-md shadow-teal-900/20">
-              {title.slice(0, 1)}
-            </span>
-            <span>{title}</span>
+      <div className="grid gap-5 lg:grid-cols-[minmax(180px,230px)_1fr] lg:gap-8">
+        <div>
+          <h2 id={headingId} className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+            {title}
           </h2>
-          {hint ? <p className="mt-3 text-xs font-medium leading-5 text-slate-600 sm:text-sm">{hint}</p> : null}
+          {hint ? <p className="mt-2 text-sm leading-6 text-slate-600">{hint}</p> : null}
           {hasError && missingHint ? (
-            <p id={errorId} className="mt-3 rounded-xl bg-white/85 px-3 py-2 text-xs font-semibold leading-5 text-red-700 ring-1 ring-red-200">
+            <p id={errorId} className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-semibold leading-5 text-red-700 ring-1 ring-red-200">
               {missingHint}
             </p>
           ) : null}

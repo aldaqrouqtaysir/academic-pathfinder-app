@@ -8,6 +8,8 @@ export const syntheticStudentIds = {
   accessibility: "90003004",
   reliability: "90003005",
   mobile: "90003006",
+  ux: "90003007",
+  print: "90003008",
 } as const;
 
 export const syntheticIntake = {

@@ -59,33 +59,28 @@ export function CounselorLookup() {
   }
 
   return (
-    <div className="apf-section-card p-5 sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="apf-kicker">Lookup</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">Find a student plan</h2>
-          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">
-            Open the latest saved plan and recommendations for a student who has completed the navigator intake.
-          </p>
-        </div>
-        <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900 ring-1 ring-teal-200">
-          8-digit ID
-        </span>
-      </div>
+    <section className="apf-paper p-5 sm:p-7" aria-labelledby="student-lookup-heading">
+      <p className="apf-document-label">Lookup</p>
+      <h2 id="student-lookup-heading" className="mt-2 text-xl font-semibold text-slate-950">
+        Find a student record
+      </h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Open the latest saved plan for a student who has completed the navigator intake.
+      </p>
       <form
-        className="mt-5 flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white/75 p-4 ring-1 ring-white/80 sm:flex-row sm:items-end"
+        className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"
         onSubmit={(event) => {
           event.preventDefault();
           void go();
         }}
       >
         <div className="flex-1">
-          <label htmlFor="sid" className="text-xs font-bold uppercase tracking-wide text-slate-500">
+          <label htmlFor="sid" className="text-sm font-semibold text-slate-900">
             Student ID
           </label>
           <Input
             id="sid"
-            className="mt-1 font-mono"
+            className="mt-2 font-mono tabular-nums"
             inputMode="numeric"
             maxLength={8}
             placeholder="8-digit student ID"
@@ -105,11 +100,11 @@ export function CounselorLookup() {
           ref={errorRef}
           role="alert"
           tabIndex={-1}
-          className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 ring-1 ring-red-100"
+          className="mt-4 border-l-4 border-red-700 bg-red-50 px-3 py-3 text-sm font-medium text-red-900"
         >
           {error}
         </p>
       ) : null}
-    </div>
+    </section>
   );
 }

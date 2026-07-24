@@ -28,22 +28,22 @@ export default async function CounselorStudentPage({ params }: { params: Promise
   const notes = await listNotesForStudent(studentId);
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-3xl border border-white/80 bg-white/75 p-5 shadow-[0_20px_58px_-42px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/45 print:hidden sm:p-6">
+    <div className="space-y-6">
+      <header className="apf-paper p-5 print:hidden sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="apf-kicker">Counselor review</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Student record</h1>
-          <p className="mt-1 font-mono text-sm font-semibold text-slate-600">{studentId}</p>
+          <div>
+            <p className="apf-document-label">Counselor review</p>
+            <h1 className="apf-display mt-2 text-3xl text-slate-950">Student record</h1>
+            <p className="mt-2 font-mono text-sm font-semibold tabular-nums text-slate-600">{studentId}</p>
+          </div>
+          <Link
+            href={`/counselor/student/${studentId}/report`}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--apf-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--apf-primary-hover)]"
+          >
+            Printable report
+          </Link>
         </div>
-        <Link
-          href={`/counselor/student/${studentId}/report`}
-          className="inline-flex items-center justify-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-[0_16px_34px_-24px_rgba(15,23,42,0.9)] transition hover:-translate-y-0.5 hover:bg-teal-800"
-        >
-          Printable report
-        </Link>
-        </div>
-      </div>
+      </header>
 
       <CounselorSummaryDocument studentId={studentId} session={activeSession} variant="default" />
 

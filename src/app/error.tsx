@@ -19,7 +19,7 @@ export default function AppError({
 
   return (
     <main id="main-content" tabIndex={-1} className="flex min-h-[100dvh] items-center px-5 py-12">
-      <div className="apf-section-card mx-auto max-w-xl p-6 text-center sm:p-8">
+      <div className="apf-paper mx-auto max-w-xl p-6 text-center sm:p-8">
         <p className="apf-kicker">Temporary problem</p>
         <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">This page could not be loaded.</h1>
         <p role="alert" className="mt-3 text-sm font-medium leading-6 text-slate-600">

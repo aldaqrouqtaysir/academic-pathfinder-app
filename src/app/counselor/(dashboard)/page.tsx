@@ -1,38 +1,37 @@
 import { CounselorLookup } from "@/components/counselor/CounselorLookup";
-import { Card } from "@/components/ui/Card";
 
 export default function CounselorDashboardPage() {
   return (
-    <div className="space-y-8">
-      <div className="apf-fade-up rounded-3xl border border-white/80 bg-white/75 p-6 shadow-[0_22px_64px_-42px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/50 sm:p-8">
-        <p className="apf-kicker">Counselor Dashboard / Student Lookup</p>
-        <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Review saved navigator plans</h1>
-        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-600">
-          Open a student&apos;s active plan, review the recommendation summary, add internal notes, and export a print-ready
-          advising report when needed.
+    <div className="space-y-7">
+      <header className="max-w-3xl">
+        <p className="apf-document-label">Counselor workspace</p>
+        <h1 className="apf-display mt-2 text-4xl text-slate-950">Find a saved student plan</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Enter a Student ID to open the latest active plan. This workspace does not display a complete student roster.
         </p>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {[
-            ["Saved plans", "File-based storage"],
-            ["Deterministic", "Rule-based recommendations"],
-            ["Printable", "Counselor report view"],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-white/80 bg-white/80 p-4 ring-1 ring-slate-200/80">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-800">{label}</p>
-              <p className="mt-2 text-sm font-semibold text-slate-800">{value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      </header>
+
       <CounselorLookup />
-      <Card className="apf-section-card">
-        <h2 className="text-sm font-semibold text-slate-900">How it works</h2>
-        <ul className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-          <li>Data reflects the student&apos;s last run through intake, stored in the configured file-based data store.</li>
-          <li>Best fit, balanced, and stretch paths are deterministic. Use them to frame conversations.</li>
-          <li>Notes are counselor-only and stored separately from student-facing screens.</li>
-        </ul>
-      </Card>
+
+      <section className="border-t border-slate-300 pt-6" aria-labelledby="review-scope-heading">
+        <h2 id="review-scope-heading" className="text-sm font-semibold text-slate-950">
+          Review scope
+        </h2>
+        <dl className="mt-4 grid gap-5 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="font-semibold text-slate-900">Plan source</dt>
+            <dd className="mt-1 leading-6 text-slate-600">The student&apos;s latest completed intake and active saved plan.</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-slate-900">Recommendation</dt>
+            <dd className="mt-1 leading-6 text-slate-600">Deterministic Best Fit, Balanced, and Stretch decision support.</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-slate-900">Counselor record</dt>
+            <dd className="mt-1 leading-6 text-slate-600">Internal notes and a printable advising summary.</dd>
+          </div>
+        </dl>
+      </section>
     </div>
   );
 }

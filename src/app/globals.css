@@ -2,120 +2,162 @@
 @tailwind components;
 @tailwind utilities;
 
-/* MVP global baseline */
 :root {
   color-scheme: light;
+  --apf-background: #f2f5f3;
+  --apf-surface: #fcfdfb;
+  --apf-surface-subtle: #e9efec;
+  --apf-foreground: #14221f;
+  --apf-muted-foreground: #586761;
+  --apf-border: #cad6d1;
+  --apf-primary: #006b5a;
+  --apf-primary-hover: #005548;
+  --apf-accent: #9a6726;
+  --apf-success: #176b52;
+  --apf-warning: #805715;
+  --apf-danger: #b42318;
+  --apf-focus: #007c68;
+  --apf-paper-shadow: 0 24px 55px -42px rgb(20 34 31 / 0.42);
 }
 
-html,
-body {
-  height: 100%;
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-[linear-gradient(135deg,#f8fbff_0%,#ecfbfa_42%,#f7f5ff_100%)] text-slate-900 antialiased;
-  background-attachment: fixed;
+  min-height: 100%;
+  background: var(--apf-background);
+  color: var(--apf-foreground);
+  font-family:
+    "Segoe UI",
+    Aptos,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  @apply antialiased;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
+.apf-display {
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.apf-document-label,
+.apf-kicker {
+  color: var(--apf-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
 .apf-skip-link {
-  @apply fixed left-4 top-3 z-[100] -translate-y-24 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl transition-transform;
+  position: fixed;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 100;
+  min-height: 2.75rem;
+  transform: translateY(-6rem);
+  border-radius: 0.5rem;
+  background: var(--apf-foreground);
+  padding: 0.75rem 1rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: transform 150ms ease;
 }
 
 .apf-skip-link:focus {
-  @apply translate-y-0 outline-none ring-2 ring-teal-300 ring-offset-2;
-}
-
-:where(a, button, input, textarea, select, summary):focus-visible {
-  outline: 3px solid rgb(13 148 136);
+  transform: translateY(0);
+  outline: 3px solid var(--apf-focus);
   outline-offset: 3px;
 }
 
-/* Wider journey pages — consistent shell */
-.apf-journey-shell {
-  @apply mx-auto w-full max-w-screen-2xl px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12;
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 3px solid var(--apf-focus);
+  outline-offset: 3px;
 }
 
-.apf-journey-card {
-  @apply rounded-3xl border border-white/80 bg-white/90 shadow-[0_28px_80px_-38px_rgba(15,118,110,0.55)] ring-1 ring-teal-200/55;
+.apf-journey-shell {
+  @apply mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 lg:py-10;
+}
+
+.apf-paper {
+  border: 1px solid var(--apf-border);
+  border-radius: 1rem;
+  background: var(--apf-surface);
+  box-shadow: var(--apf-paper-shadow);
+}
+
+.apf-journey-card,
+.apf-premium-surface {
+  border: 1px solid var(--apf-border);
+  border-radius: 1rem;
+  background: var(--apf-surface);
+  box-shadow: var(--apf-paper-shadow);
 }
 
 .apf-journey-hero {
-  @apply rounded-2xl border border-white/80 bg-white/80 px-4 py-3 shadow-[0_18px_42px_-28px_rgba(15,118,110,0.5)] ring-1 ring-teal-200/50 sm:px-5 sm:py-4;
-}
-
-.apf-premium-surface {
-  @apply rounded-3xl border border-white/80 bg-white/90 shadow-[0_28px_90px_-42px_rgba(15,23,42,0.45)] ring-1 ring-teal-200/45;
+  border-left: 3px solid var(--apf-primary);
+  background: var(--apf-surface);
+  padding: 1rem;
 }
 
 .apf-section-card {
-  @apply rounded-2xl border border-white/80 bg-white/85 shadow-[0_18px_60px_-36px_rgba(15,118,110,0.45)] ring-1 ring-slate-200/75;
+  border-top: 1px solid var(--apf-border);
+  background: transparent;
+  padding-top: 1.5rem;
 }
 
-.apf-kicker {
-  @apply text-[11px] font-bold uppercase tracking-[0.18em] text-teal-800;
-}
-
-@keyframes apf-fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes apf-shimmer {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-
-.apf-fade-up {
-  animation: apf-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.apf-delay-1 {
-  animation-delay: 0.08s;
-}
-.apf-delay-2 {
-  animation-delay: 0.16s;
-}
-.apf-delay-3 {
-  animation-delay: 0.24s;
+.apf-fade-up,
+.apf-step-in {
+  animation: none;
 }
 
 .apf-progress-shimmer {
-  background: linear-gradient(90deg, rgb(13 148 136 / 0.15), rgb(14 165 233 / 0.35), rgb(13 148 136 / 0.15));
-  background-size: 200% 100%;
-  animation: apf-shimmer 2.5s ease-in-out infinite;
+  background: var(--apf-primary);
 }
 
 .apf-soft-bounce {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .apf-soft-bounce:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
-@keyframes apf-step-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.apf-disclosure-mark {
+  transition: transform 150ms ease;
 }
 
-.apf-step-in {
-  animation: apf-step-in 0.48s cubic-bezier(0.16, 1, 0.3, 1) both;
+details[open] > summary .apf-disclosure-mark {
+  transform: rotate(45deg);
+}
+
+details[open] > summary .apf-disclosure-closed {
+  display: none;
+}
+
+details[open] > summary .apf-disclosure-open {
+  display: inline;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -127,17 +169,6 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-
-  .apf-fade-up,
-  .apf-step-in,
-  .apf-progress-shimmer {
-    animation: none;
-  }
-
-  .apf-soft-bounce,
-  .apf-soft-bounce:hover {
-    transform: none;
-  }
 }
 
 @media print {
@@ -148,9 +179,9 @@ body {
 
   html,
   body {
+    height: auto;
     background: white !important;
     color: #000 !important;
-    height: auto;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -159,18 +190,47 @@ body {
     display: none !important;
   }
 
-  .min-h-screen {
+  .min-h-screen,
+  .min-h-\[100dvh\],
+  .dashboard-print-root {
+    min-height: 0 !important;
     background: #fff !important;
   }
 
+  .apf-journey-shell,
   .counselor-print-root {
-    max-width: none;
-    padding: 0;
+    max-width: none !important;
+    padding: 0 !important;
   }
 
   main#main-content {
     max-width: none !important;
     padding: 0 !important;
+  }
+
+  .apf-paper,
+  .apf-journey-card,
+  .apf-premium-surface {
+    border-color: #888 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .dashboard-print-root .apf-paper {
+    border: 0 !important;
+  }
+
+  .dashboard-print-root .apf-document-label,
+  .dashboard-print-root .apf-kicker {
+    color: #000 !important;
+  }
+
+  .dashboard-print-root details > summary {
+    display: none !important;
+  }
+
+  .dashboard-print-root details > :not(summary) {
+    display: block !important;
   }
 
   .counselor-report {
@@ -184,36 +244,43 @@ body {
     margin-top: 12pt !important;
   }
 
-  .counselor-report .apf-print-section,
   .counselor-report .apf-print-block,
-  .counselor-report li {
+  .counselor-report li,
+  .dashboard-print-root li {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
   .counselor-report h1,
   .counselor-report h2,
-  .counselor-report h3 {
+  .counselor-report h3,
+  .dashboard-print-root h1,
+  .dashboard-print-root h2,
+  .dashboard-print-root h3 {
     break-after: avoid;
     page-break-after: avoid;
   }
 
   .counselor-report p,
   .counselor-report li,
-  .counselor-report dd {
+  .counselor-report dd,
+  .dashboard-print-root p,
+  .dashboard-print-root li,
+  .dashboard-print-root dd {
     overflow-wrap: anywhere;
     orphans: 3;
     widows: 3;
   }
 
-  .counselor-report a {
+  .counselor-report a,
+  .dashboard-print-root a {
     color: #000 !important;
     text-decoration: none;
   }
 
   .counselor-report > p:last-child {
+    margin-top: 8pt !important;
     break-before: avoid;
     page-break-before: avoid;
-    margin-top: 8pt !important;
   }
 }

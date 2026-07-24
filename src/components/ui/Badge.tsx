@@ -15,6 +15,6 @@ export function Badge({ children, tone = "neutral" }: Props) {
           ? "bg-amber-500 text-white"
           : "bg-slate-100 text-slate-700";
 
-  return <span className={clsx("inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold", classes)}>{children}</span>;
+  return <span className={clsx("inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold", classes)}>{children}</span>;
 }
 

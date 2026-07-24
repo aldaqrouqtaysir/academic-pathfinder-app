@@ -41,11 +41,15 @@ test.describe("student critical journeys", () => {
       await route.continue();
     });
 
-    await page.getByRole("button", { name: "Unlock my plan" }).dblclick();
+    await page.getByRole("button", { name: "Build my plan" }).dblclick();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByRole("heading", { level: 1, name: "Your recommended path" })).toBeVisible();
     expect(saveRequests).toBe(1);
     await expectCharacterizedCourseOrder(page);
+    await expect(page.getByRole("heading", { level: 2, name: "Best Fit course plan" })).toBeVisible();
+    await page.getByText("Compare pathways", { exact: true }).click();
+    await expect(page.getByRole("heading", { level: 3, name: "Balanced" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: "Stretch" })).toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/login$/);
@@ -60,10 +64,43 @@ test.describe("student critical journeys", () => {
     await page.waitForURL(/\/intake$/, { timeout: 30_000 });
     await completeSyntheticIntake(page, { omitScholarship: true });
 
-    await page.getByRole("button", { name: "Unlock my plan" }).click();
+    await page.getByRole("button", { name: "Build my plan" }).click();
     await expect(page.locator("#intake-error-summary")).toContainText("scholarship importance");
     await expect(page.locator("#risk-scholarship")).toBeFocused();
     await expect(page.locator("#risk-scholarship")).toHaveAttribute("aria-describedby", "risk-scholarship-error");
+  });
+
+  test("shows honest completion and an editable answer-derived planning profile", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("Student ID").fill(syntheticStudentIds.ux);
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.waitForURL(/\/intake$/, { timeout: 30_000 });
+
+    const progress = page.getByRole("progressbar", { name: /Intake completion/ });
+    await expect(progress).toHaveAttribute("aria-valuenow", "0");
+    await expect(page.getByText("0 of 10")).toBeVisible();
+
+    await page.locator("#school-context").getByRole("button", { name: "Grade 12" }).click();
+    await page.getByRole("button", { name: "Semester 1" }).click();
+    await expect(progress).toHaveAttribute("aria-valuenow", "20");
+    const profile = page
+      .locator("section")
+      .filter({ has: page.getByRole("heading", { name: "Your planning profile" }) });
+    await expect(profile.getByRole("heading", { name: "Your planning profile" })).toBeVisible();
+    await expect(profile.getByText("Grade 12", { exact: true })).toBeVisible();
+    await expect(profile.getByText("Semester 1", { exact: true })).toBeVisible();
+    await expect(profile.getByText("Workload preference", { exact: true })).toHaveCount(0);
+
+    await completeSyntheticIntake(page);
+    await expect(progress).toHaveAttribute("aria-valuenow", "100");
+
+    const optionalPreferences = page.locator("details").filter({ hasText: "Fine-tune learning preferences" });
+    await expect(optionalPreferences).not.toHaveAttribute("open", "");
+    await optionalPreferences.locator("summary").click();
+    await expect(optionalPreferences).toHaveAttribute("open", "");
+
+    await page.getByRole("button", { name: "Edit academic context answers" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Academic context" })).toBeFocused();
   });
 
   test("supports returning students and keeps history after starting a new journey", async ({ page }) => {
@@ -75,12 +112,12 @@ test.describe("student critical journeys", () => {
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/welcome-back$/, { timeout: 30_000 });
 
-    await page.getByRole("button", { name: /Open my plan/ }).click();
+    await page.getByRole("button", { name: /Resume current plan/ }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByRole("heading", { level: 1, name: "Your recommended path" })).toBeVisible();
 
     await page.goto("/welcome-back");
-    await page.getByRole("button", { name: "Start a new journey" }).click();
+    await page.getByRole("button", { name: "Start a new plan" }).click();
     await expect(page).toHaveURL(/\/intake$/);
 
     await loginCounselorViaApi(page);
@@ -98,7 +135,7 @@ test.describe("student critical journeys", () => {
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/intake$/, { timeout: 30_000 });
     await completeSyntheticIntake(page);
-    await page.getByRole("button", { name: "Unlock my plan" }).click();
+    await page.getByRole("button", { name: "Build my plan" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByRole("heading", { level: 1, name: "Your recommended path" })).toBeVisible();
     const hasHorizontalOverflow = await page.evaluate(
