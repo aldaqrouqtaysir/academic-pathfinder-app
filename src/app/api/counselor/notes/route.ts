@@ -13,7 +13,8 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const cookie = cookies().get(COUNSELOR_COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get(COUNSELOR_COOKIE_NAME)?.value;
   if (!cookie || !(await verifyCounselorSessionToken(cookie))) {
     return jsonNoStore({ ok: false }, { status: 401 });
   }

@@ -9,6 +9,8 @@ The repository has two deliberately separate quality layers:
 
 Keeping the browser suite separate makes the fast quality gate useful during development while still requiring E2E in GitHub Actions.
 
+On Next.js 15.5, `npm run lint` calls `eslint . --max-warnings 0` directly because the `next lint` wrapper is deprecated. The existing Next.js Core Web Vitals rules remain active.
+
 ## Local setup
 
 Use Node.js 20.x and the committed lockfile:
