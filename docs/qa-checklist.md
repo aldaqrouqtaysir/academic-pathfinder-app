@@ -3,8 +3,8 @@
 Use this checklist before sharing a new demo link or taking final screenshots. Prefer a fresh 8-digit student ID for each full pass.
 
 ## Build And Repository Safety
-- [ ] Run `npm.cmd ci`.
-- [ ] Run `npm.cmd run build`.
+- [ ] Run `npm ci`.
+- [ ] Run `npm run build`.
 - [ ] Confirm `package.json` still declares Node `"20.x"`.
 - [ ] Confirm `.data/student-plans.json` is not staged or committed.
 - [ ] Confirm Supabase secrets are only server env vars: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, never `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY`.
