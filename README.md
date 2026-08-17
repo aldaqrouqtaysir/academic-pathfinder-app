@@ -10,13 +10,11 @@
 
 [Open the primary Vercel deployment](https://academic-pathfinder-app.vercel.app/)
 
-This public deployment is a portfolio/demo MVP. It is not production-approved for real student records or an official school deployment.
-
 ## Overview
 
 SAIS Academic Navigator turns a multi-step student intake into grade-aware academic planning suggestions. Students describe their interests, strengths, workload tolerance, and future goals; the application then evaluates generated course combinations with deterministic rules and weighted match factors.
 
-The project is designed for an estimated school audience of approximately 300 students. This is a design target, not a claim of active users, adoption, or academic validation.
+The project is designed for an estimated school audience of approximately 300 students.
 
 ## Current Product Status
 
