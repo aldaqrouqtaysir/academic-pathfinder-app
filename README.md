@@ -57,31 +57,31 @@ All repository screenshots use synthetic demo data.
 
 ### Student Login
 
-![Student login page](docs/images/student-login.png)
+![Student login page](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/student-login.png)
 
 ### Guided Intake
 
-![Student intake flow](docs/images/intake-flow.png)
+![Student intake flow](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/intake-flow.png)
 
 ### Grade 12 Recommendation Dashboard
 
-![Grade 12 recommendation dashboard](docs/images/grade-12-dashboard.png)
+![Grade 12 recommendation dashboard](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/grade-12-dashboard.png)
 
 ### Grade 10 Readiness Mode
 
-![Grade 10 readiness dashboard](docs/images/grade-10-readiness-dashboard.png)
+![Grade 10 readiness dashboard](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/grade-10-readiness-dashboard.png)
 
 ### Counselor Student Lookup
 
-![Counselor dashboard and student lookup](docs/images/counselor-dashboard.png)
+![Counselor dashboard and student lookup](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/counselor-dashboard.png)
 
 ### Counselor Student Summary
 
-![Counselor student summary](docs/images/counselor-student-summary.png)
+![Counselor student summary](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/counselor-student-summary.png)
 
 ### Printable Counselor Report
 
-![Printable counselor report](docs/images/counselor-printable-report.png)
+![Printable counselor report](https://raw.githubusercontent.com/aldaqrouqtaysir/academic-pathfinder-app/refs/heads/main/docs/images/counselor-printable-report.png)
 
 ## Tech Stack
 
