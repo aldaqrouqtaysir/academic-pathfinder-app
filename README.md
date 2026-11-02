@@ -105,7 +105,7 @@ See [DEMO.md](./DEMO.md) for the complete walkthrough.
 
 ### Requirements
 
-- Node.js 20.x
+- Node.js 26.x
 - npm 10.x or later
 
 ### Installation
@@ -135,7 +135,7 @@ Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `NEXT_PUBLIC_*` variable.
 
 ## Testing and Quality
 
-Run the project with Node.js 20.x and the committed lockfile:
+Run the project with Node.js 26.x and the committed lockfile:
 
 ```bash
 npm ci
@@ -173,7 +173,7 @@ Recommended Vercel settings:
 1. Framework preset: Next.js
 2. Install command: `npm ci`
 3. Build command: `npm run build`
-4. Node.js version: `20.x`
+4. Node.js version: `26.x`
 5. Required variables: `STUDENT_SESSION_SECRET`, `COUNSELOR_ACCESS_CODE`
 6. Recommended durable-demo variables: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 

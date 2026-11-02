@@ -16,7 +16,7 @@ SAIS Academic Navigator is a school-specific academic advising MVP for SAIS Duba
 - Do not claim production-grade security.
 - Do not claim trained AI/ML if the engine is deterministic/rule-based.
 - Do not remove counselor features.
-- Do not change Node engine from "20.x".
+- Keep the supported Node.js runtime aligned across `package.json`, `package-lock.json`, `.nvmrc`, and CI (currently "26.x"). Validate any future runtime migration before deployment.
 - Keep `npm ci` and `npm run build` passing.
 - Do not add features unless explicitly requested.
 - Do not expose raw internal course codes in student-facing UI.

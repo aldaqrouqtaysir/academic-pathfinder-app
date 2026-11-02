@@ -13,7 +13,7 @@ On Next.js 15.5, `npm run lint` calls `eslint . --max-warnings 0` directly becau
 
 ## Local setup
 
-Use Node.js 20.x and the committed lockfile:
+Use Node.js 26.x and the committed lockfile:
 
 ```bash
 npm ci
