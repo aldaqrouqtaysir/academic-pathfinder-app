@@ -1,6 +1,6 @@
 # SAIS Academic Navigator
 
-> A deterministic, rule-based academic planning and decision-support platform for SAIS Dubai.
+> Helps SAIS Dubai students explore course choices through explainable, rule-based recommendations.
 
 [![Quality](https://github.com/aldaqrouqtaysir/academic-pathfinder-app/actions/workflows/quality.yml/badge.svg)](https://github.com/aldaqrouqtaysir/academic-pathfinder-app/actions/workflows/quality.yml)
 
@@ -8,13 +8,17 @@
 
 ## Live Demo
 
-[Open the primary Vercel deployment](https://academic-pathfinder-app.vercel.app/)
+[Open the demo](https://academic-pathfinder-app.vercel.app/) · [Try the student-to-counselor walkthrough](DEMO.md) · [View all screenshots](docs/screenshots.md)
+
+Use synthetic IDs only. This is a portfolio MVP, not a system for real student records.
 
 ## Overview
 
 SAIS Academic Navigator turns a multi-step student intake into grade-aware academic planning suggestions. Students describe their interests, strengths, workload tolerance, and future goals; the application then evaluates generated course combinations with deterministic rules and weighted match factors.
 
-The project is designed for an estimated school audience of approximately 300 students.
+The project began as a supervised Python/Django high-school graduation project, with an accompanying research paper, in response to classmates' difficulties choosing courses. After learning new tools, I independently rebuilt and deployed the application in Next.js and TypeScript. This repository contains that later version.
+
+The intended school audience is approximately 300 students; this is a design scope, not a count of active users.
 
 ## Current Product Status
 
@@ -51,37 +55,17 @@ Scores are deterministic match scores used to compare candidate plans. They are 
 
 Current prerequisite and sequence enforcement is incomplete. The repository includes prototype course and policy data that requires counselor review before any controlled school pilot. The engine supports advising conversations; it does not replace school policy or qualified counseling.
 
-## Screenshots
+## Student and counselor views
 
-All repository screenshots use synthetic demo data.
+All screenshots use synthetic demo data. The student dashboard explains the
+recommended paths; the counselor summary supports a follow-up advising conversation.
 
-### Student Login
+| Student recommendation dashboard | Counselor student summary |
+| --- | --- |
+| ![Grade 12 recommendation dashboard](docs/images/grade-12-dashboard.png) | ![Counselor student summary](docs/images/counselor-student-summary.png) |
 
-![Student login page](docs/images/student-login.png)
-
-### Guided Intake
-
-![Student intake flow](docs/images/intake-flow.png)
-
-### Grade 12 Recommendation Dashboard
-
-![Grade 12 recommendation dashboard](docs/images/grade-12-dashboard.png)
-
-### Grade 10 Readiness Mode
-
-![Grade 10 readiness dashboard](docs/images/grade-10-readiness-dashboard.png)
-
-### Counselor Student Lookup
-
-![Counselor dashboard and student lookup](docs/images/counselor-dashboard.png)
-
-### Counselor Student Summary
-
-![Counselor student summary](docs/images/counselor-student-summary.png)
-
-### Printable Counselor Report
-
-![Printable counselor report](docs/images/counselor-printable-report.png)
+[View the full screenshot gallery](docs/screenshots.md) for the intake flow,
+Grade 10 readiness mode, counselor lookup, and printable report.
 
 ## Tech Stack
 
@@ -205,7 +189,7 @@ Render was used in an earlier deployment workflow but is not the current public 
 
 ## What Taysir Built
 
-Taysir created the product concept and problem definition, designed the user flows, and implemented the Next.js and TypeScript application. Verified contributions include:
+I developed the product concept from a problem I observed at school, designed the user flows, and implemented the Next.js and TypeScript rebuild. The work includes:
 
 - student intake and returning-student workflows;
 - deterministic recommendation-engine integration;

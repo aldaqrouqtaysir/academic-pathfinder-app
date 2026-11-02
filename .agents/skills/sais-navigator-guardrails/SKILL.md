@@ -24,11 +24,11 @@ SAIS Academic Navigator is a school-specific academic advising MVP for SAIS Duba
 
 ## Current architecture
 
-- Next.js 14 App Router
+- Next.js 15.5 App Router with React 19
 - TypeScript
 - Tailwind CSS v3
 - Deterministic recommendation engine
-- JSON/file-based persistence
+- Optional server-side Supabase persistence, with a JSON/file fallback
 - MVP-grade student ID login
 - Passcode-protected counselor portal
 - Counselor notes and printable counselor report
@@ -51,7 +51,7 @@ README and demo copy must accurately describe the app as:
 - MVP-grade authentication
 - rule-based / deterministic recommendation engine
 - passcode-protected counselor portal
-- file-based persistence
+- optional Supabase or JSON/file-based persistence
 - school-specific decision-support platform
 
 Avoid overclaims such as:
